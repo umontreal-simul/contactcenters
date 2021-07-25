@@ -44,6 +44,9 @@ However, executing standard `javadoc` will fail.
 User's guide and examples are available in folder `doc`.
 The user needs to compile the LaTeX files to generate the PDF files.
 
+Pre-compiled documentation and Javadoc can be found at
+http://simul.iro.umontreal.ca/contactcenters/docu.html
+
 
 ## Contact
 
