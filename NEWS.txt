@@ -1,0 +1,318 @@
+ContactCenters 0.9.9
+- Convert to Maven build.
+- Changed license type to Apache License, Version 2.0.
+
+
+ContactCenters 0.9.5
+
+- Fixed some bugs in the OverflowAndPriority routing policy.
+- Added getAttributes() methods to Agent, AgentGroup, and WaitingQueue.
+- Fixed a bug with ratios computed by EXPECTATIONOFRATIO-type of performance measures.
+
+ContactCenters 0.9.4
+
+- Added a new routing policy supporting overflow and priorities as
+  well as some forms of conditional routing
+- Added examples in guidemsk.pdf using this new policy
+- Improvements in the documentation
+
+ContactCenters 0.9.3
+
+Generic simulator
+- The generic simulator does not use the static Sim class anymore so
+  one can have multiple CallCenterSim instances to
+  perform simulations in parallel.
+- Added the possibility to randomize the number of agents
+ in periods or on shifts
+- Corrected a NullPointedException thrown when simulating with batch
+  means without estimating MAXQUEUESIZE or MAXBUSYAGENTS performance measures
+- Corrected a bug in ArrivalProcessManager.estimateParameters
+  preventing mskestpar from working if no parameters were given for the
+  arrival process.
+- Fixed a NullPointerExcepton occurring if serviceLevel/target element
+  is omitted.
+- Fixed a bug in parameter estimation for the Poisson arrival process
+ with a gamma busyness factor
+- Removed the DialerPolicyWithLimitedDials class, which is not used
+and superseded by DialerListWithLimits in package msk.model
+- Corrected a bug occurring when the number of outbound call of a
+  given type is bounded while the outbound calls of other types are
+  unbounded
+- When the starting or stopping times of an arrival process or dialer
+  matched the beginning of a period, the simulator was adding 1e-10 to
+  the toggling time for the period-change event to always occur before the
+  starting or stopping;  this could  add a small bias to estimators.
+  This was fixed, because
+  event priorities is now implemented in SSJ.
+- Added an example of how to make parallel simulations, with
+  multiple threads, using the
+  generic simulator
+- Improvements to the documentation
+
+- Added an example showing how the use of the Sim static class can be
+  replaced by the use of a Simulator instance, to allow parallel simulations.
+
+ContactCenters 0.9.2
+
+Generic simulator
+- The WAITINGTIME type of performance measures were estimating
+  E[WS]/E[A] while the correct definition is E[WS+WL]/E[A], where
+ WS and WL are the sum of waiting times for served and abandoned
+ contacts respectively,
+ and A is the number of arrivals.
+ Similar problem with WAITINGTIMEWAIT and EXCESSTIME
+- Corrected problems occurring with sums in SERVEDRATES performance measures when
+  using segments to regroup call types
+- The maximal waiting time over all periods, or over all call types, now corresponds
+  to the maximum, not the sum of the maxima over each period or call type.
+- Fixed an exception thrown when using restrictToPrintedStat="true" in
+  experiment parameters
+- Types of performance measures are now sorted in alphabetic order in
+  reports.
+  Originally, a fixed arbitrary but not always sensible order was used.
+- Better documentation of classes in package msk.model
+- Renamed elements splineTimes and splineLambdas to times and lambdas in
+  the XML parameters for arrival process
+- Added an example of how an histogram of the waiting time distribution can be constructed
+
+- AgentsPrefRouter now throws an IllegalStateException if it requires
+  the longest idle time of agents but cannot compute it because
+  detailed agent groups were not used. The original behavior was to
+  revert to using the greatest number of free agents.
+- Reduced some vertical spacing in PDF documentation
+ Formatting correction in the HTML documentation
+- Added a new Poisson arrival process with piecewise-constant arrival rates but
+  rates changing at arbitrary times not necessarily corresponding to the start of periods.
+
+ContactCenters 0.9.1
+
+Generic simulator
+- Many improvements in the documentation of the XML Schemas
+- The generic simulator called from the command-line now displays a progress indicator
+- Added performance measures for the expected maximal number of busy
+  agents observed, and maximal observed waiting time.
+- The MAXQUEUESIZE performance measure now corresponds to the expected
+  maximal queue size observed during the simulated horizon.
+
+
+- Corrected a sorting bug occurring when converting a matrix of ranks
+   to a type-to-group map.
+- Single-pass contact selection is turned on by default in
+  AgentsPrefRouterWithDelays to be consistent with the XML Schema for
+  the generic simulator
+- Fixed a bug in DetailedAgentGroup.setNumAgents causing busy ghost
+  agents to be ignored when adding agents.
+  This bug resulted in more agents than expected in some models.
+
+ContactCenters 0.9
+
+Generic simulator
+- Modified the XML format to use a XML Schema, for more robust validation
+- Replaced home-made XMLConfig with Sun's JAXB to read/write parameters
+- Error messages of the simulator are now more accurate
+- Computing statistics for (contact type, agent group) pairs is now
+optional, and disabled by default to save memory.
+- Added the possibility of computing statistics for segments
+  regrouping call types, agent groups, or periods
+- Properties such as language, region, etc., can be associated with
+  call types and agent groups, and displayed in reports
+- Extended the model to allow calls to be transferred to other agents,
+  and sent to virtual waiting queues
+- Added multipliers to change overall arrival rate, mean service time,
+  and staffing
+- Many API changes in package msk
+- Many improvements in the documentation
+- The script oldmskccparamsconverter can be used to convert model
+ parameter files intended for ContactCenters 0.8.5 to the newer format
+ for 0.9.
+- The script oldsimparamsconverter can be used for converting experiment parameters.
+
+Added a second generic simulator using a simple Discrete-Time Markov
+Chain model with uniformization.
+This can be called using the script ctmccallcentersim for the
+single-period version, and ctmccallcentersimmp for the multi-period
+version.
+
+ContactCenters 0.8.5
+
+Generic simulator
+- The WAITINGTIME type of performance measures were estimating
+  E[WS]/E[A] while the correct definition is E[WS+WL]/E[A], where
+ WS and WL are the sum of waiting times for served and abandoned
+ contacts respectively,
+ and A is the number of arrivals.
+ Similar problem with WAITINGTIMEWAIT and EXCESSTIME
+
+
+- Fixed a bug in DetailedAgentGroup.setNumAgents causing busy ghost
+  agents to be ignored when adding agents.
+  This bug resulted in more agents than expected in some models.
+- Corrected a sorting bug occurring when converting a matrix of ranks
+   to a type-to-group map.
+
+ContactCenters 0.8.4
+
+Generic simulator
+- Corrected a bug occurring when formatting time durations beyond 24h
+in Excel
+
+ContactCenters 0.8.3
+
+- Corrected a bug in PerformanceMeasureFormat.capitalizeFirstLetter
+
+Generic simulator
+- Added service level for (call type, agent group) pairs
+- Durations such as waiting times, speed of answer, service times,
+etc. now appear as durations in Excel reports rather than numbers.
+
+ContactCenters 0.8.2
+
+- Added a getNumBusyAgents(int) method in AgentGroup to return the
+  number of busy agents serving contacts of a specific type.
+- Added a size(int) method in WaitingQueue to return the number of
+  queued contacts of a specific type.
+- Router.selectContact now returns a DequeueEvent instead of a
+  Contact.
+- Added the Router.DEQUEUETYPE_BEGINSERVICE field for clearer routing code.
+- Added the QueueRatioOverflowRouter class which implements an
+  overflow routing policy using the queue ratio.
+
+Generic simulator
+- Added service time and service ratio performance measure types.
+- Added excess time performance measure types.
+- Added the possibility to omit the probabilities of balking and
+  patience times in the XML file, which provides a simpler way to
+  disable abandonment
+- Removed the shades in the Excel output; this was hard to read in
+  some configurations.
+- The stack trace of the exceptions produced by the simulator is now
+  hidden by default for shorter error messages.
+   The property umontreal.iro.lecuyer.PrintStackTrace can be set to
+   true in order to enable the stack trace, e.g., for debugging purposes.
+- All 1D and 2D arrays in the XML parameter files can now refer to
+data read from CSV text files, Excel documents, or databases.
+- The simulator appends contents to text files or workbooks instead
+  of overwriting
+- Replaced the performance measure type RATEOFPOSWAIT with RATEOFDELAY
+- The service level is estimated using the fraction of calls served
+after a waiting time less than or equal to the acceptable waiting
+time, which results in the probability of service without delay when
+the AWT is 0
+- Added a new reportParams nested elements in simulation parameters
+- Added the possibility to rename or omit sheets in Excel output
+- The simulator now uses JExcel API rather than POI HSSF for reading
+and writing Excel files.  This allows basic support for formulas.
+
+ContactCenters 0.8.1
+
+Added Poisson arrival processes using inversion or thinning for time-varying arrival rates
+Added an agents' preference-based routing policy with overflow delays
+Corrected a bug in the generation of the Javadoc HTML documentation
+
+Generic simulator
+- Locale-specific output formatting, with strings in English or French
+  depending on the default locale
+- Added a non-homogeneous Poisson arrival process using a cubic spline to model
+   the time-varying arrival rate
+- Ratios on [0, 1] are now displayed in percentage notation when
+  formatted into strings
+- Added an option to hide individual periods when formatting statistics
+- Added the average speed of answer and patience time performance
+measures
+- Added an option to format results as a Microsoft Excel document
+- Added an option to send call-by-call trace to a Microsoft Excel
+document
+- Using commas to separate array elements in XML files is now optional
+- When sending its output to a text file, the simulator now uses the
+ correct platform-dependent line separator rather than the newline
+ character.
+
+ContactCenters 0.8
+
+- ContactCenters now uses new features of Java 5.
+- Data structures now use Java 5 generics.
+- WaitingQueue implements Queue<DequeueEvent>.
+- WaitingQueueSet and AgentGroupSet implement Set<WaitingQueue> and Set<AgentGroup>, respectively.
+- ContactCenter cannot be used as a base class anymore; it only provides static methods
+
+Generic simulator
+- Call-by-call data can be traced into a database by using JDBC in addition to a text file
+- PerformanceMeasureType.AVGWORKINGAGENTS becomes PerformanceMeasureType.AVGSCHEDULEDAGENTS.
+- PerformanceMeasureType.AVGWORKINGAGENTS now represents the number of working
+   (busy or free) agents
+- Added a second measure of occupancy ratio, giving the number of busy agents over the number of
+  working agents.
+- Added a new interface, ObservableContactCenterSim, for monitoring the progress of simulations.
+- Added a new interface, ContactCenterSimWithObservations, for obtaining the observations for
+  performance measures estimated by averages.
+- Added a new interface, ContactCenterSimWithObservationSets, for obtaining the observations for
+  simulations with macro-replications or strata.
+- Improved results formatting
+
+Documentation
+- Added more examples of programs using the generic blend/multi-skill simulator
+- Other minor corrections
+
+
+ContactCenters 0.7
+
+Documentation
+- More accurate specification of the behavior of listeners
+- A note was added when a routing policy assumes a specific discipline for waiting queues
+- Other minor corrections
+
+Core classes
+- WaitingQueue.DequeueEvent became DequeueEvent for more convenience.
+   The same thing happened to AgentGroup.EndServiceEvent (became
+  EndServiceEvent), and DetailedAgentGroup.EndServiceEvent (EndServiceEventDetailed).
+- ContactCenterSim.getCompletedReplications became getCompletedSteps.
+- Added a general framework in the Router class for supporting
+  rerouting of queued contacts and idle agents.
+- Added the longest weighted waiting time routing policy
+- Enhanced the agents' preference-based routing policy to support
+  longest weighted waiting time
+- Support for a busyness factor has been incorporated in
+  ContactArrivalProcess, not only in
+  PiecewiseConstantPoissonArrivalProcess.
+- For the NORTA-driven arrival process, the integer parameter of the negative
+ binomial marginal was replaced by a double-precision value.
+- Added methods to estimate parameters for arrival processes.
+- The Contact class is now Cloneable
+- Basic support for partially saving and restoring the state of a
+  simulation (contents of waiting queues, contacts served by agents, etc.)
+- More unit testing was made on the new generic simulator, in package
+  msk.
+
+Options added to the generic blend/multi-skill simulator
+- Ability to specify schedules for agent groups in addition to
+  staffing vectors.
+- Caching, if enabled, applies to all random number generators, not only for
+  inter-arrival times (new generic simulator only)
+- Better handling of events happening at the same time a period begins (new generic simulator only)
+- Added support for the longest weighted waiting time routing policy
+- PerformanceMeasureType was made final and will become a Java 5 enum
+  in a future release.
+- Added methods, in PerformanceMeasureType, to query the type of row
+  and column, and the type of estimation defining a group of
+  performance measures.
+- In the XML file, replaced varGen with busynessGen.
+- Added the possibility, in the XML files, to give data rather than
+parameters for probability distributions and arrival processes.
+  When data is given, parameters are estimated using maximum likelihood.
+- For NORTA-driven arrival processes, the XML element nortaN becomes nortaGamma and
+  is an array of double-precision values rather than an array of integers.
+
+ContactCenters 0.6.1
+
+- Minor corrections in the documentation
+- Added an example of a simple simulator producing a call-by-call trace.
+- Added a new generic simulator intended to replace MSKCallCenterSim in a future version
+- Added convenience scripts to launch the generic simulator from the command-line
+
+Options added to the generic blend/multi-skill simulator
+- Call-by-call trace.
+- Possibility of disabling the CPU time computation with the Chrono.
+
+Version 0.6
+
+First released ContactCenters library.

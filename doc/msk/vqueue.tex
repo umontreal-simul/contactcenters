@@ -1,0 +1,45 @@
+\begin{tikzpicture}[shape=rectangle,>=stealth]
+\node (enterQueue) [draw, line width=2pt] {Call entering queue};
+\node (wtPred) [draw, node distance=4cm, right of=enterQueue, text
+width=3cm] {Waiting
+  time prediction $W$};
+\node (thresh) [draw, shape=diamond, node distance=4cm, right
+of=wtPred, text width=3cm]
+{$W$ smaller than threshold?};
+\node (regWait) [draw, node distance=5cm, right of=thresh]
+{Regular waiting};
+\node (vqopt) [draw, shape=diamond, node distance=5cm, below
+of=enterQueue, text width=2cm]
+{Customer call back?};
+\node (multnovq) [draw, node distance=5cm, right of=vqopt, text
+width=3cm, yshift=1cm]
+{Change of patience and service times};
+\node (waitvq) [draw, node distance=3cm, below of=multnovq, text
+width=2.5cm]
+{Waiting in virtual queue};
+\node (callback) [draw, shape=diamond, node distance=4cm,
+right of=waitvq, text width=2cm] {Call back succeeds?};
+\node (blocked) [draw, shape=ellipse, node distance=4cm,
+right of=callback] {Blocking};
+\node (multcallback) [draw, node distance=3cm, above of=blocked, text
+width=3cm, xshift=-1cm] {Change of patience and service times};
+\node (routing) [draw, node distance=2.2cm, above of=multcallback,
+text width=3cm, xshift=0.5cm]
+{Second routing of the call};
+
+\draw[->] (enterQueue) -- (wtPred);
+\draw[->] (wtPred) -- (thresh);
+\draw[->] (thresh)
+--
+node [above] {Yes}
+(regWait);
+\draw[->] (thresh.south) -| node [above] {No} (vqopt.north);
+\draw[->] (vqopt.east) -- node [above] {No} (multnovq);
+\draw[->] (multnovq) -- (regWait);
+\draw[->] (vqopt.south) -- node [below] {Yes} (waitvq);
+\draw[->] (waitvq) -- (callback);
+\draw[->] (callback.east) -- node [below] {No} (blocked);
+\draw[->] (callback.north) |- node [above] {Yes} (multcallback);
+\draw[->] (multcallback) -- (routing);
+\draw[->] (routing) -- (regWait);
+\end{tikzpicture}

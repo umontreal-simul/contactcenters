@@ -1,0 +1,54 @@
+<body>
+Provides classes implementing the logic
+containing the necessary instructions
+to simulate a model of a call
+center, and interact with facilities
+for statistical collecting.
+Such a logic can simulate independent replications
+using a given model, or split a single long replication
+into time intervals. In both cases, the simulation can
+be divided into steps corresponding to either replication,
+either time intervals also called batches.
+
+To perform an experiment, a simulation logic is first
+initialized, which resets the
+state of its associated
+model to an empty system.
+The logic can then be used to simulate a certain number of steps.
+ 
+The simulation logic interacts with the statistical
+collecting facilities in the following ways.
+First, any simulation can
+provide a period index for each observed call.
+This period index often corresponds to the period of arrival of the call,
+but it can also be the period at which the service ends,
+a fixed value (for simulations with batch means), etc.
+A simulation logic makes matrices of counters available for
+statistical collectors.
+When such a matrix is required, the logic may perform
+some processing such as aggregating columns or
+normalizing values with respect to time.
+After each step, the simulation logic adds observations
+to statistical collectors.
+
+The simulation logic is represented by an object implementing the
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic.SimLogic} interface
+which inherits interfaces in the package
+{@link umontreal.iro.lecuyer.contactcenters.msk.stat}
+for interaction with statistical collecting facilities.
+This package provides two implementations of this interface:
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic.RepLogic}
+for simulating independent replications, and
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic.BatchMeansLogic}
+for simulations with batch means of a single period as if it was
+infinite in the model.
+
+Moreover, an object implementing the
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic.SimLogicListener} interface
+can be registered with a simulation logic and used to monitor the
+simulated steps.
+The
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic.SimLogicBase}
+class
+also provides some support methods for simulation logics.
+</body>

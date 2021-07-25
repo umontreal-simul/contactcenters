@@ -1,0 +1,194 @@
+\section{A simplified call center with multiple periods}
+\label{sec:CallCC}
+
+This example comes from the SSJ User's Guide \cite{iLEC04j} and models
+a call center with a single call type, a single agent group, but
+multiple periods.  
+Each day, the center operates for $P$ hours.  The arrival rate of
+calls and the number of agents answering them vary during the day, but
+they are constant within each hour.  
+
+The simulation time $T$ of a
+replication is divided into $P+2$ periods. 
+We assume that the contact center is opened during $P$ \emph{main
+  periods}.  Main period~$p$, for $p=1,\ldots,P$, corresponds to time
+interval $[t_{p-1}, t_p)$, where $0 \le t_0 < \cdots < t_P$.
+Since the simulation may start before the contact center opens and
+stop after it closes, two extra periods are defined.
+During the \emph{preliminary period}
+$[0, t_0)$, the center is closed and no service occurs, but
+arrivals may start during this period for a queue to build up.
+During \emph{wrap-up period} $[t_P, T]$,
+no arrival occurs, but in-progress
+services are terminated and queued contacts are processed.
+
+Calls arrive following a Poisson process with piecewise-constant
+randomized arrival rate $B\lambda_p$ during period~$p$, where
+$\lambda_p$ is
+constant and $B$ is a random variable having the gamma distribution with
+parameters $(\alpha_0, \alpha_0)$.
+Thus, $B$ has mean~1 and
+variance~$1/\alpha_0$, and it represents the busyness of the day.
+The day is more busy than usual when $B>1$ and less busy than usual
+when $B<1$.
+
+Calls that cannot be served immediately are put in a FIFO queue as in
+the previous example, but callers can abandon.  The i.i.d.\ patience
+times are generated as follows: with probability $\rho$, the patience
+time is 0, i.e., the caller abandons if he cannot be served
+immediately.  With probability $1-\rho$, the patience time is
+exponential with mean $1/\nu$.  Service times are i.i.d.\ gamma random
+variables with shape parameter~$\alpha$, scale parameter~$\beta$,
+and mean~$\alpha/\beta$.
+
+During main period~$p$, $N_p$ agents are available to serve calls.
+If, at the end of period~$p$, the number of busy agents is
+larger than $N_{p+1}$, ongoing calls are completed, but new
+calls are not accepted until the number of busy agents is smaller than
+$N_{p+1}$.  During the preliminary period, there is no agent whereas
+for the wrap-up period, $N_{P+1}=N_P$.
+
+We are interested in estimating the long-term expected waiting time
+among all calls, the fraction of calls having waited less than $s$
+seconds, and the fraction of calls having abandoned.
+The service level estimated by this program is defined as
+\begin{equation}
+g_2(s)=\frac{\E[\Sg(s) + \Lg(s)]}{\E[A]},\label{eq:sl2}
+\end{equation}
+which differs from~(\ref{eq:slab}).
+Let $\WL$ be the sum of waiting times for calls having abandoned.
+If $W=\WS+\WL$ is the total waiting time of all calls and
+$A=X+Y$ is the number of
+arrivals, the estimated performance measures are $\E[W]/\E[A]$,
+$\E[\Sg(s) + \Lg(s)]/\E[A]$, and $\E[L]/\E[A]$.
+
+The ContactCenters program presented on
+Listing~\ref{lst:CallCC} is simpler than the one presented in SSJ's
+User's Guide, because many complex aspects are hidden in the library.
+
+\lstinputlisting[
+caption={A call center with multiple periods},%
+emph={main,simulateOneDay,MyContactFactory,MyContactMeasures},
+label=lst:CallCC
+]
+{CallCC.java}
+
+To be compatible with the SSJ example, this program reads the
+parameters from a file with the same format.
+However, the used file format is sequential, thus inappropriate for
+complex models: input errors cannot be detected, and the format cannot
+be extended easily.
+A properties file, or an hierarchical format such as XML, is
+strongly recommended instead of this format.
+Parameters are read by
+\texttt{read\-Data}, which is the exact
+copy of the method found in the SSJ example,  and
+stored in fields used for constructing the system.
+In this program, the main time unit is the second rather than the
+minute.
+
+When reading $\lambda_p$ and $N_p$, $\E[A]=\sum_{p=1}^P\lambda_p$ is
+computed.  The arrival rate for the two extra periods is set to 0.
+After the data is read, the service times generator \texttt{gen\-Serv}
+as well as the busyness generator \texttt{bgen}
+are constructed.
+
+The \emph{period-change event} is then created
+to divide the simulation horizon into $P+2$ periods.
+This event
+is used to notify \emph{period-change listeners} (some arrival
+processes,
+agent groups, custom listeners, etc.)
+when a new period starts.  It also provides
+methods to convert simulation times to period indices and get the
+start and
+end times of a specific period.  It can manage fixed-sized main periods as
+well as variable-sized ones.
+Note that as any other simulation event, the period-change event has
+an associated instance of the \texttt{Simulator} class.
+If a \texttt{Simulator} instance is created
+as in section~\ref{sec:MMCSim},
+it must therefore be passed
+explicitly to the constructor when creating the period-change event.
+
+The Poisson arrival process is constructed with a period-change event,
+a contact factory, an array of $P+2$ arrival rates, and a random
+stream.  This process automatically registers as a period-change
+listener to update the arrival rate at the beginning of
+periods.  The arrival rates entered in the input file provide the
+number of calls for
+each hour while the Poisson arrival process needs these rates to be
+relative to one second.
+Since the period duration corresponds to one hour, i.e.,
+\texttt{HOUR} seconds, input data could also be considered to
+provide the arrival rate per period.
+We can then get the appropriate scaling by turning normalization on
+for the arrival process. When normalization is
+enabled, the arrival process automatically divides arrival rates
+by the period duration before using them.  If it is turned off (the
+default), arrival rates are not transformed.
+
+The agent group is constructed with the period-change event and an
+array of $P+2$ elements containing the number of agents for each
+period.
+As the arrival process, the agent group is automatically registered as
+a period-change listener for the number of members to be updated at
+the beginning of periods.
+
+As in the previous section, the router is constructed to
+associate the single agent group with the single waiting queue.  The
+same connections as for the $M/M/c$ queue are needed between the
+components of the system.
+
+The \texttt{simulate} method initializes the statistical collectors
+and calls \texttt{simulate\-One\-Day} $n$ times to perform
+the replications.  The latter method initializes the simulation clock
+and all counters.  It initializes the period-change event, which
+resets the current period to 0.  The arrival process is initialized
+with a new value of $B$, which is obtained using \texttt{bgen}.
+Even though the arrival process is started before calling
+\texttt{Sim.start}, thus at time~0, the first
+arrival occurs after $t_0\ge 0$, because the arrival rate is 0 during
+the preliminary period.  When the period-change event is started,
+using \texttt{pce.start}, it is scheduled at time~$t_0$ to open the
+call center.
+The \texttt{Sim.start} method is then called, which starts
+executing events.
+
+After the simulation is finished, it is recommended to call the
+\texttt{stop} method of \texttt{Period\-Change\-Event} for each
+period-change
+listener to be notified about the end of the simulation which is not
+scheduled as a period-change event.
+Observations are added to the appropriate tallies before
+\texttt{simulate\-One\-Day} exits.
+
+The contact factory is similar to the one in the previous section,
+except that
+the patience time is generated by \texttt{gener\-Patience}.  The
+exited-contact listener contains code in the \texttt{dequeued} and
+\texttt{served} methods to count arrived and abandoned contacts if
+necessary.  In both cases, the waiting time of the contact is obtained
+and added to a tally, and a good call is counted if the waiting time
+is smaller than $s$.
+
+The contact center closes at the beginning of the wrap-up period,
+i.e., at time~$t_P$.  In
+the $M/M/c$ queue, we had to manually disable the 
+arrival process, because it was stationary.
+In this example, because the arrival rate is set to 0 in the wrap-up
+period, the arrival process is shut off automatically.  New arrivals
+do not occur, but
+all queued contacts are served before the simulation stops.
+If $N_{P+1}$ was equal to 0 rather than $N_p$, agents would terminate
+their ongoing service, but no new service would start during the
+wrap-up period.  As a result, every contact still in queue during this
+period would have to abandon.
+
+After all replications are terminated,
+the \texttt{print\-Statistics} method produces a report similar to
+Listing~\ref{res:CallCC}. 
+
+\lstinputlisting[caption={Results of the program \texttt{CallCC}},%
+label=res:CallCC,language={},float=htb
+ ]{CallCC.res}

@@ -1,0 +1,55 @@
+<body>
+Manages waiting queues for storing contacts not being
+served immediately.
+A waiting queue
+represents a data structure organizing
+waiting contacts while supporting abandonment.
+Three types of data structures are available for waiting queues, each
+implemented in concrete subclasses of
+{@link umontreal.iro.lecuyer.contactcenters.queue.WaitingQueue}:
+a list, a sorted set, or a heap.
+
+The {@link umontreal.iro.lecuyer.contactcenters.queue.StandardWaitingQueue}
+uses a {@link java.util.List}
+for First In First Out (FIFO)
+or Last In First Out (LIFO) queues.  Queued contacts are ordered
+based on their arrival times, and can be easily
+enumerated.
+When the number of priorities is
+finite and small, priority queues can be implemented efficiently by
+combining several standard waiting queues.
+
+General priority queues are implemented by
+{@link umontreal.iro.lecuyer.contactcenters.queue.QueueWaitingQueue},
+which uses a heap implemented by
+the {@link java.util.Queue} interface.
+By default, contacts are ordered using
+their arrival times and their priorities,
+but the user may supply its
+own {@link java.util.Comparator}
+to change this order.
+Heaps are very efficient for inserting
+new contacts or
+removing the first contact,
+but queued contacts are
+not enumerated
+in any particular order.
+
+The most generic waiting queue,
+{@link umontreal.iro.lecuyer.contactcenters.queue.PriorityWaitingQueue},
+uses a {@link java.util.SortedSet}
+to store contacts. As with the heap-based
+queue, the user can supply its own
+{@link java.util.Comparator} to order
+contacts.
+Contacts are also enumerated in the
+order defined by the comparator used.
+However, the operations on
+the sorted set are slower
+than the operations on a list
+or a heap.
+
+This package also provides support classes to obtain maximal queue
+times and to compute the integral of the queue size over simulation
+time.
+</body>

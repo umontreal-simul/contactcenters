@@ -1,0 +1,14 @@
+#!/bin/sh
+
+while [ $# -gt 0 ]; do
+   if [ ! -r $1 ]; then
+      echo "File $1 does not exist"
+   else
+     echo "<body>" > out.tmp
+     cat $1 >> out.tmp
+     echo "" >> out.tmp
+     echo "</body>" >> out.tmp
+     mv out.tmp $1
+   fi
+  shift
+done

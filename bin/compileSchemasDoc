@@ -1,0 +1,9 @@
+#!/bin/sh
+
+PCC=source/umontreal/iro/lecuyer
+#xsddoc -t ContactCenters -o doc/schemas $PCC/schemas/ccmsk.xsd
+CP=$DFHOME/lib/xml-apis.jar:$DFHOME/lib/xercesImpl.jar:$DFHOME/lib/docflex-xml-kit.jar
+CMD=com.docflex.xml.Generator
+TPL=$DFHOME/templates/XSDDoc/FramedDoc.tpl
+rm -rf doc/schemas/*
+java -Xmx800m -classpath $CP $CMD -nodialog -launchviewer=false -template $TPL -format HTML -d doc/schemas $PCC/schemas/ccmsk.xsd

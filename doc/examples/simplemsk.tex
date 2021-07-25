@@ -1,0 +1,408 @@
+\section{A simple multi-skill contact center}
+\label{sec:SimpleMSK}
+
+This section presents an example of a contact center with three
+contact types, two
+agent groups, and three two-hours periods.  Contacts arrive
+following a non-homogeneous Poisson process
+with randomized arrival rate
+$B\lambda_{k, p}$ for contact type~$k$ during period~$p$.
+As in the previous section,
+$B$ is a gamma busyness factor with parameters
+$(\alpha_0, \alpha_0)$.
+
+When a contact arrives, an agent is selected from a group depending on
+the contact type.  Contacts of type~0 can only be served by agents in
+group~0 while contacts of type~2 can only be served by agents in
+group~1.  Contacts of type~1 are served by agents in group~0, or
+in group~1 if no agent is free in group~0.
+For contacts arriving during period~$p$,
+service times are i.i.d.\ exponential random variables with
+mean~$1/\mu_p$.
+Agents in groups are not differentiated, and the total number of
+agents can change from periods to periods.
+
+A contact that cannot be served immediately is added to a waiting
+queue corresponding to its type.  After a patience time, if service
+has not started, the contact abandons.  For contacts arriving during
+period~$p$,
+patience times are i.i.d.\ exponential variables with mean~$1/\nu_p$.
+
+We are interested in the overall service level defined
+by~(\ref{eq:slab}), and the occupancy ratio
+of the first agent group defined by
+\begin{equation}
+o_i=\frac{E\left[\int_0^{t_P} \Nb[i](t)\
+    dt\right]}{E\left[\int_0^{t_P} (N_i(t)+\Ng[i](t))
+    dt\right]}\label{eq:occi}
+\end{equation}
+where $\Nb[i](t)$ corresponds to the number of busy agents in
+group~$i$, $N_i(t)$ corresponds to the total number of agents in group~$i$,
+and $\Ng[i](t)$ corresponds to the number of ghost agents in
+group~$i$, at time~$t$.
+We also estimate $\E[\Sg[k, p](s)]$ for $k=0,\ldots,K-1$ and
+$p=0,\ldots,P-1$, the number of contacts meeting the service level
+target.
+
+\subsection{Implementing the model}
+
+Listing~\ref{lst:SimpleMSK} presents the code implementing this
+model.
+
+\lstinputlisting[
+caption={A simple multi-skill contact center},%
+emph={main,simulateOneDay,MyContactFactory,MyContactMeasures},
+label=lst:SimpleMSK
+]
+{SimpleMSK.java}
+
+As with previous examples, a class representing the simulator is
+defined.  The \texttt{main} method constructs the simulator, runs a
+simulation, and prints some statistics.
+
+Fields are declared for contact center's components, statistical
+counters, etc.
+For the number of served and
+abandoned contacts, simple integers are sufficient,
+but a matrix is needed to get the number of contacts meeting service
+level target, for each contact type and main period.
+
+As in previous examples, a constructor is responsible for creating all
+arrival processes, agent groups, waiting queues, etc.
+The period-change event has a preliminary period of length~0,
+two-hours main periods, and a wrap-up period with
+random length.
+For each contact type, a factory and an arrival process are
+constructed.  In contrast with the previous examples, the
+factory requires the contact type identifier to be given as an
+argument.  In this example,
+all the arrival processes use the same period-change event to be
+notified when a new period starts.  Some arrival processes could of
+course use different period-change events.
+Constructing the agent groups only
+requires the period-change event for $N_i(t)$ to be automatically updated,
+and an array containing the number of agents for each period.
+
+Service and patience times are generated using
+random variate generators adapted for multiple periods.  Such
+generators use a
+period-change event to determine the current period and select a
+period-specific generator to get random values.  The generic way to
+construct them is to create a random variate generator for each
+period and give the resulting array of generators, with a
+period-change event, to the
+constructor of \texttt{Multi\-Period\-Gen}.  For some distributions,
+including exponential,
+helper methods such as \texttt{create\-Exponential}
+are available to construct the generators more
+conveniently.
+
+Because each waiting queue and agent group is
+functionally identical, it is the task of the router to decide which contacts to
+send to which agents or
+queues, and from which queues contacts must be removed.
+For the router to be constructed, a type-to-group map and a
+group-to-type map are needed.  The selected
+\texttt{Single\-FIFO\-Queue\-Router} class affects how these
+structures are used.  Here, because we model a multi-skill contact
+center, the data structures for the routing policy become important
+and can greatly affect the performance of the contact center.
+The choice of the subclass of \texttt{Router} affects how
+contacts interact with the center.
+
+The \texttt{simulate\-One\-Day} method must initialize several arrays
+of elements, including arrival processes, agent groups, and counters.
+The same value of $B$ is used for every arrival process, because the
+busyness is not specific to a contact type.
+As in the previous example, the period-change event and the
+arrival processes are started before the simulation starts.
+
+One factory object has been constructed for each arrival
+process, the only difference between these objects being the value of
+their \texttt{type} field.  This
+avoids the necessity of one factory class for each contact type,
+which greatly improves scalability.
+The factory constructs a contact of the
+appropriate type and generates a service and a patience times.
+
+When a contact of type~0 arrives, the router takes the element~0 of
+the type-to-group map, which corresponds to an ordered list containing
+the
+agent group~0 only.  Let $\Nf[i](t)$ be the number of idle agents in
+group~$i$ available to serve contacts.
+If $\Nf[0](t)>0$, the contact is served
+immediately.  Otherwise, it is added to waiting queue~0.  Contacts of
+type~2 are treated similarly.  For contacts of type~1, the router
+obtains an ordered list containing~0 and~1.  If $\Nf[0](t)>0$, the contact
+is served immediately by an agent in group~0.  Otherwise, it overflows
+to the next agent
+group in the list:  if $\Nf[1](t)>0$, the contact is served by an
+agent in group~1.
+Otherwise, it is added at the end of the queue~1.
+
+When an agent within group~0 becomes free or is added, the router uses
+the group-to-type map to obtain the ordered list $\{1, 0\}$.  The
+chosen
+router selects the queued contact with the longest waiting time rather
+than using the order induced by the list.  If the waiting queues
+accessible for agents in group~0 contain no contact, the agent
+remains free until new arrivals occur.  Similar routing
+happens for agents in group~1.  This is equivalent to managing a
+single FIFO queue by merging all
+per-type waiting queues, sorting contacts by increasing arrival
+times, and removing the first contact the free agent can serve.
+
+If \texttt{Queue\-Priority\-Router} was used as in previous examples,
+the algorithm for agent selection would be the same, but waiting
+queues would be scanned sequentially rather than considered as a
+single FIFO queue.  For example, if an agent in
+group~0 became free, the queue priority router would check for
+contacts in queue~0 only when queue~1 is empty.
+
+Each contact exiting the system is notified to the registered
+exited-contact listener.  The \texttt{blocked} method does nothing
+because
+the capacity of the contact center is infinite; no contact is
+blocked.   When a contact leaves the queue without service, it is
+counted as having abandoned.
+If its waiting time is greater than or equal
+to $s$, a contact having abandoned after the acceptable waiting time
+is also counted.  When a
+contact is served, a new service is counted.  If its waiting time is
+small enough, it is also counted as a contact meeting service level
+target.
+
+For a contact to be counted in \texttt{numGoodSLKP}, the main
+period of its arrival must be
+determined.  Arrivals occur in periods~$1,\ldots,P$,
+corresponding to main periods~$0,\ldots,P-1$.
+If the main period index, i.e., the period index minus one, is
+negative or greater than or equal to~$P$,
+the arrival occurred during the preliminary or
+wrap-up periods, and the event is ignored.  When the arrival occurs
+during a main period, the appropriate element of the matrix is
+incremented.
+
+\lstinputlisting[caption={Results of the program \texttt{SimpleMSK}},%
+label=res:SimpleMSK,language={},float=htb,breaklines,prebreak={\char92}
+ ]{SimpleMSK.res}
+
+After the simulation stops, the \texttt{stop} method of
+\texttt{Period\-Change\-Event} is called,
+computed observations are added to collectors.
+To keep the program simple, we estimate the occupancy ratio from
+times~0 to~$T$ rather than~$t_P$.  Getting the correct ratio would
+require the creation of a custom period-change listener to get
+$\int_0^{t_P}\Nb[0](t)\ dt$ and $\int_0^{t_P} (N_0(t)+\Ng[0](t)) dt$ at
+time~$t_P$, i.e., at the beginning of wrap-up period.
+This will be done in a further example, in sections~\ref{sec:occcor}
+and~\ref{sec:Blend}.
+Listing~\ref{res:SimpleMSK} displays the results of the program when
+performing 1000 independent runs.
+
+
+\subsection{Adding a contact-by-contact trace}
+
+For debugging or advanced statistical processing using tools such as
+SAS or R, it may be
+needed to get a contact-by-contact trace of the simulation. This can be done
+easily by using observers, as shown in
+Listing~\ref{lst:SimpleMSKWithTrace}.
+This example is a simplified version of the trace facility available
+in the generic simulator of call centers supporting blend and
+multi-skill systems.
+It shows how it is possible to extract information from a contact
+object, and other parts of the simulator.
+
+\lstinputlisting[
+caption={Contact-by-contact trace added to the simple multi-skill contact
+  center example},%
+emph={main,simulateOneDay,ContactTrace},
+label=lst:SimpleMSKWithTrace
+]
+{SimpleMSKWithTrace.java}
+
+This program behaves the same as the program in the preceding subsection,
+but it creates a text file named \texttt{contactTrace.log} with one line
+for each processed contact, whether it has abandoned or was served.
+One can then open the resulting (large) trace file with any text
+editor, or make a program to parse it.
+Listing~\ref{res:SimpleMSKWithTrace} displays ten lines of the trace
+produced by the program.  We cannot display the full trace, because
+its size is 2MB, even though we have simulated only five days.
+
+The trace contains the following fields:
+\begin{description}
+\item[Step] The index of the replication the contact arrived in.
+\item[Type] The type of the contact.
+\item[Period] The period the contact arrived in.
+\item[ArvTime] The simulation time of the contact's arrival.
+\item[QueueTime] The waiting time in queue of the contact.
+\item[Outcome] The outcome of the contact, can be \texttt{Served} or \texttt{Abandoned}.
+\item[Group] The group index of the agent who has served the contact, or
+  $-1$ for abandoned contacts.
+\item[SrvTime] The service time of the contact, or \texttt{NaN} for
+  unserved contacts.
+\end{description}
+
+\lstinputlisting[caption={Sample trace produced by the program \texttt{SimpleMSKWithTrace}},%
+label=res:SimpleMSKWithTrace,language={},float=htb
+ ]{SimpleMSKTrace.res}
+
+The program defines a class named \texttt{SimpleMSKWithTrace} which
+extends \texttt{SimpleMSK} to inherit the simulation logic of the
+example in the previous subsection, but it adds a new exited-contact
+listener to the router for logging contacts.
+This trace manager, which is initialized at the beginning of the
+simulation, writes a trace entry to a file for any exiting contact.
+It does not have any effect on how the contacts are managed by the
+simulator.
+
+The new subclass defines three fields: the trace manager, the output
+trace file, and the current
+replication number.
+The first two fields are initialized by the constructor, which also
+attach the trace manager to the router, defined in the superclass
+\texttt{Simple\-MSK}.
+This way, every contact processed by the router is broadcast to the contact
+trace manager.
+Moreover, one could disable the contact-by-contact trace simply by unregistering
+the trace manager from the router.
+
+The last field is updated after each replication by an overridden
+\texttt{simulate\-One\-Day} method, and is used when formatting trace
+entries.
+
+The overridden \texttt{simulate} method opens the trace file at
+the beginning of the simulation, calls the \texttt{simulate} method
+from the superclass to
+perform the simulation, and closes the trace at the end.
+We put the call to \texttt{close} into a
+\texttt{finally} block that will be called even if an unexpected
+exception is thrown by the simulator.
+This prevents any loss of information caused by an unflushed buffer.
+
+The main part of the program is the
+\texttt{Trace\-Manager} inner class which is an exited-contact listener
+producing the data written into the trace.
+A trace manager has an associated print writer used to format trace
+entries into the output file.
+
+Log lines are constructed by the \texttt{dequeued} and \texttt{served}
+methods of \texttt{Trace\-Manager}, using the \texttt{format} method
+of \texttt{Print\-Writer}.
+Note how the arrival time, the service time, the waiting time, the
+contact type, etc.\ can all be extracted from the \texttt{Contact}
+object.
+The \texttt{format} method fills a user-provided pattern
+by using the values given by the remaining arguments.  The print stream
+takes the system's current locale and the line separator into account.
+
+Arrival times and time durations are formatted with a fixed
+number \texttt{timePrecision} of decimal digits of precision, which is
+set to 3 in this program.
+This allows for a better visual formatting of the data in the plain
+text file.
+One could easily use another format, e.g., XML, or use JDBC to
+write data into a database instead of a file.
+
+\subsection{Rerouting queued contacts}
+
+Agents may sometimes be allowed to serve some types of contacts only
+after the contacts have waited for some time in queue.
+For example, we can modify the model of this example to allow agents
+in group~1 to serve contacts of type~1 only after these contacts have
+waited more than 12s.
+This can be done by customizing the router as in
+Listing~\ref{lst:SimpleMSKWithRerouting} for \emph{contact rerouting},
+i.e., the router can, after a delay elapses, reprocess a queued
+contact for a new agent selection with different criteria.
+Note that the router in ContactCenters also supports \emph{agent
+  rerouting} which is not covered in this example but
+works in a way similar to contact rerouting:
+if an agent stays free after the end of a service for a certain delay,
+the router can reprocess the agent to do a new contact selection, with
+different criteria.
+Of course, agent rerouting requires the agent groups to keep track of
+individual agents.
+
+\lstinputlisting[
+caption={Contact rerouting added to the simple multi-skill contact
+  center example},%
+emph={main,MyRouter},
+label=lst:SimpleMSKWithRerouting
+]
+{SimpleMSKWithRerouting.java}
+
+The customized router, named \texttt{My\-Router}, extends the
+\texttt{Single\-FIFO\-Queue\-Router} used by the original example.
+As a result, the agent and contact selections are performed the same
+way as in the original example, but we use a different type-to-group
+map which allows incoming contacts of type~1 to be served by agents in
+group~0 only.
+
+Contact rerouting works as follows.
+When a new contact is notified to the router, an agent is selected by
+the \texttt{select\-Agent} methods which is given the new contact as
+its argument. This method must construct and return an end-service
+event representing the served contact, or \texttt{null} if the contact
+cannot be served.
+When the contact cannot be served, it is added into a waiting queue by
+the \texttt{select\-Waiting\-Queue} method of the router.
+If the contact can be queued, the router obtains its initial
+\emph{rerouting delay}, i.e., the time after which the queued contact
+is reprocessed if still in queue.
+If this delay is negative, no rerouting happens, which is the default.
+When a positive rerouting delay elapses for a queued contact, the
+router passes this queued contact to a second \texttt{select\-Agent}
+method which accepts the dequeue event along with the number of
+reroutings done. For the first rerouting, this corresponds to 0.
+This new method returns an end-service event or \texttt{null}, exactly
+as the ordinary \texttt{select\-Agent} method.
+Of course, the scheme for agent selection implemented by this method
+should differ from the scheme implemented by the ordinary
+\texttt{select\-Agent} method.
+If the contact still cannot be served, it remains in queue, and a new
+rerouting delay is required.
+The process continues until a negative delay is obtained, the contact
+is served, or abandons.
+
+The initial rerouting delay is obtained
+using \texttt{get\-Rerouting\-Delay} with
+$-1$ as the number of preceding reroutings. By
+default, this method always returns $-1$, which results in no rerouting.
+In our case, we return \texttt{DELAY} if the number of reroutings done
+is $-1$, or $-1$ otherwise.
+The \texttt{select\-Agent} method for rerouting applies the overflow
+routing of the
+original example, which allows contacts of type~1 to be routed to
+agents in group~1 when no agent is available in group~0.
+
+We also need to override contact selection in order to prevent an
+agent in group~1 to dequeue a contact of type~1 if its waiting time is
+smaller than \texttt{DELAY}.  We therefore override the
+\texttt{select\-Contact}
+method of \texttt{Router}, which accepts an agent group containing the
+free agents, and returns the dequeue event representing the
+contact to serve.
+Our method scans the waiting queues accessible to the free agent, and
+records the waiting queue whose first contact has the smallest enqueue
+time. However, if the free agent is in group~1, the method filters out
+queue~1 if the first contact has a waiting time smaller than
+\texttt{DELAY}.
+After the queue is selected, the first contact is removed, and
+returned.  The contact is removed with dequeue type
+\texttt{DEQUEUETYPE\_BEGINSERVICE} which is used to represent the
+beginning of the service for a queued contact.
+
+Listing~ \ref{res:SimpleMSKWithRerouting} shows that the modified
+program produces slightly different results: the number of contacts
+having abandoned is higher and the service level is smaller than with
+the original model.  The simulator behaves as we would expect:
+some contacts of type~0 have to wait 12s longer in queue before they
+can be served, and some of them abandon while they were served in the
+original setting.
+
+\lstinputlisting[caption={Results of \texttt{SimpleMSKWithRerouting}},%
+label=res:SimpleMSKWithRerouting,language={},float=htb,breaklines,prebreak={\char92}
+ ]{SimpleMSKWithRerouting.res}

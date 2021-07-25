@@ -1,0 +1,8 @@
+<ccapp:repSimParams minReplications="100" keepObs="true"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95">
+      <printedObs measure="RATEOFSERVICES"/>
+      <printedObs measure="RATEOFABANDONMENT" row="0" column="1"/>
+      <printedObs measure="RATEOFSERVICESBEFOREAWT"/>
+   </report>
+</ccapp:repSimParams>

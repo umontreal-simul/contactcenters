@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ccmsk:MSKCCParams xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk"
+   startingTime="PT8H" periodDuration="PT30M" numPeriods="22" defaultUnit="SECOND">
+   <inboundType name="Small">
+      <patienceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+         <defaultGen>300</defaultGen>
+      </patienceTime>
+      <serviceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+         <defaultGen>650</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true" arrivalsMult="0.1">
+         <arrivals>176 228 316 345 357 357 346 333 330 316 310 308 299 290
+                   290 298 298 274 180 137 113 99</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Large">
+      <patienceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+         <defaultGen>300</defaultGen>
+      </patienceTime>
+      <serviceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+         <defaultGen>650</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true" arrivalsMult="0.9">
+         <arrivals>176 228 316 345 357 357 346 333 330 316 310 308 299 290
+                   290 298 298 274 180 137 113 99</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <agentGroup detailed="true" name="Small">
+      <staffing>7 10 13 15 16 16 16 15 14 14 14 14 13 13 14 13 14 12 10 8 7 6</staffing>
+   </agentGroup>
+   <agentGroup detailed="true" name="Large">
+      <staffing>47 69 94 106 110 111 111 109 103 101 98 98 96 91 93 94 94 88 60 49 38 35</staffing>
+   </agentGroup>
+   <router routerPolicy="OVERFLOWANDPRIORITY">
+      <!-- Routing script for first call type -->
+      <callTypeRouting>
+         <stage waitingTime="PT5S">
+            <default>
+               <agentGroupRanks>1   INF</agentGroupRanks>
+            </default>
+         </stage>
+         <stage waitingTime="PT35S">
+            <default>
+               <agentGroupRanks>INF  INF</agentGroupRanks>
+            </default>
+         </stage>
+         <stage waitingTime="PT40S">
+            <default>
+               <agentGroupRanks>INF  2</agentGroupRanks>
+            </default>
+         </stage>
+      </callTypeRouting>
+      <!-- Routing script for second call type -->
+      <callTypeRouting>
+         <stage waitingTime="PT5S">
+            <default>
+               <agentGroupRanks>INF   1</agentGroupRanks>
+            </default>
+         </stage>
+         <stage waitingTime="PT35S">
+            <default>
+               <agentGroupRanks>INF  INF</agentGroupRanks>
+            </default>
+         </stage>
+         <stage waitingTime="PT40S">
+            <default>
+               <agentGroupRanks>2  INF</agentGroupRanks>
+            </default>
+         </stage>
+      </callTypeRouting>
+   </router>
+   <serviceLevel>
+      <awt>
+         <row>PT20S</row>
+         <row>PT40S</row>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

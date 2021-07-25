@@ -1,0 +1,62 @@
+\begin{tikzpicture}[shape=rectangle,>=stealth]
+\node (endService) [draw, line width=2pt] {End of regular service};
+\node (transfer) [draw, shape=diamond, node distance=5cm, right of=endService]
+{Transfer?};
+\node (service) [draw, shape=ellipse, node distance=6cm, right of=transfer] {Service};
+\node (virtualCall) [draw, node distance=3cm, below of=endService]
+{New virtual call};
+\node (transferDelay) [draw, node distance=4cm, right of=virtualCall]
+{Transfer delay};
+\node (transferWait) [draw, node distance=4cm, shape=diamond, right
+of=transferDelay, text width=3cm]
+{Wait for secondary agent?};
+\node (freePrimary) [draw, node distance=5cm, right of=transferWait,
+text width=3cm]
+{Free primary agent if still busy};
+\node (routing) [draw, node distance=4cm, below of=virtualCall, text width=3cm]
+{Routing of virtual call};
+\node (secondaryAgent) [draw, shape=diamond, node distance=5cm, right
+of=routing, text width=3cm]
+{Secondary agent found?};
+\node (conference) [draw, node distance=5cm, right of=secondaryAgent,
+text width=3.5cm]
+{Conference with primary agent (if still busy)};
+\node (service2) [draw, node distance=4cm, right of=conference, text width=3cm]
+{Service with secondary agent};
+\node (abandonment) [draw,shape=ellipse, below of=conference, node
+distance=2cm]
+{Abandonment};
+
+\draw[->] (endService) -- (transfer);
+\draw[->] (transfer)
+edge
+node [left] {Yes}
+(virtualCall)
+edge
+node [above] {No}
+(service);
+\draw[->] (virtualCall) -- (transferDelay);
+\draw[->] (transferDelay) -- (transferWait);
+\draw[->] (transferWait)
+--
+node [above] {No}
+(freePrimary);
+\draw[->] (freePrimary) -- 
+node [left] {For primary call}
+(service);
+\draw[->] (transferDelay) -- (routing);
+\draw[->] (routing) -- (secondaryAgent);
+\draw[->] (secondaryAgent)
+edge
+node [above] {Yes}
+(conference)
+edge
+node [above] {No}
+(freePrimary)
+edge
+node [above] {No}
+(abandonment);
+\draw[->] (conference) -- (freePrimary);
+\draw[->] (conference) -- (service2);
+\draw[->, bend angle=80] (service2) edge [bend right] (service);
+\end{tikzpicture}

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ccmsk:MSKCCParams xmlns:ssj="http://www.iro.umontreal.ca/lecuyer/ssj" xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app" xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk" periodDuration="PT1H" numPeriods="1" defaultUnit="HOUR">
+
+  <inboundType>
+    <probAbandon>0.0</probAbandon>
+    <patienceTime distributionClass="ExponentialDist">
+      <defaultGen>12.0</defaultGen>
+    </patienceTime>
+    <serviceTime distributionClass="ExponentialDist">
+      <defaultGen>60.0</defaultGen>
+    </serviceTime>
+    <arrivalProcess type="POISSON">
+      <arrivals>60.0</arrivals>
+    </arrivalProcess>
+  </inboundType>
+
+  <inboundType>
+    <probAbandon>0.0</probAbandon>
+    <patienceTime distributionClass="ExponentialDist">
+      <defaultGen>6.0</defaultGen>
+    </patienceTime>
+    <serviceTime distributionClass="ExponentialDist">
+      <defaultGen>60.0</defaultGen>
+    </serviceTime>
+    <arrivalProcess type="POISSON">
+      <arrivals>120.0</arrivals>
+    </arrivalProcess>
+  </inboundType>
+
+  <inboundType>
+    <probAbandon>0.0</probAbandon>
+    <patienceTime distributionClass="ExponentialDist">
+      <defaultGen>12.0</defaultGen>
+    </patienceTime>
+    <serviceTime distributionClass="ExponentialDist">
+      <defaultGen>60.0</defaultGen>
+    </serviceTime>
+    <arrivalProcess type="POISSON">
+      <arrivals>60.0</arrivals>
+    </arrivalProcess>
+  </inboundType>
+
+  <agentGroup>
+    <staffing>1</staffing>
+  </agentGroup>
+  <agentGroup>
+    <staffing>2</staffing>
+  </agentGroup>
+
+  <router routerPolicy="AGENTSPREF">
+    <ranksGT>
+      <row>1.0 1.0 1.0</row>
+      <row>1.0 1.0 1.0</row>
+    </ranksGT>
+  </router>
+
+  <serviceLevel>
+    <awt>
+      <row>P0Y0M0DT0H0M20.000S</row>
+    </awt>
+    <target>
+      <row>0.8</row>
+    </target>
+  </serviceLevel>
+</ccmsk:MSKCCParams>

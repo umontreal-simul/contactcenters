@@ -1,0 +1,29 @@
+<body>
+Contains general interfaces and classes for simulating contact centers.
+The interfaces {@link umontreal.iro.lecuyer.contactcenters.Named}
+and {@link umontreal.iro.lecuyer.contactcenters.Initializable}
+are defined to represent objects having a name and which
+can be initialized, respectively.
+The interface {@link umontreal.iro.lecuyer.contactcenters.ToggleElement}
+is defined for contact center objects that can be enabled or disabled.
+The simulation event
+{@link umontreal.iro.lecuyer.contactcenters.ToggleEvent} can be used
+to toggle objects implementing
+{@link umontreal.iro.lecuyer.contactcenters.ToggleElement}.
+
+The class {@link umontreal.iro.lecuyer.contactcenters.PeriodChangeEvent}
+can be use to divide the simulation time into periods to simulate
+non-stationary contact centers.  The interface {@link
+umontreal.iro.lecuyer.contactcenters.PeriodChangeListener}
+can be implemented by simulation objects to be notified when period
+changes occur.
+
+The {@link umontreal.iro.lecuyer.contactcenters.ValueGenerator}
+interface is defined to generate state-dependent random values during
+the contact center simulation. Some general-purpose implementations
+of this interface are provided.
+
+The package also contains a base {@link
+umontreal.iro.lecuyer.contactcenters.ContactCenter} class providing
+convenience methods used to implement a simulator.
+</body>

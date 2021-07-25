@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccmsk:MSKCCParams numPeriods="26" periodDuration="PT30M"
+   xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk"
+   defaultUnit="SECOND" startingTime="PT8H"
+      waitingTimePredictorClass="MeanNLastWaitingTimePredictor">
+   <inboundType name="Calls" virtualQueueTargetType="1">
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>400</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>608</defaultGen>
+      </serviceTime>
+      <expectedWaitingTimeThresh>PT2M</expectedWaitingTimeThresh>
+      <probVirtualQueue>0.5</probVirtualQueue>
+      <patienceTimesMultCallBack>1.7</patienceTimesMultCallBack>
+      <serviceTimesMultCallBack>
+         <row>0.75</row>
+      </serviceTimesMultCallBack>
+      <arrivalProcess normalize="true" type="PIECEWISECONSTANTPOISSON">
+         <arrivals>
+         466  621  869  946  1118  1163  1277  1296  1375  1354  1383  1378  1398
+         1351  1346  1356  1365  1326  1314  1156  1080  1071  1029  1011  912  747
+         </arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Calls VQ"/>
+   <agentGroup name="Agents" detailed="true">
+      <staffing>
+      180  226  317  362  406  425  429  443  459  464  481  477  505  522
+      510 484  481  467  429  359  323  301  278  267  210  196
+      </staffing>
+   </agentGroup>
+   <router routerPolicy="AGENTSPREF">
+      <ranksTG>
+         <row>2</row>
+         <row>1</row>
+      </ranksTG>
+      <routingTableSources ranksGT="ranksTG"/>
+   </router>
+   <serviceLevel>
+      <awt>
+         <row>PT1M</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

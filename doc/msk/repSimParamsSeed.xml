@@ -1,0 +1,7 @@
+<ccapp:repSimParams minReplications="300"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95"/>
+   <randomStreams>
+      <streamSeed>122  445  32  56  43  57</streamSeed>
+   </randomStreams>
+</ccapp:repSimParams>

@@ -1,0 +1,10 @@
+<ccapp:batchSimParams
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app"
+                       initNonEmpty="true"        targetInitOccupancy="0.9" 
+                       batchSize="PT1H"          minBatches="15" 
+                       warmupBatches="5">
+   <report confidenceLevel="0.95" defaultOnlyAverages="true">
+      <shownContactTypeProperty name="region"/>
+      <shownAgentGroupProperty name="region"/>
+   </report>
+</ccapp:batchSimParams>

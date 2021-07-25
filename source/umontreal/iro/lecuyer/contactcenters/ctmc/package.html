@@ -1,0 +1,51 @@
+<body>
+Provides call center simulators based
+on a quick uniformized continuous-time Markov chain model.
+Staffing and scheduling optimization in large multiskill call centers 
+is time-consuming, mainly because it requires 
+lengthy simulations to evaluate performance measures and their 
+sensitivity.  Simplified models that provide tractable formulas are 
+unrealistic in general.  This package implements an intermediate 
+solution, based on an approximate continuous-time Markov chain model
+of the call center.  This model is more accurate than the commonly used 
+approximations, and yet can be simulated faster than a more realistic
+simulation (based on non-exponential distributions and additional details).  
+To speed up the simulation, the Markov chain is uniformized and 
+only its discrete-time version is simulated.
+Performance measures such as the fraction of calls of
+each type answered within a given waiting time limit can be recovered from
+this simulation.
+
+The CTMC model supports multiple call types and agent groups, but
+it assumes that calls arrive following a Poisson process, and
+service and patience times are exponential.
+For more information about the model, see \cite{ccBUI08a}.
+
+The main class for the simulator is 
+{@link
+umontreal.iro.lecuyer.contactcenters.ctmc.BasicCallCenterCTMCSimMP}.
+It can simulate a call center with multiple periods by using one CTMC
+for each period.
+The
+{@link
+umontreal.iro.lecuyer.contactcenters.ctmc.BasicCallCenterCTMCSim}
+class, on the other hand, provides a simulator for a single period,
+using a single CTMC.
+Both simulators first generate the total number of transitions from
+the Poisson distribution, followed by the transitions.
+However,
+the
+{@link
+umontreal.iro.lecuyer.contactcenters.ctmc.IntMCallCenterCTMCSim}
+class implements a single-period simulator generating a large number of transitions
+and integrating over the number of transitions using Poisson
+probabilities when estimating performance measures.
+
+All these simulators use CTMC models represented by the interface
+{@link
+umontreal.iro.lecuyer.contactcenters.ctmc.IntMCallCenterCTMCSim}.
+The package provides two different implementations for this interface:
+one adapted for a single call type and agent group using linear
+search, and another one for multiple call types and agent groups based
+on indexed search.
+</body>

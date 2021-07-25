@@ -1,0 +1,416 @@
+\section{Teamwork contact center}
+\label{sec:Teamwork}
+
+This models a contact center with complex routing logic in which a
+contact is processed by several agents.  This model contains a single
+contact type but several agent groups.  Contacts arrive following
+a non-homogeneous Poisson process with a mean arrival rate of $200/$h from
+8AM to 9AM and $100/$h from 9AM to 5PM, and are served by several
+agents sequentially.
+
+When a contact enters the system, it is routed to one of the two
+receptionists, or
+queued if the receptionists are not available.  Service times are
+i.i.d.\ variables following
+the triangular distribution with minimum 0.5~minutes, mode 1~minute,
+and maximum
+5~minutes.  After the service is over,
+with probability~$0.2$, a \emph{conference} is initiated with the
+accounting department if the corresponding agent is free.
+When a conference occurs, the contact still keeps the
+receptionist busy and requests a communication with a secondary agent,
+from the accounting agent group, if
+available.  The service time with the accounting agent is uniform $2*U(0,
+1)$~minutes.  The time spent with the receptionist is the sum of the
+triangular
+service time, and the uniform conference time if conferencing was
+required
+and succeeded.  After the communication is over, the receptionist
+transfers the contact to the manager or to the
+technical
+support.  Before going idle or accepting a new contact, the agent
+performs some after-contact work, e.g., updating a folder.  The
+after-contact work has an
+exponential duration with mean 1~minute, and starts after the contact
+is transferred, not after it leaves the contact center.
+After-contact work is also performed by the technical support and
+manager with the same distribution, but it is not performed by
+conferenced agents.
+
+With probability~$0.05$, the contact is transferred to the manager by the
+receptionist before after-contact work begins.  If the manager is
+unavailable, the contact can be queued.  After being served by the
+manager, the contact exits the system.  The service time with the
+manager is generated from the same distribution as the service time
+with the receptionist, but the generated value is multiplied by~3.
+
+With probability~$0.95$, the receptionist transfers the contact it
+has served to one
+of the five technical support agents instead of the manager.
+In contrast with the manger, if the contact cannot be served
+immediately, it
+disconnects without waiting in queue.  The service time with the technical
+support is generated from the same triangular distribution as the
+receptionist, but the obtained value is multiplied by~10.
+After the service is done, with probability~$0.2$, a conference with
+the
+development agent is initiated. If the developer is available, the
+conference time is uniform $5*U(0, 1)$.
+
+%\subsection{Implementing the model}
+
+\lstinputlisting[
+caption={A simulation program for a teamwork model},%
+emph={main,MyRouter},label=lst:Teamwork
+]
+{Teamwork.java}
+
+Listing~\ref{lst:Teamwork} presents the complete source code for this
+example.  In the program,
+a class \texttt{Teamwork} is
+created, and constants are declared for input data.  Most events are
+counted using integers since the system supports a single contact
+type.  The occupancy ratios of agents require arrays because the system
+has five agent groups.
+
+In previous examples, the different steps of a service were not
+modeled explicitly.
+An exponential or uniform service time was generated and
+used, and the end of service was automatically scheduled by
+ContactCenters.  In this example, the service of a contact is divided
+in three
+parts: the communication time with the
+agent, the optional conference time with another agent, and the
+after-contact
+time.  The library supports after-contact time, but
+conferencing must
+be implemented by the user, because an infinity of
+models can be imagined.
+
+In ContactCenters, the service of a contact
+is a two-pass process composed of the
+communication with the agent (first phase), and the after-contact work
+(second phase).
+When the first phase is over, the contact is notified to
+exited-contact listeners by the router for statistical purposes, but
+the busy agent is not freed up until the second phase is over.
+In previous examples, since there was no after-contact work, the two
+steps were ending at the same time.
+
+The \texttt{set\-Default\-Service\-Time} method of \texttt{Contact} we used in
+previous examples sets the contact
+time to the service time, and resets the after-contact time to 0.
+The two durations can be changed separately by using the
+\texttt{set\-Default\-Contact\-Time} and
+\texttt{set\-Default\-After\-Contact\-Time} methods,
+respectively.
+
+In section~\ref{sec:occcor}, we used an agent-group listener to track
+the number of agents in a group, in order to disable statistical
+collecting when $N(t)=0$.  Because such a listener can be notified
+about the end of a service, one could think about using this mechanism
+to implement conferencing.
+However, conferencing cannot be modeled with an agent-group listener
+because
+the listener is notified only after the phases of the
+service are terminated.
+It is not possible to conditionally extend the service duration as it
+is needed in a conferencing model.
+To model such complex services, automatic service termination must be
+disabled.  By default, contact times are extracted from contact
+objects and are infinite if unspecified.
+As with the waiting queue which does not
+schedule the dequeue event when the maximal queue time is infinite,
+the end-service event is not scheduled if the obtained service time is
+infinite.  The event can then be manually scheduled to simulate a
+simple
+service, or a wrapper event can be used to add logic before the
+service termination.
+
+Usually, a patience, a contact (or handle) and an after-contact times
+are the
+only random variables associated with a contact.  Here, additional
+variables are required: the contact time for each agent group
+(including conference times), the
+after-contact times, as well as probabilistic
+branching decision variables.  These variates can be generated when
+needed, but to maximize random number synchronization, it is better to
+generate all random variates at the creation of the contact object
+since all the information is already available at this moment.
+We do not know in advance the exact path of the contact, but we know
+which random variates it might need during its lifecycle.
+To support this extra information, a
+subclass of \texttt{Contact} called \texttt{My\-Contact} is created.
+The \texttt{My\-Contact\-Factory}
+instantiates \texttt{My\-Contact} objects instead of \texttt{Contact}
+objects as before.  Unfortunately, the library's classes manage
+\texttt{Contact} instances which must be casted to \texttt{My\-Contact}
+as needed.
+
+For each agent group not used for conferencing, i.e., reception,
+manager and technical support, an exponential after-contact time is
+generated and stored in contacts.  A custom value generator is
+assigned to each agent group in
+order to extract the appropriate time from the contact objects.
+The after-contact time generation works the same way as the service
+time and maximal queue time generation.
+
+The router is the most complex part of this contact center.  This time,
+we define a completely custom router which extends the \texttt{Router}
+abstract class.  The abstract router is constructed with the supported
+number of contact types, agent groups, and waiting queues.  In this
+example, there are two waiting queues: a first one for
+receptionists, and a
+second one for the manager.  There are five agent groups: Reception,
+Accounting,
+Manager, Technical support, and Development.
+Every incoming contact is
+sent to the Reception by \texttt{select\-Agent}.
+If there is no free
+receptionist, \texttt{select\-Agent} returns \texttt{null} and the contact
+is queued by \texttt{select\-Waiting\-Queue}.
+
+When the communication part of a service is terminated, the
+appropriate
+agent group notifies it to the router which calls its protected method
+\texttt{end\-Contact}.  By default, this method simply calls
+\texttt{exit\-Served} in order for the contact to leave the system after
+service.  We can implement contact transfer by overriding this method
+as follows.  The end-contact event is ignored for the Accounting and
+Development agent
+groups since the method will be called again to end the communication
+with the associated Reception or Technical support agent groups. When
+the communication between the contactor and the receptionist is
+terminated, the transfer occurs: with probability~$0.05$, the contact is
+sent to the manager.  If the contact center is closed at transfer time,
+the contactor is disconnected by calling the \texttt{exit\-Blocked}
+method.
+The blocking-type indicator, given to \texttt{exit\-Blocked}, is set
+to 5 in order to distinguish this disconnection from true
+blocking because of no phone line.
+If there is no free manager, the contact is put
+in the queue for the manager, i.e., the second waiting queue.  Otherwise,
+the second service of the contact begins.
+If the contact is transferred to technical support,
+the system applies the same algorithm as for the manager, except
+that there is no waiting queue and a conference can occur.  If no
+technical support agent is available, the service of
+the contact ends at the receptionist (\texttt{exitBlocked} is called).
+For any other agent group, the \texttt{end\-Contact} method
+calls \texttt{exit\-Served} for the served contact to leave the system.
+
+When the service of a
+contact by an agent begins, whether it is started by agent or contact
+selection, the protected \texttt{begin\-Service}
+method is called.  We override the method in our custom router to
+schedule the
+end-service event appropriately, or to construct and schedule a
+wrapper event for conferencing.  For the case of the receptionist,
+with probability~$0.2$, a wrapper
+\texttt{Conference\-Event} is scheduled to manage the service
+termination.  The end-service event is kept inside the conference event
+for future use.
+With probability~$0.8$, the regular end-service event is scheduled and
+no conference event is constructed.
+Similar logic is used for the technical support, with a different
+secondary agent group.  In the case of the manager, the regular
+end-service event is always scheduled.
+For Accounting and Development, nothing happens in that method,
+because the service termination is managed by the conferencing event.
+
+Conferencing is implemented using an auxiliary wrapper event
+containing
+three fields: \texttt{es} for the end-service event associated
+with the main agent, \texttt{es\-Conf} for the end-service event
+bound to the conferenced agent, and \texttt{target\-Group}, a
+reference to the
+conferenced agent group.  The end-service event objects are only used
+as information containers instead of being scheduled as
+simulation events.  The conference event happens at
+most twice: one time to start the conference, and a second time to
+terminate the communication with the main
+agent as well as the conference.  The conference happens only if the
+conferenced agent is free.
+
+Automatic  waiting queue clearing must be redefined since there is no
+default data structure in use.  The \texttt{check\-Waiting\-Queues}
+method, which is called each time $N_i(t)=0$ for an agent group~$i$,
+is responsible for this operation.  If it is called for a
+Reception agent, the Reception waiting queue is cleared.  If it is called
+for the Manager, the Manager waiting queue is cleared.  Otherwise, nothing
+is done.  The waiting queue is cleared only if there is no available
+agent in te corresponding group.
+
+The average speed of answer and service level performance measures can
+be computed several ways.  Each contact in the system can
+sojourn in the reception's waiting queue, the
+manager's waiting queue, or both queues.
+Using the \texttt{get\-Total\-Queue\-Time} method
+of the class \texttt{Contact} as in the previous examples gives
+the cumulative waiting time in both queues.  We could also get the
+queue time for each waiting queue.
+Here, to keep the program as simple as possible, the speed of answer
+is assumed to be the total waiting time in both queues for served
+contacts.  The average handle time is
+computed by taking the contact time for the last agent, which is
+extracted from the end-service event given to the \texttt{served}
+method of \texttt{My\-Contact\-Measures}.
+
+There are two types of disconnections: when agents go off-duty or
+when no technical support agent is free.  The first case is handled
+in \texttt{dequeued} as usual.  The second case is handled in
+\texttt{blocked} since the disconnection was performed using
+\texttt{exit\-Blocked}, in the \texttt{end\-Contact} method of
+\texttt{My\-Router}.  The blocking type is tested to distinguish this
+event from a blocking due to no available phone line.
+
+We can see from the statistical report on Listing~\ref{res:Teamwork}
+that our results are different
+from Arena Contact Center Edition~8.0's.  This is due to several
+factors and possible bugs in Arena Contact Center Edition arising when
+contacts are served by several agents sequentially.
+
+First, there are several ways
+to define the same performance measure and Rockwell's documentation
+often does not clearly specify what is estimated when service is
+performed by multiple agents.  By
+experimenting with simplified models, it is sometimes but not always
+possible to guess what computation is made.
+Inconsistencies such as service levels greater than 100\%
+ even arise in some extreme conditions.
+Without accessing the definitions of the Contact Center Arena
+templates, which cannot be done without the Professional edition, an
+explanation for these inconsistencies cannot be found.
+
+\lstinputlisting[caption={Results of the program \texttt{Teamwork}},
+xleftmargin=-0.8cm,linewidth=17cm,breaklines,prebreak={\char92},
+language={},label=res:Teamwork]{Teamwork.res}
+
+\begin{comment}
+\subsection{Different results from Arena Contact Center Edition}
+
+We can see from the statistical report on Listing~\ref{res:Teamwork}
+that our results are different
+from Arena Contact Center Edition~8.0's.  This is due to several
+factors and possible bugs in Arena Contact Center Edition arising when
+contacts are served by several agents sequentially.
+
+First, there are several ways
+to define the same performance measure and Rockwell's documentation
+often does not clearly specify what is estimated when service is
+performed by multiple agents.  By
+experimenting with simplified models, it is sometimes but not always
+possible to guess what computation is made.
+Inconsistencies such as service levels greater than 100\%
+ even arise in some extreme conditions.
+Without accessing the definitions of the Contact Center Arena
+templates, which cannot be done without the Professional edition, an
+explanation for these inconsistencies cannot be found.
+
+Our first simplified model we will call $MM$
+disables conferencing and sends every contact
+to the manager after they are served by the receptionist.  This way,
+the model becomes similar to preceding
+examples, except that the service is performed by two agents
+sequentially.
+By simulating 10 replications in Arena Contact Center Edition, we
+obtain a speed of
+answer of $1.54\pm 0.03$.  If, as with the code of this example,
+the average speed of answer is computed
+using the cumulative queue time for contacts served by the manager
+after being served by the receptionist only,
+the Java program gives $3.30\pm 0.08$, which
+is significantly higher than Arena Contact Center Edition.  If the
+performance measure is computed by
+summing the waiting times at the receptionist only for contacts served
+by the manager, we obtain
+$1.66\pm 0.05$, which is better but still significantly different from
+Arena Contact Center Edition.
+% We could try other variations such as including the waiting times for
+% contacts having been served by the receptionist but having abandoned
+% before being served at the manager; this gives a still different
+% speed of answer of $1.68\pm 0.03$.
+
+We now increase the talk time multiplier at
+the manager, which increases the service time for this agent
+group without affecting the receptionist.  During these
+longer services, a queue at the manager should build up and the average
+waiting time should increase.  If we increase the multiplier from 3 to
+100, the average speed of answer effectively increases
+to $1.703\pm 0.02$ when computed by Arena Contact Center
+Edition.  As a result, the estimator takes the manager agent group into
+account.
+
+We then tried computing the number of services in each agent group
+separately as follows.  If a contact abandons at the receptionist, its
+waiting
+time is not counted as it is usual for the speed of answer.  If a
+contact is served by a receptionist but abandons before reaching the
+manager, its waiting time at the receptionist as well as one service
+are counted.  If a contact is served both by the receptionist and the
+manager, the cumulative waiting time as well as two services are
+counted.  The resulting speed of answer drops
+at $0.317\pm 0.008$, which is still different from Arena Contact
+Center Edition.
+As a result, we cannot determine the exact formula being applied by
+Arena Contact Center Edition to get the speed of answer when multiple
+agents serve a contact sequentially.
+
+With the service time, we have the same problem, with additional
+inconsistencies from Arena Contact Center Edition.
+In the simplified model $MM$,
+if we set a constant service time in Arena Contact Center Edition, we
+can suppose that the
+handle time is given by the service time in the last agent group only,
+not the sum of service times for all traversed agent groups.  If we
+keep a random service time and set a 0 talk time multiplier for the
+second agent group, we obtain a 0 handle time, which still verifies
+our hypothesis.  However, problems appear if service times are random
+for both agent groups.  The
+expected triangular service time can be obtained by
+\[\frac{0.5 + 1 + 5}{3}=2.1666.\]
+For the manager, the expected service time should therefore be $6.5$
+because
+the service time multiplier is 3.  For the Java program, the expected
+handle time falls into the confidence interval if all contacts go to
+the manager.  However, it is
+significantly smaller in Arena Contact Center Edition, i.e., $5.34\pm
+0.03$.  As a result, the handle time estimator of Arena Contact Center
+Edition suffers
+from inconsistencies that could not be explained.
+
+An additional test shows up inconsistencies with the service level.
+If, in the original Teamwork model, all contacts are directed
+to the technical support with conferencing still disabled, the
+simplified model
+has a single waiting queue since no customer can wait for a
+technical support agent.
+If we set the talk and after-contact times to 0, all services
+become instantaneous.  No customer is waiting and the service level
+should be 100\%.  However, Arena Contact Center Edition gives a
+service level of
+200\%, which is not what we expected.  The number of contacts meeting
+the service level target reported by the program is $13888.40\pm
+116.48$, which is twice the number of arrivals ($6944.2\pm 58.24$).
+If we enable after-contact work back, the number of contacts in
+target becomes $10572.20\pm 88.85$, which is still greater than the
+offered load.
+With non-zero service times, the number of contacts in target is still
+greater than the number of handled contacts: the service level
+estimator seems to include abandoned contacts.  However, if we include
+abandoned contacts in the estimator, all preceding
+Arena Contact Center examples return a significantly higher service
+level.
+
+Finally,
+with the original model, Arena Contact Center Edition gives an average
+of $664.40\pm 12.81$ handled and $6160.60\pm 47.50$ abandoned
+contacts.  However, our Java example returns more handled and less
+abandoned contacts.
+In the Arena Contact Center Edition model, the receptionists serve
+less contacts, which results in more abandonment.
+It seems that the receptionist is unexpectedly kept busy for all the
+sojourn time of the served contacts, even after they are transferred to
+the technical support or manager, and the after-contact work is
+completed.
+\end{comment}

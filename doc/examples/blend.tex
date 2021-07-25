@@ -1,0 +1,181 @@
+\section{Blend call center}
+\label{sec:Blend}
+
+This example is a simplified version of the model analyzed in
+\cite{ccDES03a}, with reduced choice of distributions and dialing
+policies.  Although it is a special case of the blend/multi-skill
+generic simulator, it demonstrates how to use a dialer as well as
+per-period probability distributions.
+The simulated day starts at 8AM, ends at 2PM, and is
+divided into three two-hours periods.
+Calls received by the center are denoted \emph{inbound calls} and
+arrive
+following a Poisson process with randomized arrival rates
+$B\lambda_p$.  To keep the
+agents busy, a dialer is used to perform \emph{outbound calls} at some
+times during the day.  Only a portion of the agents, denoted
+\emph{blend}, are
+qualified for handling these calls in addition to inbound ones.
+
+Before 11AM, there is no outbound call, so all agents perform
+inbound calls only.  After 11AM, a
+portion of the agents becomes blend, and the dialer starts.
+Inbound agents still serve inbound calls only while calls that cannot
+be served immediately overflow to blend agents.
+From 11AM to five minutes before the end of the day,
+each time a service ends, the dialer tries to compose some phone
+numbers.  The probability of a caller to be reached, or equivalently
+of \emph{right party connect}, is specified for
+each period.
+Reached customers produce outbound calls which can only be served
+by blend agents.  Outbound calls
+then follow a non-Poisson arrival process which cannot be modeled in
+simulation software such as Arena Contact Center Edition.
+
+If no blend agent is
+available when an outbound call succeeds,
+the call is put in queue and considered as a
+\emph{mismatch}.  The mismatched calls are put into a different
+waiting queue
+than the inbound calls in order to be served with the greatest
+priority, because most reached callers will hang up without
+even waiting.
+Since in this model, there is no delay between the dialing and the
+right party connect, mismatches only occur when the dialer tries to
+call more customers than the number of free blend agents.
+
+The program, shown in Listing~\ref{lst:Blend}, is very similar to the
+other examples, except that a
+dialer is used.
+
+\lstinputlisting[
+caption={A blend call center model},%
+emph={create,main}, label=lst:Blend
+]
+{Blend.java}
+
+We took most input values from table~2 in \cite{ccDES07a}, at
+periods~15, 16, and~17.
+From the input data, we get the expected number of arrivals per half hour.
+We then divide these rates by 30 to get the arrival rates per minute.
+The arrival process is constructed as in previous examples, using the
+processed arrival rates.
+The exponential patience time is set to
+500~seconds, so we divide it by 60 to convert it in minutes.
+The probability of balking also comes from the input data and is set
+to $0.005$ for the three observed periods.
+In the input data,
+service times follow a gamma distribution with shape
+parameter~$\alpha$ and scale parameter~$\beta=1/\lambda$.  Its mean,
+expressed in seconds, is given by $\alpha\beta$.  To get the mean in
+minutes, we divide $\beta$ by 60.  When we construct the gamma
+generator, we will invert $\beta$ for the parameter to be compatible
+with SSJ.
+The gamma service times are generated using acceptance-rejection,
+because inversion is too slow.
+
+For the outbound type, we need the mean service time to be
+$440.2$~seconds to follow the input data.  In contrast with the input
+data in \cite{ccDES07a} setting the patience time for outbound calls
+to~0, we fixed this patience time
+to five
+seconds for some outbound calls to get queued.  The probability of
+reaching a caller and the staffing vectors were all taken from the
+input data in \cite{ccDES07a}.
+
+To take balking into account,
+in the \texttt{new\-Instance} method of
+\texttt{My\-Contact\-Factory}, a uniform is drawn.  If it
+is smaller than the probability of immediate abandonment, the
+patience time is 0.  Otherwise, it is exponential.  For the outbound
+calls, the patience time is constant and set in the
+\texttt{new\-Instance} method too.
+
+The router is a simple queue priority router with fixed tables.
+If an
+inbound call arrives, it is served by an inbound agent or, if no
+inbound agent is available, by a blend agent.  If an outbound call
+arrives, it is served by a blend agent.  If an inbound agent becomes
+free, it checks the inbound queue only.  If a blend agent is free, it
+checks the outbound and the inbound queues, in that order.  When agents
+arrive, they check for calls in the queues as when they become free.
+
+The dialer is the newest and most complex part of this model.  To be
+constructed, it requires at least a dialing policy, a random stream to
+determine if the right party is reached, and a value generator giving
+the probability of the right party to be reached.
+Reached calls are notified to the router while
+reached and failed calls are counted
+using a \texttt{Contact\-Counter} which is a custom new-contact
+listener.  Failed calls
+include wrong party connects (answering machine or wrong person) as
+well as busy signals or no answer.  The dialer
+is connected to the router in order to be automatically started
+(if it is enabled) each time any agent, whether inbound or blend, ends
+a service.
+It is also registered to be automatically initialized at the beginning
+of each replication.
+
+When the dialer starts, if it is enabled, it uses its policy to
+determine how many calls to try.  Dialed calls are extracted from a
+dialer list which is associated with the dialing policy.  In most
+general settings, the list of outbound calls to try can depend on the
+state of the system.  In this example, the dialer list is infinite,
+i.e., it uses a contact factory to produce a call each time it is
+asked to.  Retrials of failed calls are included in the calls extracted
+from this infinite list.
+For each tried call, a random number is drawn to
+determine if it reaches the right party.  If it is successful, it is
+sent to the router and the contact counter.  Otherwise, it is sent to
+the contact counter only.
+
+The dialer of this example uses a generic threshold-based policy which
+works as follows.
+It computes $\Ntf(t)$,
+the total number of free agents in a \emph{test set} comprised in this
+example of both agent groups.
+It then checks that this
+number is greater than or equal to a certain threshold fixed to~4 in
+this example.
+If the condition holds, the dialer then computes $\Ndf(t)$, the number
+of free agents in a \emph{target set}.  In this example, this set
+contains blend agents only.
+If $\Ndf(t)$ is greater than or equal to a second threshold fixed to~1
+in this example, the
+dialer tries to reach $2*\Ndf(t)$ customers.
+
+\texttt{in\-Queue\-Size} and \texttt{out\-Queue\-Size} are queue size
+statistical collector being used for computing the time-average queue
+size.  Each queue size collector monitors a single waiting queue and
+computes the integrals for the queue size and optionally the number
+of contacts of each type in the queue.  \texttt{inbound\-Volume} and
+\texttt{blend\-Volume} are agent group volume statistical collector
+used for the occupancy ratio.
+
+Statistical collecting is performed the same way as in other
+examples.  However, we want events to be counted for main periods
+only.  As a result, events related to contacts arriving during the
+preliminary period are ignored.  For agents' occupancy ratio and
+time-average queue size, we need to create a custom period-change
+listener.  At the end of the preliminary, the agent group volume and
+queue size counters are reset to keep statistics about main periods
+only.  At the beginning of the wrap-up period, the necessary integrals
+are obtained before they are updated with observations from the
+wrap-up period.
+In addition, to get the time-average queue size over the opening
+hours,
+we divide the integral of queue size by the appropriate time
+duration.  If we use the \texttt{average} method, the returned average
+is on all simulation time, including the complete preliminary period.
+Of course, our custom period-change listener needs to be registered
+with the period-change event to receive information; this operation is
+done in the constructor of \texttt{Blend}.
+Note that we could also solve this problem with an agent-group
+listener, as we did in section~\ref{sec:occcor}.
+
+Listing~\ref{res:Blend} presents the statistical
+results of the call center.
+
+\lstinputlisting[caption={Results of the program \texttt{Blend}},%
+label=res:Blend,language={}
+]{Blend.res}

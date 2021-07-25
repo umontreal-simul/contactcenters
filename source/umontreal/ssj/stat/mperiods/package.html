@@ -1,0 +1,81 @@
+<body>
+Provides facilities for storing observations during a simulation
+per time period, for the common situation where time is partitioned
+into a finite number of intervals, and statistics have to be collected
+separately for the different intervals.
+For example, we may want to collect statistics on the quality of service
+for each hour in a telephone call center.
+
+Sometimes, a vector or a matrix of statistical probes is sufficient for
+performing this task, especially when simulating independent
+replications.  Probes are used during an experiment to compute
+sums and the resulting sums or averages are collected in tallies
+to get samples; the sample size corresponds to the
+number of replications.  However, the number of periods can sometimes
+be random.% while the size of an array or matrix of probes cannot change.
+This happens when using the batch means method \cite{sLAW00a},
+if the number of batches can change adaptively.
+For the same reason, it can be necessary to regroup periods to save
+memory, when the total number of periods becomes too large; this is
+not supported by a matrix of statistical probes.
+Events can also be counted in previous batches in addition to the last
+one.  As a result, in a general setting, a probe computing a sum and
+being reset at the end of each batch cannot be used.
+
+When the number of periods is large, it can be necessary to get
+observations for a subset of these periods, e.g., the last ten
+periods.  For example, this can be used by the dialer of a phone call
+center to determine the quality of service in the last ten minutes on
+which decisions can be based.
+
+To address these problems, this package defines an interface for a
+matrix of measures.  Each row of this matrix corresponds to a type of
+event, e.g., the type of a customer in a retail store.  Each column
+corresponds to a period that can be any time interval such as half an
+hour, a complete day, etc.
+
+When independent replications of the same simulation are performed, the
+finite horizon is often divided into periods.
+For each period, a vector of observations may be
+computed and stored.  This results in a matrix of observations that
+can be added to a matrix of tallies at the end of each
+replication.  The matrix can be obtained from the vectors of
+observations directly, or some vectors can be regrouped.
+
+When simulating for an infinite horizon, a single vector of
+observations may be obtained.  However, to get an estimate on the
+variance, for computing confidence intervals, the simulation time is
+divided into intervals called batches.  For each batch, a vector of
+observations is obtained.  If the simulation length is constant, or if
+the number of batches is allowed to be random, it is sufficient to
+compute one vector at a time and collect it as observations at the end of
+each batch.  However, when the number of batches is required to be
+constant while the simulation length is random, it is necessary to
+keep all the vectors of observations to regroup them later. Vectors of
+observations, or groups of vectors, are collected during or at the end
+of the simulation.
+
+Depending on the type of experiment, matrices of measures can be added
+directly to tallies as matrices of observations, some columns can be
+regrouped, or each column (or group of consecutive columns) might be
+collected in tallies separately.
+This package provides a mechanism to implement simulation events
+collecting independently of the way the experiment is performed.
+The {@link umontreal.iro.lecuyer.stat.mperiods.MeasureMatrix}
+interface represents a matrix of measures.  Usually, an implementation
+of this
+interface counts the number of occurrences of an event, the sum of
+values, or some integrals.  The {@link
+umontreal.iro.lecuyer.stat.mperiods.SumMatrix} class implements this
+interface for computing a matrix of sums.  A subclass, {@link
+umontreal.iro.lecuyer.stat.mperiods.SumMatrixSW}, provides a sliding
+window permitting the observations in a subset of the periods to be
+stored.   For integrals, the
+simulator must provide a custom implementation of {@link
+umontreal.iro.lecuyer.stat.mperiods.MeasureMatrix} which computes a
+function relative to the simulation time, from time~0 to the current
+simulation time.
+The {@link umontreal.iro.lecuyer.stat.mperiods.IntegralMeasureMatrix}
+class can be used to get the value of the integral for time intervals by
+storing the value of the integral for user-defined times.
+</body>

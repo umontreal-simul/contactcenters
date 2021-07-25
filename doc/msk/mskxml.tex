@@ -1,0 +1,1016 @@
+\section{The XML format used by the simulator}
+\label{sec:mskxml}
+
+This section describes how XML is used by the simulator to read
+parameter files.
+Subsection~\ref{sec:xmloverview} gives an overview of the XML format
+in general.
+Subsection~\ref{sec:datatypes} then defines
+the data types used in the parameter files used by the simulator.
+Other subsections lists the supported arrival processes, dialer's and
+router's policies.
+See also
+\cite[section 3.6.1]{iBUI05b} for a discussion on the reasons we chose
+XML for parameter files.
+
+\subsection{Overview of the XML format}
+\label{sec:xmloverview}
+
+This section briefly introduces the XML format, a syntax to write
+hierarchical contents, as used by the
+parameter files.  It does not cover all aspects of this format;
+see \cite{iYER04a} for the full XML specification.
+A \emph{XML document} is a text file containing XML markup, i.e.,
+elements, attributes, and nested contents.
+An application defines a \emph{document type} defining a set of rules
+to constrain the documents.
+
+The simulator uses XML Schemas to describe the document types for
+model and experiment parameters.
+
+The first line of a XML file is optional and contains a header
+specifying the version of the format and the character encoding.  This
+line looks
+like the following one:
+\begin{lstlisting}[language=XML, frame={}]
+<?xml version="1.0" encoding="iso-8859-1"?>
+\end{lstlisting}
+If the encoding is not given, the UTF-8 character encoding is
+assumed.
+Specifying the encoding can be useful to allow accented characters to
+appear in the input when the used text editor does not support UTF-8.
+
+In a XML file, an \emph{element} is a container with a name
+and possibly some attributes.  It is represented by a starting and an
+ending marker.  The text between these markers is called the
+\emph{contents} or \emph{children} of the element.  For example,
+\lstinline[language=XML]{<element>contents</element>} declares an
+element with name
+\texttt{element} and contents \texttt{contents}.
+For an element with no
+contents, the compact syntax
+\lstinline[language=XML]{<element/>} is allowed; such an element
+is called a
+\emph{self-closing element}.  The whole XML document is contained into
+a special element called the \emph{root element}.
+In parameter files for the blend/multi-skill simulator, elements are used
+to represent the
+whole parameter file or a complex parameter object such a 2D array,
+a call type, etc.
+
+The name of an
+element or an attribute can have a \emph{namespace prefix}, e.g.,\\
+\lstinline[language=XML]{<ccmsk:MSKCCParams/>}.
+When a prefix is used, it must be bound to a \emph{namespace URI}
+using the \texttt{xmlns} attribute.
+Usually, namespace prefix mappings occur in the root element.
+Any element or attribute with a namespace prefix is said to be
+\emph{qualified}, and its name is defined by its namespace URI as well
+as the \emph{local name} following the prefix.
+Names without prefix are \emph{unqualified}.
+
+For the model parameters, the root element is \texttt{MSKCCParams}
+with namespace URI
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters/msk}.
+It is declared as follows in a XML file:
+\begin{lstlisting}[language=XML,frame={}]
+<ccmsk:MSKCCParams
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk" >
+   ...
+</ccmsk:MSKCCParams>
+\end{lstlisting}
+For parameters describing experiments with batch means, the root
+element is
+\texttt{batch\-Sim\-Params} whereas for experiments
+using independent replications, the element is
+\texttt{rep\-Sim\-Params}.
+The latter two elements belong to the namespace URI
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters/app}.
+All other elements and attributes of the parameter files are
+unqualified.
+
+An \emph{attribute} is a key-value pair associated with an element.
+An element can have zero or more attributes.  For example,
+\lstinline[language=XML]{<element attribute="value"/>} declares a
+self-closing element
+\texttt{element} with attribute \texttt{attribute} having value
+\texttt{value}.  The order of an element's attributes is not important
+in any XML document.
+In the simulator's parameter files, attributes are used to represent
+simple type such as numbers or strings.
+
+Nested contents can be simple or complex.  \emph{Simple contents} is
+composed of only \emph{character data}, i.e., text with no XML
+markers.  If markers are required for some reasons, they must
+be escaped by using \emph{entities}.  Entities are sequences of
+characters automatically substituted with character data
+by a XML parser.  For the user, they act similarly to macros.
+Table~\ref{tab:entities} shows the entities
+used to escape reserved characters.
+
+\begin{table}
+\caption{XML entities used to escape reserved characters}
+\label{tab:entities}
+  \centering
+  \begin{tabular}{|lr|}
+    \hline
+    Entity&Escaped character\\\hline
+    \texttt{\&lt;}&\verb!<!\\
+    \texttt{\&gt;}&\verb!>!\\
+    \texttt{\&quot;}&\texttt{"}\\
+    \texttt{\&amp;}&\texttt{\&}\\\hline
+  \end{tabular}
+\end{table}
+
+\emph{Complex contents} is composed of character data and
+other elements.  Some XML document types specify an order in which the
+elements need to be presented.
+%   For the parameter reader, the order of
+% elements is not important except for elements with the same name, and
+% the \texttt{service\-Level} element (see
+% section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.ServiceLevelParams}).
+
+For example, the \texttt{agent\-Group} element
+%(see section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.AgentGroupParams})
+represents an agent group
+in the call center.  The first \texttt{agent\-Group} element in
+\texttt{MSKCCParams} represents agent group~0, the second represents
+agent group~1, etc.
+
+At any point in the XML file, \emph{comments} of the form
+\lstinline[language=XML]{<!-- comment -->} can be added.  These
+comments are ignored by XML
+parsers and can be used to document the parameter files for other
+users.
+
+% \emph{Processing instructions} can be used to communicate with
+% specific XML processors.  The parameter reading facility
+% supports the \texttt{import} processing instruction
+% which can be used to import packages when referring to Java class
+% names in
+% parameter files, e.g., for probability distributions.
+% The \texttt{import} processing instruction works the
+% same way as the Java \texttt{import} statement \cite{iGOS00a}:
+% one can import a specific class name by specifying the fully qualified
+% name or a complete package by using the asterisk.
+% For example,
+% \lstinline[language=XML]{<?import java.util.*?>} imports all classes
+% in the
+% \texttt{java.util} package.
+
+\subsection{Supported data types}
+\label{sec:datatypes}
+
+Most applications accept a restricted set of XML documents following a
+given schema. Such a schema defines several simple and complex types,
+and associates these types to elements and attributes.
+Simple data types, described in
+section~\ref{sec:simpledatatypes},
+include booleans, strings, and
+numbers.  Complex data types, presented in
+section~\ref{sec:complexdatatypes},
+include 2D arrays, and probability
+distributions, etc.
+
+An attribute can only have a simple type while the type of an
+element can be simple or complex.
+When an element has a simple type, it accepts only nested text.
+
+\subsubsection{Simple data types}
+\label{sec:simpledatatypes}
+
+Simple data types can be contained in attributes since they are
+one-dimensional.
+Here, we summarize the most common simple types we use in parameter
+files. See the XML Schema specification \cite{iSPE00a} for the
+complete list of types.
+%  The data type of an element determines the set of
+%authorized values it can take, but this set can be further restricted
+%for a given element.  For example, some integer parameters only allow
+%positive values.
+
+\paragraph{Boolean.} A boolean parameter represents a binary variable that
+can be true or false.  The strings \texttt{true},
+% \texttt{yes}, \texttt{on},
+and \texttt{1} represent a true value
+while the strings
+\texttt{false},
+% \texttt{no}, \texttt{off},
+and \texttt{0} represent a false value.
+%Any other string will be rejected by the parameter reader and trigger
+%an exception.
+
+\paragraph{String.} A string parameter accepts a string of characters.  Any
+character accepted in an attribute by the XML specification is
+allowed in a string parameter.
+
+\begin{comment}
+\paragraph{URL.}
+A \emph{Uniform Resource Locator} (URL) can be used to refer to a
+local file, a Web page, etc.
+The main components of a URL is
+the path to the resource, and the protocol (e.g., local file, HTTP,
+FTP, etc.) used to access the resource.
+A URL parameter is used to refer to an external resource, e.g., it can
+point to a text file containing data.
+A URL is \emph{absolute} when it contains all the necessary
+information to refer to a resource.
+For example, \ccurl{}
+is an absolute URL pointing to a Web page.
+A URL is \emph{relative} when it contains only partial information to
+access the resource.
+Relative URLs need to be resolved against a base URL in order to
+obtain an absolute URL.
+The base URL used when reading parameter file is the URL of the file
+being parsed.
+Consequently, a relative URL such as \texttt{file.dat} instructs the
+program to search for a file named \texttt{file.dat} in the same
+directory as the parameter file.
+See the \path{java.net.URL} and \path{java.net.URI} classes in the
+Java API specification for more information on the syntax of URLs.
+\end{comment}
+
+\paragraph{Integer.} An integer parameter represents an integer
+number.
+%In addition to a number represented by a string, the system accepts
+%the special case-insensitive sequences \texttt{infinity} and \texttt{-infinity} to
+%represent positive and negative infinity, respectively.
+Often, integers are restricted over a range, e.g., greater than 0.
+
+\paragraph{Number.} This parameter type represents a floating-point number.
+It is parsed by the parameter reader into a IEEE-754
+double-precision value, i.e., a Java \texttt{double}.
+The strings \texttt{INF}, \texttt{-INF}, and \texttt{NaN} can be used
+to represent positive infinity, negative infinity, and
+not-a-number.
+As integers, numbers can also be restricted to an interval.
+
+\paragraph{Time duration.}
+Time durations are entered using numbers, and time units, following
+the format specified in the XML Schema specification \cite{iSPE00a}.
+Table~\ref{tab:timeunits} gives the list of commonly used
+time units.  For example, two seconds is formatted as
+\texttt{PT2S} while 1min15s is represented as
+\texttt{PT1M15S}.
+During the simulation, such time durations are automatically
+converted to be expressed in the simulator's default time unit.
+
+\begin{table}[htb]
+  \caption{Supported symbols for time units}
+  \label{tab:timeunits}
+  \centering
+  \begin{tabular}{|rl|}\hline
+    Symbol&Name\\\hline
+    \texttt{S}&Second\\
+    \texttt{M}&Minute\\
+    \texttt{H}&Hour\\ \hline
+  \end{tabular}
+\end{table}
+
+\paragraph{Date.}
+A date can be represented in XML using the format
+yyyy-mm-dd, e.g.,
+2007-09-10 for September 10, 2007.
+See the specification of XML Schema \cite{iSPE00a}
+for more details.
+
+\paragraph{Class name.}
+This type represents a fully qualified Java class name,
+or class names in a predefined package.  Usually, it
+is restricted to name of classes extending some base class.
+For example, a class name representing a probability distribution
+is resolved to a class by looking in the
+\path{umontreal.iro.lecuyer.probdist} package.
+% If the XML file contains some \texttt{import} processing instructions,
+% one can avoid writing fully qualified class names.  The parameter
+% reader uses the same rules as the Java compiler to resolve fully
+% qualified class names from simple class names.
+
+\paragraph{Enumerated type.}
+An enumerated type is a string restricted to a finite set of values.
+The allowed values depends on the specific parameter whose values are
+of this data type.
+Usually, the authorized values correspond to the names of public
+fields in a determined Java class.
+
+% \paragraph{Array type.}
+% Although this is rarely used, an array can be specified as an
+% attribute.  The
+% string representing the array must be surrounded with braces, and each
+% component of the array must be separated with commas or spaces.  For
+% example,
+% \texttt{\{1 2 3\}} can be used to denote an array of 3 integers.
+
+\subsubsection{Complex data types}
+\label{sec:complexdatatypes}
+
+The available complex types depend on the XML Schema used to constrain
+XML documents. As a result, we do not provide a reference here for the
+available complex types.  One must see the XML Schemas in the
+\texttt{schemas} subdirectory of ContactCenters, or
+the HTML documentation generated from the annotations in the schemas,
+located in \path{doc/schemas}.
+
+Here, we provide examples of how documentation can be retrieved for
+complex types.
+First, suppose we need the documentation for the
+\texttt{ccmsk:MSKCCParams} element, which
+represents the model parameters.
+This element is qualified, because it has a prefix.
+As a result, we need to determine the namespace URI bound
+to the prefix, by looking at the \texttt{xmlns:} declarations.
+In this case, the right URI is
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters/msk}.
+This gives the section, in the HTML documentation, to look for.
+
+The section can be located by opening the file
+\path{doc/schemas/index.html} into a Web browser, and clicking on the
+appropriate namespace URI.
+This shows a new page with every element and type defined in this
+namespace URI.
+We can then find the documentation for the
+element
+\texttt{MSKCCParams} by clicking on the appropriate link.
+By looking at this documentation, we find that this element can have
+several attributes, and children.
+Clicking on any type name brings one to a page describing that type in
+more details.
+
+For example, attribute \texttt{defaultUnit} has type
+\texttt{ssj:TimeUnitParam}, which corresponds to a simple type located
+in the namespace
+\path{http://www.iro.umontreal.ca/lecuyer/ssj}.
+This is an enumerated type regrouping strings corresponding to time
+units.
+Attribute \texttt{numPeriods} also has a simple type corresponding to
+a restriction of a base type: it corresponds to a positive integer.
+
+Suppose now that we need the documentation for an element
+named \texttt{patience\-Time}.
+This element is unqualified, and therefore belongs to another element.
+By looking in the XML element where the element appears, one can see
+that \texttt{patience\-Time} has a parent named
+\texttt{inbound\-Type}, which itself has a parent
+named \texttt{ccmsk:MSKCCParams}.
+So the desired element is
+\path{ccmsk:MSKCCParams/inboundType/patienceTime}.
+
+In the documentation of the \texttt{MSKCCParams} element,
+one notices that the element can accept children named
+\texttt{inboundType}, which has type
+\texttt{InboundTypeParams}. Such an element accepts a child
+named \texttt{patience\-Time} which has type
+\texttt{MultiPeriodGenParams} in namespace
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters}.
+From this, we can get the documentation of the type, and determine
+which attributes and children \texttt{patience\-Time} accepts.
+
+\begin{comment}
+\subsubsection{1D Arrays}
+\label{sec:arrays}
+
+A one-dimensional array is represented
+as a space-separated
+list of strings.
+For example, the
+\texttt{probAbandon} element
+% (probability of balking, see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallTypeParams:getProbAbandon()})
+is an array of
+numbers in $[0, 1]$, and can be formatted
+as follows:
+\begin{lstlisting}[language=XML,frame={}]
+   <probAbandon>0.20  0.20  0.20</probAbandon>
+\end{lstlisting}
+% As a sequence of subelements, the same array is represented as
+% \begin{lstlisting}[language=XML,frame={}]
+%    <probAbandon>
+%       <row repeat="3">0.20</row>
+%    </probAbandon>
+% \end{lstlisting}
+
+\subsubsection{2D arrays}
+\label{sec:arrays2D}
+
+A two-dimensional array is an array of
+one-dimensional arrays, and
+is represented by a sequence of
+\texttt{row} elements.  In the particular case where the length of
+all the 1D arrays are equal, the 2D array is \emph{rectangular} and
+is sometimes called a matrix.
+%The two-dimensional array can be represented two
+%ways:
+%as a comma-separated or a space-separated
+%list of one-dimensional arrays or as
+%a sequence of \texttt{row} subelements each containing a
+%comma-separated or space-separated
+%list.  In the first representation, one needs to
+%protect the 1D arrays with braces.
+For example, the type-to-group map
+is represented in the \texttt{router} element
+by the
+\texttt{type\-To\-Group\-Map} subelement
+% (see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.RouterParams:getTypeToGroupMap()})
+as a 2D array of integers.
+%\begin{lstlisting}[language=XML,frame={}]
+%   <typeToGroupMap>{1   2}  {1   0   2}</typeToGroupMap>
+%\end{lstlisting}
+%With a sequence of \texttt{row}, the same array would be represented
+%as follows:
+\begin{lstlisting}[language=XML,frame={}]
+   <typeToGroupMap>
+      <row>1  2</row>
+      <row>1  0  2</row>
+   </typeToGroupMap>
+\end{lstlisting}
+
+\subsubsection{Database connections}
+\label{sec:DBcon}
+
+Some parameters, for example the \texttt{database} element in
+\texttt{call\-Trace}
+% (see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.app.CallTraceParams:getDatabase()}),
+ are used to describe a connection to a database
+served by a \emph{database management system} (DBMS).
+A \emph{database} is a container for a large quantity of data
+usually stored into files.
+Data is organized into tables with rows corresponding to
+records and columns to fields, and queries can be performed to obtain
+subsets of data.
+This data is managed by dedicated software called a \emph{database
+  management system} (DBMS) rather than being accessed directly.
+This results in increased reliability when several clients perform
+concurrent access to data.
+
+Clients communicate with the DBMS by using the \emph{Structured Query
+  Language}
+(SQL) to search for, or update the database with new data.
+However, although the basics of SQL are
+standardized, DBMS implement their own
+advanced features, resulting in
+dialects of this language.
+
+Java programs, such as the blend/multi-skill simulator, can access
+databases by using a DBMS-independent interface called JDBC
+\cite{iFIS99a}.
+This API provides tools to connect to a DBMS and perform SQL queries
+while the DBMS-dependent communication protocols are hidden into
+JDBC \emph{drivers}, also called connectors.
+
+Interacting with a database is more complex than using simple
+parameter files, because many components need to be configured:
+after a database server is set up, one needs to install the
+appropriate JDBC driver and set the parameters for the JDBC
+connection.
+First, a database server such as MySQL \cite{iMYS06a},
+Oracle \cite{iORA06a}, Microsoft SQL Server \cite{iMIC05a},
+etc.\ must be set up.
+Instructions for setting up the server depends on the DBMS used.
+The server does not have to run on the machine used to run the
+simulator.
+For more security, one may create a special user account on the server
+for the JDBC connections.
+After the server is set up and running, one needs to create at least
+one database for connecting with the simulator.
+
+Alternatively, if the simulator is running under Microsoft Windows,
+one can use an \emph{Open Database Connectivity}
+(ODBC)  data
+source instead of a dedicated server.
+Such a data source, configured through Windows' Control
+Panel, can be a Microsoft Access database, a Microsoft Excel
+spreadsheet, a
+database backed by an ODBC-compliant DBMS, etc.
+
+The second component to be configured is the JDBC driver which depends
+on the DBMS used. Major database vendors provide or are working on
+such a JDBC driver.
+For example, MySQL requires MySQL Connector/J while Oracle provides
+its own JDBC driver.
+Installing the driver usually requires adding some JARs to the \texttt{CLASSPATH}
+environment variable, and sometimes native libraries on the library path.
+The only preinstalled driver in Sun's JRE is the JDBC-ODBC bridge,
+which allows to access ODBC data sources.
+Using this bridge is the simplest solution, but it can result in
+reduced performance and portability while a specialized JDBC driver
+can interact with the DBMS directly.
+
+After the DBMS and the JDBC driver are determined, one can set up the
+parameters for the JDBC connection.
+This can be done two ways: using a JDBC
+URI, or a \emph{Java Naming and Directory
+Interface}
+(JNDI) server.
+
+All JDBC URIs start with \texttt{jdbc:}, and depend on the JDBC
+driver used.  Additionally, a driver class has to be loaded, and
+additional properties, e.g., username and password, usually need to be
+specified.
+For example, the URI
+\path{jdbc:mysql://mysql.iro.umontreal.ca/database}
+can be used to establish a connection on the MySQL database named
+\texttt{database}, and hosted by \path{mysql.iro.umontreal.ca}.
+The corresponding name for the driver class is
+\path{com.mysql.jdbc.Driver}.
+The URI \path{jdbc:odbc:datasource} represents a connection to the
+ODBC data source named \texttt{datasource}, and
+the corresponding driver is
+\path{sun.jdbc.odbc.JdbcOdbcDriver}.
+
+The \texttt{jdbc\-URI} attribute gives the JDBC URI being used while
+the name of the driver class to be loaded is given by the
+\texttt{jdbc\-Driver\-Class} attribute.
+Moreover, one can use the \texttt{properties} element
+to specify
+properties, e.g., a user name and a password, for the connection.
+Each \texttt{string} child in a \texttt{properties}
+element requires a \texttt{name} and a
+\texttt{value} attributes specifying its name and value.
+The supported properties also depend on the JDBC driver used.
+
+The following example describes a connection to a MySQL database, and
+requires the MySQL JDBC Connector.
+\begin{lstlisting}[language=XML,frame={}]
+      <database jdbcDriverClass="com.mysql.jdbc.Driver"
+                jdbcURI="jdbc:mysql://mysql.iro.umontreal.ca/database">
+          <properties>
+             <string name="user" value="foo"/>
+             <string name="password" value="bar"/>
+          </properties>
+      </database>
+\end{lstlisting}
+
+Alternatively, one can use JNDI to establish the connection to a
+database.
+A JNDI server \cite{iLEE02a}, which maps names to Java objects, is
+usually embedded
+into an application server such as JBoss Application Server
+\cite{iRHM06a}.
+When using JNDI, one at least needs to set the
+\texttt{jndi\-Data\-Source\-Name} attribute to a name the JNDI server
+in use can map to an object implementing \path{java.sql.DataSource}.
+This data source is used to retrieve a connection to the
+database when parameters are read.
+The JNDI-specific parameters, e.g., the address of the name server,
+can be encoded into the \texttt{properties} nested element.
+If no property is specified in the database parameters, JNDI looks for
+the properties in a file named \texttt{jndi.properties}.
+See the documentation of JNDI for more information on how to setup
+and use JNDI.
+
+\subsubsection{External data sources}
+\label{sec:extarray}
+
+In addition to the formats given in sections~\ref{sec:arrays}
+and~\ref{sec:arrays2D},
+there is a third way to specify an array, by referring to an external
+data source.
+This can be useful to avoid large and difficult to edit parameter
+files composed of many large arrays of data.
+Data extraction results in the construction of a \emph{source array}
+which can be subsetted and transposed.
+The resulting \emph{source subset} is then
+converted into the
+\emph{destination array} used instead of the hard-coded data.
+
+Let \texttt{a} be an element whose contents can be extracted from a
+source array.
+The source array is described using the \texttt{CSV}, \texttt{DB},
+or \texttt{Excel}
+subelements of \texttt{a}.
+The \texttt{CSV} subelement specifies that data must be read from a text file
+while \texttt{DB} indicates that data will come from a database.
+The \texttt{Excel} subelement indicates that data comes from a
+Microsoft Excel document.
+Note that the source array is not always rectangular, i.e., each row
+can contain a different number of columns.
+
+The \texttt{CSV} element takes a single \texttt{URL} attribute
+pointing to the CSV-formatted text file containing the data.
+A \emph{comma-value-separated} (CSV) file is a text file containing one line
+for each row in the source array, with each element of a row separated
+with a comma. Quotation marks can also be used to delimit a string
+that can span multiple lines and contain commas.  Such CSV files can
+easily be exported by spreadsheet software.
+The following
+example gives a CSV-formatted matrix specifying the arrival for three
+call types.
+\begin{verbatim}
+"Call type","Arrival rate"
+"Type 1",   100
+"Type 2",   60
+"Type 3",   120
+\end{verbatim}
+
+The \texttt{DB} element can be used to obtain the source array from a
+SQL query.  The element takes a \texttt{data\-Query} attribute giving
+the query, and a \texttt{database} subelement describing the
+connection to the database. (See section~\ref{sec:DBcon}.)
+The result set of the query, whose rows correspond to records in the
+database, and columns to fields, is then used as the source array.
+Note that source arrays obtained from databases are always rectangular.
+
+The \texttt{Excel} element can be used to obtain the source array from
+a Microsoft Excel document.  The \texttt{URL} attribute gives a URL
+pointing to the Excel file, and the \texttt{sheet\-Name} attribute can
+be used to refer to a particular sheet in the document.
+By default, the first sheet is used.
+The data is read using JExcel API, which can handle a subset of the
+formulas supported by Excel.
+However, complex formulas might not be supported by the library, and
+macros cannot be used.
+
+A single source array can
+contain information for multiple destination
+arrays.
+For example, a spreadsheet containing one column of
+arrival rates for each call type might be exported to CSV, and used as
+a source array.
+Therefore, facilities are provided to subset the source array.
+For this,
+the \texttt{starting\-Row}, \texttt{starting\-Column},
+\texttt{num\-Rows}, and \texttt{num\-Columns}
+attributes of \texttt{a}
+can be used to indicate the portion of the source array to consider.
+The first two attributes give the (zero-based) starting row and
+column of the subset.  These are optional and defaults to 0.
+The last two attributes give the dimensions of the subset.
+If the number of rows [columns] is omitted, it defaults
+to the number of rows [columns] in the
+source array minus the starting row [column].
+If the resulting subarray is rectangular, it can finally be transposed
+by using the \texttt{transposed} boolean attribute.
+This latter boolean attribute is also optional, and defaults to
+\texttt{false}, i.e., no transposition.
+
+The source subset is then converted to the destination array as
+follows.
+For 1D arrays, each element of the source subset read row by row is
+copied into the destination array.
+For 2D arrays, the source subset simply becomes the destination array.
+
+For example, suppose that one has a CSV file named \texttt{arv.csv}
+with the following format.
+\begin{verbatim}
+,"Call type 1","Call Type 2","Call Type 3"
+"8h-8h30",100,100,100
+"8h30-9h",120,140,120
+...
+\end{verbatim}
+Here, each column gives the arrival rates for one call type, and each
+row corresponds to a period of the day.
+The arrival rates of call type~2 would be giving as follows:
+\begin{lstlisting}[language=XML,frame={}]
+   <arrivals startingRow="1" startingColumn="2" numColumns="1">
+      <CSV URL="arv.csv"/>
+   </arrivals>
+\end{lstlisting}
+The source subset excludes the first (header) row because the starting
+row is set to 1.  All arrival rates in the CSV file are used, since
+the number of rows is omitted.
+
+\subsubsection{Probability distributions}
+\label{sec:probdist}
+
+Several elements in parameter files, for example
+\texttt{patience\-Time}
+% (see p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallTypeParams:getPatienceTime()})
+describe random variate generators using
+specific probability distributions, and
+algorithms for generating variates.
+The probability distribution is configured through the
+\texttt{distribution\-Class} attribute which requires the
+name of a Java class implementing the \texttt{Distribution} interface
+from package \path{umontreal.iro.lecuyer.probdist} in SSJ \cite{iLEC04j}.
+The algorithm for generating random numbers is set up by
+the \texttt{generator\-Class} optional attribute, and defaults to inversion if not specified.
+The class referred to by this attribute must extend \texttt{Random\-Variate\-Gen} from package
+\path{umontreal.iro.lecuyer.randvar}, which is used
+by default, and be compatible
+with the selected distribution.
+For example, if
+\texttt{Exponential\-Dist} is selected as a distribution,
+\texttt{Exponential\-Gen} random variate generator, or
+\texttt{Random\-Variate\-Gen}, must be used.
+
+The \texttt{unit} attribute specifies the time unit in which the
+generated values are expressed.  This is not the time units of the
+given parameters or data.  The allowed values are \texttt{NANOSECOND},
+\texttt{MICROSECOND}, \texttt{MILLISECOND}, \texttt{SECOND},
+\texttt{MINUTE}, \texttt{HOUR}, \texttt{DAY}, and \texttt{WEEK}.
+The generated values are automatically converted in the default time
+unit of the simulator.
+If \texttt{unit} is omitted, no conversion is applied on the
+generated values.
+
+For stationary distributions, e.g., \texttt{busyness\-Gen}, the
+element accepts an array of parameters as nested contents.
+For distributions over multiple periods,
+parameters are given in
+\texttt{period\-Gen}, \texttt{default\-Gen},
+\texttt{pre\-Gen}, and \texttt{wrap\-Gen} elements.
+
+The \texttt{estimate\-Parameters} attribute, which can appear in the
+element representing the distribution, a period generator, or the
+default generator, determines how the arrays of parameters are
+processed.
+When \texttt{estimate\-Parameters} is \texttt{true},
+parameter estimation is performed.
+Otherwise,
+parameters must match the
+selected distribution's constructor.  The PDF or HTML documentation of
+SSJ \cite{iLEC04j} contains information about each supported
+distribution, including its density and supported parameters.
+%Arrays can be passed as
+%parameters by surrounding them with braces.
+
+% Alternatively, one can use a \texttt{data} subelement, which is a 1D
+% array (see section~\ref{sec:arrays}), to specify data
+% to estimate the parameters by using
+% maximum likelihood.
+% This data can also be extracted from an external source as we saw in
+% the preceding section.
+% The \texttt{data} element can also
+% be used for empirical distributions.
+% More specifically,
+% when \texttt{distribution\-Class} is set to
+% \texttt{Empirical\-Dist} (piecewise-constant empirical distribution function) or
+% \texttt{Piecewise\-Linear\-Empirical\-Dist} (piecewise-linear empirical
+% distribution function),
+% the given data is sorted and used directly by these distributions.
+
+Let \texttt{rvg} be an element that requires a probability distribution.
+Then, the nested text of \texttt{rvg/defaultGen} specifies the default
+parameters used when there are no period-specific
+parameters for a given period.
+A \texttt{period\-Gen} subelement can be used to give period-specific
+parameters, and inherits \texttt{distribution\-Class}, and
+\texttt{generator\-Class},
+% and \texttt{database}
+from \texttt{rvg}.
+%Moreover, any occurrence of \texttt{\$\{row\}} in a row-specific
+%\texttt{data\-URL} or \texttt{data\-Query} attributes is replaced by
+%the zero-based index of the row.
+As with 2D arrays, the
+\texttt{repeat} attribute is supported.  In a \texttt{period\-Gen} subelement,
+one can also override the distribution or generator classes with
+the \texttt{distribution\-Class} and \texttt{generator\-Class} optional
+attributes, respectively.
+
+% One can also use the \texttt{data2D} or \texttt{params} elements to
+% specify per-period parameters.
+% These elements correspond to matrices whose rows represent periods,
+% and columns, observations or parameters.
+% This alternative syntax is intended to allow parameters to be
+% read more easily from external data sources.
+
+% The \texttt{row}, \texttt{data2D}, and \texttt{params}
+% elements, which are mutually exclusive,
+% apply to main periods only.
+By default, the distribution for the preliminary period is taken
+from the first main period, and the distribution for the wrap-up period
+is taken from the last main period.  The subelements \texttt{preGen}
+and \texttt{wrapGen} can be used to override this.  They work the same
+way as \texttt{periodGen}, except that the \texttt{repeat} attribute
+is not allowed.
+% and no substitution happens in \texttt{data\-URL} and
+%\texttt{data\-Query}.
+
+Additionally, one can specify a shift $\ell$ to be subtracted to
+generated values.  The value of $\ell$ is given in a \texttt{shift}
+attribute that can be owned by \texttt{rvg} or one of its \texttt{period\-Gen}
+subelements.  The value of $\ell$ is expressed in the time unit set by
+\texttt{unit}.
+The shift is also added to every observation when data is specified
+for maximum likelihood estimation.
+
+For example, if we need an exponential service time on three periods
+for a call type,
+we use the \texttt{service\-Time} element in an \texttt{inbound\-Type}
+element
+% (see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallTypeParams:getServiceTime()}).
+\begin{lstlisting}[language=XML,frame={}]
+...
+   <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+      <defaultGen>10</defaultGen>
+      <periodGen repeat="3">5</periodGen>
+   </serviceTime>
+...
+\end{lstlisting}
+Since \texttt{ExponentialDist} cannot be resolved to a class,
+the program looks in package Probdist of SSJ for the class.
+The documentation of SSJ indicates that this
+package contains the
+\texttt{Exponential\-Dist} class representing an exponential
+distribution with rate $\lambda$.  This class provides a one-argument
+constructor accepting $\lambda$.  Any value coming from the
+exponential distribution is assumed to be expressed in minutes
+because of the given \texttt{unit} attribute.
+For the first three main periods, the
+service rate is 5 calls per minute.  For any additional period, it
+is set to 10 calls per minute.
+During the simulation, generated values are converted to the time
+unit used by the simulator, i.e., the
+one given by the \texttt{default\-Unit} attribute.
+% (see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallCenterParams:getDefaultUnit()}).
+If \texttt{unit} is omitted, no time conversion occurs.
+
+Now suppose that in the first three periods, the desired mean service
+time is $0.5$ minute (30 seconds) with a variance of $0.04$.
+By setting $\lambda=2$, we get the correct mean $1/\lambda$, but the
+variance $1/\lambda^2$ is  $0.25$, which is incorrect.
+With the original $\lambda=5$, we have the correct variance, but the
+mean is $1/5$ minutes (12 seconds).
+Adding a shift of $\ell=-0.3$ adds $0.3$ to every generated
+observation, thus increasing the mean without affecting the variance.
+The following XML code sets such a shifted distribution for service
+times.
+\begin{lstlisting}[language=XML,frame={}]
+...
+   <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+      <defaultGen>10</defaultGen>
+      <periodGen repeat="3" shift="0.3">5</periodGen>
+   </serviceTime>
+...
+\end{lstlisting}
+
+For a gamma service time constant for all periods, the XML element
+is similar.  In the documentation of SSJ, a \texttt{Gamma\-Dist} class
+can be found and supports a shape parameter $\alpha$ and scale
+parameter $\lambda$, with mean $\alpha/\lambda$.  The
+\texttt{Gamma\-Dist} class defines several constructors, with one
+taking
+$(\alpha,\lambda)$, in that order.
+We therefore specify parameters according to the constructor
+to represent a gamma distribution.  Acceptance-rejection can be used
+to generate the variates for improving
+efficiency.
+\begin{lstlisting}[language=XML,frame={}]
+...
+   <serviceTime distributionClass="GammaDist"
+                generatorClass="GammaAcceptanceRejectionGen"
+                unit="MINUTE">
+       <defaultGen>20  2</defaultGen>
+   </serviceTime>
+...
+\end{lstlisting}
+This declares a gamma service time with $\alpha=20$ and $\lambda=2$
+for all periods.
+
+Specifying that
+service times follow the normal distribution with mean 10,
+variance 5, and truncated on the positive real numbers is
+done by using the \texttt{lower\-Bound} attribute.
+%more
+%complicated but nevertheless possible.
+%The Probdist class for this is named \texttt{Truncated\-Dist}, and
+%has a three-parameters constructor taking the distribution to
+%truncate, and the lower and upper bounds of the truncated density.
+%This constructor can be referred to as follows.
+\begin{lstlisting}[language=XML,frame={}]
+...
+   <serviceTime distributionClass="NormalDist"
+                unit="MINUTE">
+        <defaultGen lowerBound="0">10  5</defaultGen>
+   </serviceTime>
+...
+\end{lstlisting}
+%The nested text of the above \texttt{service\-Time} element is
+%separated into three arguments: \texttt{Normal\-Dist (10  5)},
+%\texttt{0}, and \texttt{infinity}, the first argument being converted
+%into a normal distribution.
+
+% Now suppose we have a file named \texttt{params.txt} containing the
+% service rates for each period, one period per line.  This is a special
+% case of a CSV file, with one column for each row.
+% One can refer to this file in the XML parameter file as follows rather
+% than
+% copying the data.
+% \begin{lstlisting}[language=XML,frame={}]
+% <?import umontreal.iro.lecuyer.probdist.*?>
+% ...
+%    <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+%        <params>
+%           <CSV URL="params.txt"/>
+%        </params>
+%    </serviceTime>
+% ...
+% \end{lstlisting}
+% If the distribution requires more than one parameter,
+% \texttt{params.txt} can be replaced by a CSV file containing two
+% comma-separated values on each line.
+
+Suppose now that we have 100 service times expressed in
+seconds and we suspect the distribution of the service time to be
+gamma.
+We can then use the \texttt{estimateParameters} attribute
+as follows for
+parameters to be estimated via maximum likelihood.
+\begin{lstlisting}[language=XML,frame={}]
+...
+   <serviceTime distributionClass="GammaDist"
+                generatorClass="GammaAcceptanceRejectionGen"
+                unit="SECOND" estimateParameters="true">
+         <defaultGen>
+   13.583  38.350  36.988  174.782  25.055  76.227  65.542  43.937
+   14.617  140.998  85.697  52.774  39.501  27.493  94.177  234.529
+   35.521  3.475  339.398  15.490  140.056  20.032  8.392  24.555
+   113.580  21.363  74.357  23.090  97.026  146.662  219.492  211.232
+   185.475  129.586  70.093  8.275  4.256  270.992  380.576  65.159
+   88.477  111.913  0.202  284.074  49.649  80.090  128.229  109.601
+   14.614  77.179  8.003  156.671  29.713  17.353  62.487  9.279  18.595
+   111.629  147.295  100.060  55.822  217.506  10.113  315.508  45.521
+   150.381  140.569  29.204  187.779  121.608  95.364  117.455  255.000
+   159.561  130.894  100.282  97.153  60.966  72.697  218.799  177.292
+   70.690  72.737  37.344  106.093  20.325  90.501  117.777  201.008
+   13.961  14.421  238.566  16.629  27.469  186.505  154.357  281.944
+   4.212  36.368  142.395</defaultGen>
+   </serviceTime>
+...
+\end{lstlisting}
+These values were obtained by generating 100 i.i.d.\ exponentials with
+$\lambda=0.01$.  This corresponds to the gamma distribution with
+$\alpha=1$ and $\lambda=0.01$.
+
+\end{comment}
+\begin{comment}
+Alternatively, the data could be read from external files.
+First, we suppose that the file \texttt{data.txt} contains the
+observation, with one value per line.
+This corresponds to a special case of a CSV file, with one column for
+each row.
+Data can then be obtained as follows:
+\begin{lstlisting}[language=XML,frame={}]
+<?import umontreal.iro.lecuyer.probdist.*?>
+<?import umontreal.iro.lecuyer.randvar.*?>
+...
+   <serviceTime distributionClass="GammaDist"
+                generatorClass="GammaAcceptanceRejectionGen"
+                unit="SECOND" dataURL="stimes.dat">
+      <data>
+         <CSV URL="data.txt"/>
+      </data>
+   </serviceTime>
+...
+\end{lstlisting}
+
+However, things get more complicated if the service time depends on
+the period.
+One could of course create one text file for each period, but this
+would be tedious and difficult to organize.
+A better solution is to have a single CSV file containing all the
+observations.
+Suppose that the CSV file \texttt{data.csv} contains the
+observations, with one row per observation, and one column per
+period.
+The data can be obtained as follows.
+\begin{lstlisting}[language=XML,frame={}]
+<?import umontreal.iro.lecuyer.probdist.*?>
+<?import umontreal.iro.lecuyer.randvar.*?>
+...
+   <serviceTime distributionClass="GammaDist"
+                generatorClass="GammaAcceptanceRejectionGen"
+                unit="SECOND" dataURL="stimes.dat">
+      <data2D transposed="true">
+         <CSV URL="data.csv"/>
+      </data2D>
+   </serviceTime>
+...
+\end{lstlisting}
+Here, we suppose that the CSV file contains service times for a single
+call type, without any heading.
+More complex cases can be handled by defining a subset. (See the
+preceding subsection.)
+The source array obtained from the file has one row for each
+observation, and one column for each period.
+We need to transpose it in order to get one row for each period, and
+one column for each observation, which is requested by the
+\texttt{transposed} attribute set to \texttt{true}.
+
+The following example reads data from a MySQL database, assuming the
+database contains a table for the service times, with one column for
+each period.
+\begin{lstlisting}[language=XML,frame={}]
+<?import umontreal.iro.lecuyer.probdist.*?>
+<?import umontreal.iro.lecuyer.randvar.*?>
+...
+   <serviceTime distributionClass="GammaDist"
+                generatorClass="GammaAcceptanceRejectionGen"
+                unit="SECOND" dataQuery="SELECT Default FROM ServiceTimes">
+      <data2D transposed="true">
+         <DB dataQuery="SELECT * FROM ServiceTimes"/>
+            <database jdbcDriverClass="com.mysql.jdbc.Driver"
+                      jdbcURI="jdbc:mysql://mysql.iro.umontreal.ca/database">
+               <property name="user" value="foo"/>
+               <property name="password" value="bar"/>
+            </database>
+         </DB>
+      </data2D>
+   </serviceTime>
+...
+\end{lstlisting}
+\end{comment}

@@ -1,0 +1,5 @@
+<ccapp:repSimParams minReplications="5"
+     xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <callTrace outputFileName="test.log"/>
+   <report confidenceLevel="0.95"/>
+</ccapp:repSimParams>

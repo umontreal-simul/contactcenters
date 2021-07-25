@@ -1,0 +1,7 @@
+<ccapp:repSimParams minReplications="300"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95">
+      <printedStat measure="SERVICELEVEL"/>
+      <printedStat measure="OCCUPANCY" detailed="false"/>
+   </report>
+</ccapp:repSimParams>

@@ -1,0 +1,113 @@
+<ccmsk:MSKCCParams   defaultUnit="SECOND" periodDuration="PT1H"
+     numPeriods="13" startingTime="PT8H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <inboundType name="Type 1">
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>500</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>600</defaultGen>
+      </serviceTime>
+      <serviceTimesMultTransfer>
+         <row>0.1</row>
+      </serviceTimesMultTransfer>
+      <transferTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>30</defaultGen>
+      </transferTime>
+      <probTransfer>
+         <row>0.2</row>
+      </probTransfer>
+      <probTransferWait>
+         <row>0.6</row>
+      </probTransferWait>
+      <transferTarget type="3" probability="1"/>
+
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>100 150 150 180 200 150 150 150 120 100 80 70 60</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <inboundType name="Type 2">
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>500</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>550</defaultGen>
+      </serviceTime>
+      <serviceTimesMultTransfer>
+         <row>0.1</row>
+      </serviceTimesMultTransfer>
+      <transferTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>30</defaultGen>
+      </transferTime>
+      <probTransfer>
+         <row>0.15</row>
+      </probTransfer>
+      <probTransferWait>
+         <row>0.6</row>
+      </probTransferWait>
+      <transferTarget type="2" probability="1"/>
+
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>125 130 170 190 200 135 155 145 110 90 60 40 30</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <inboundType name="Type 1 from type 2">
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>500</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>600</defaultGen>
+      </serviceTime>
+      <conferenceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>30</defaultGen>
+      </conferenceTime>
+      <preServiceTimeNoConf distributionClass="ExponentialDistFromMean"
+                            unit="SECOND">
+         <defaultGen>75</defaultGen>
+      </preServiceTimeNoConf>
+   </inboundType>
+
+   <inboundType name="Type 2 from type 1">
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>500</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>550</defaultGen>
+      </serviceTime>
+      <conferenceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>30</defaultGen>
+      </conferenceTime>
+      <preServiceTimeNoConf distributionClass="ExponentialDistFromMean"
+                            unit="SECOND">
+         <defaultGen>75</defaultGen>
+      </preServiceTimeNoConf>
+   </inboundType>
+
+   <agentGroup name="Group 1">
+      <staffing>10 25 28 28 28 27 28 28 26 26 24 24 24</staffing>
+   </agentGroup>
+   <agentGroup name="Group 2">
+      <staffing>24 26 28 28 28 27 28 28 26 26 24 24 24</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREF">
+     <ranksTG>
+       <row>  2 INF</row>
+       <row>INF   2</row>
+       <row>  1 INF</row>
+       <row>INF   1</row>
+     </ranksTG>
+     <routingTableSources ranksGT="ranksTG"/>
+   </router>
+
+   <serviceLevel name="20s">
+      <awt>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

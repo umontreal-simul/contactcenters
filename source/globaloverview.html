@@ -1,0 +1,127 @@
+<body>
+\latex{\section{Overview}}
+
+A \emph{contact center} is a set of resources (communication
+equipment, employees, computers, etc.) providing an interface between
+customers and a business \cite{ccAKS07a,ccGAN03a,ccMEH03a,ccAVR05b}.
+A \emph{contact} represents a customer's request for
+some service such as information, subscription, order, etc.
+Customers may use various media for contacting a business: telephone,
+fax, mail, or Internet.
+A contact center processing phone calls only is named a \emph{call center}.
+
+\emph{Inbound contacts} are initiated by customers trying to
+communicate with the business.  A customer can be
+\emph{blocked}, i.e., receive a busy signal, if all phone lines are
+used at the time he calls.  He can also be queued if service cannot be
+started immediately.
+A queued customer may become impatient and abandon without receiving
+service.
+A \emph{retrial} occurs if the customer having abandoned tries to
+contact the
+business again.  A served customer may also \emph{return} to get new
+service, or to satisfy its initial request.
+
+\emph{Outbound contacts} are initiated by agents contacting customers,
+or by a \emph{predictive dialer} making phone calls by trying
+to anticipate the number of free agents at the time
+contacted customers are reached.  A \emph{right party
+  connect} occurs when an outbound contact is successful, i.e., the
+right person has been reached.  A
+\emph{mismatch} represents a successful contact that cannot be served
+immediately.  Often, these mismatches are considered as lost calls,
+because most customers will not wait after they answer.
+
+Modern contact centers use \emph{skill-based} routing for processing
+different types of requests when each agent is trained for handling
+only a subset of these types.  Each contact is assigned a type (or
+skill) $k$ in $0,\ldots,K-1$.
+To determine this type,
+before reaching an agent, a customer must indicate his needs:
+callers interact with an
+\emph{interactive voice response} (IVR) unit while Internet users
+enter data in a Web form.  Outbound contacts can also have a type,
+since all customers are not contacted for the same reason.
+
+The agents are partitioned in $I$ agent groups or skill sets.
+All agents in a group~$i$ share the same skills, i.e., they can serve the
+same types of contacts (although some members may be
+more efficient than others).
+
+Queueing theory can be used to derive approximations for estimating
+the performance measures of contact centers, but only for models that
+oversimplify the complexities of real-life systems for which only simulation
+can provide accurate results.  Simulation
+permits the analysis of the impact of parameter changes on contact
+center's performance.  For example, it can evaluate
+service level of contacts,
+occupancy ratio of agents, waiting times, etc.\ for (almost) arbitrary
+contact centers.
+
+The \emph{ContactCenters} library provides a set of building blocks to
+help programmers in the development of contact center simulators.
+The library uses Stochastic Simulation in Java
+(SSJ) \cite{iLEC04j} to perform discrete-event
+simulation and to generate random variates.  It also relies on
+Collections Tuned (Colt) \cite{iHOS04a} for
+matrix manipulation.
+
+\html{The {@link umontreal.iro.lecuyer.contactcenters.app} package provides
+generic contact center simulators for the most common cases.  It
+defines a common interface for simulators and approximations to allow
+uniform communication between other tools such as analyzers and
+optimizers.}  A precompiled generic contact center simulator,
+adapted for blend and multi-skill models, is provided
+and can use XML
+files for parameters.  See \texttt{guidemsk.pdf} for more information
+about this simulator, how to configure it, and how to use it.
+\latex{The document \texttt{guideapp.pdf} describes in more details the
+various interfaces, classes, and methods permitting the user to
+access precompiled simulators from other Java programs.}
+
+For existing simulators to be extended or new ones to be created, the
+simulation toolset provided by this library must be used directly.
+This toolset is comprised of various components grouped in different
+packages.
+Each component corresponds to a specific contact center
+element and can easily be extended or replaced by the user.
+The {@link umontreal.iro.lecuyer.contactcenters} package provides
+some facilities to manage contact centers in general.  It defines base
+classes for contact center simulation applications as well as a
+framework to generate contact-specific values during the
+simulation.  The package {@link
+  umontreal.iro.lecuyer.contactcenters.contact} defines the {@link
+  umontreal.iro.lecuyer.contactcenters.contact.Contact} class whose
+  instances represent the contacts traveling into the system.
+It also defines several arrival processes for inbound contacts.
+
+The package {@link
+  umontreal.iro.lecuyer.contactcenters.server} defines the facilities
+for serving contacts by agents.  It defines agent groups as well as
+a data structure to store information about served contacts.
+
+The package {@link
+  umontreal.iro.lecuyer.contactcenters.queue} defines the waiting queue
+contacts can have to wait in if they cannot be served at the time they
+enter the center.  It defines a First-In-First-Out waiting queue as
+well as a generic priority queue, with a data structure to store
+information about queued contacts.
+
+The package {@link
+  umontreal.iro.lecuyer.contactcenters.dialer} defines the dialer
+capable of performing outbound calls.  The defined dialer can
+implement a complex dialing policy obtaining contacts from various
+sources.
+
+The package {@link
+  umontreal.iro.lecuyer.contactcenters.router} implements the routing
+facilities, linking all the contact center objects together.
+It defines a base class representing a router as well as several
+subclasses for various routing policies.
+
+\html{The ContactCenters simulation library uses and extends the Stochastic
+Simulation in Java (SSJ) library.
+The package {@link umontreal.iro.lecuyer.xmlbind} provides some
+convenience classes to marshal and unmarshal complex parameter objects
+using JAXB.}
+</body>

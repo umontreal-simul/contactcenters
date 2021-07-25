@@ -1,0 +1,130 @@
+\ProvidesPackage{ccsymb}[2005/03/03 ContactCenters Symbols]
+\RequirePackage{amsfonts}
+\RequirePackage{amsbsy}
+
+\newif\ifptmx\ptmxfalse
+% Issue \ptmxtrue when using the mathptmx package
+\newcommand{\mymathbf}[1]{\mathbf{#1}}
+\newcommand{\myboldsymbol}[1]{{\ifptmx\pmb{#1}\else\boldsymbol{#1}\fi}}
+
+\newcommand{\ensureboldmath}[1]{\ensuremath{\mymathbf{#1}}}
+
+\newcommand{\Ki}{K_{\mathrm{I}}}
+\newcommand{\Ko}{K_{\mathrm{O}}}
+\newcommand{\Nf}[1][\relax]{N_{\mathrm{F}\ifx\relax#1\else, #1\fi}}
+\newcommand{\Nb}[1][\relax]{N_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\Ni}[1][\relax]{N_{\mathrm{I}\ifx\relax#1\else, #1\fi}}
+\newcommand{\Ng}[1][\relax]{N_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\Ntb}[1][\relax]{N_{\mathrm{B}\ifx\relax#1\else, #1\fi}^{\mathrm{T}}}
+\newcommand{\Ntf}[1][\relax]{N_{\mathrm{F}\ifx\relax#1\else, #1\fi}^{\mathrm{T}}}
+\newcommand{\Ndf}[1][\relax]{N_{\mathrm{F}\ifx\relax#1\else, #1\fi}^{\mathrm{D}}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\barboldmu}{\bar{\myboldsymbol{\mu}}}
+\newcommand{\barboldnu}{\bar{\myboldsymbol{\nu}}}
+\newcommand{\boldtheta}{\myboldsymbol{\theta}}
+\newcommand{\boldmu}{\myboldsymbol{\mu}}
+\newcommand{\boldnu}{\myboldsymbol{\nu}}
+\newcommand{\boldbeta}{\myboldsymbol{\beta}}
+\newcommand{\boldSigma}{\myboldsymbol{\Sigma}}
+\newcommand{\boldC}{\mymathbf{C}}
+\newcommand{\boldS}{\mymathbf{S}}
+\newcommand{\boldX}{\mymathbf{X}}
+\newcommand{\boldP}{\mymathbf{P}}
+\newcommand{\barboldX}{\bar{\mymathbf{X}}}
+\newcommand{\boldY}{\mymathbf{Y}}
+\newcommand{\boldV}{\mymathbf{V}}
+\newcommand{\boldf}{\mymathbf{f}}
+
+\newcommand{\rTG}[1][\relax]{r_{\mathrm{TG}\ifx\relax#1\else, #1\fi}}
+\newcommand{\rGT}[1][\relax]{r_{\mathrm{GT}\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\iTG}{i_{\mathrm{TG}}}
+\newcommand{\iGT}{i_{\mathrm{GT}}}
+
+\newcommand{\Xb}[1][\relax]{X_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barXb}[1][\relax]{\bar X_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\XbK}[2][\relax]{X_{\mathrm{B}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\XbP}[2][\relax]{X_{\mathrm{B}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\Xg}[1][\relax]{X_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barXg}[1][\relax]{\bar X_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\XgK}[2][\relax]{X_{\mathrm{G}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\XgP}[2][\relax]{X_{\mathrm{G}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\Yb}[1][\relax]{Y_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barYb}[1][\relax]{\bar Y_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\YbK}[2][\relax]{Y_{\mathrm{B}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\YbP}[2][\relax]{Y_{\mathrm{B}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\Yg}[1][\relax]{Y_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barYg}[1][\relax]{\bar Y_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\YgK}[2]{Y_{\mathrm{G}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\YgP}[2]{Y_{\mathrm{G}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\Sb}[1][\relax]{S_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barSb}[1][\relax]{\bar S_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\SbK}[2][\relax]{S_{\mathrm{B}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\SbP}[2][\relax]{S_{\mathrm{B}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\Sg}[1][\relax]{S_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barSg}[1][\relax]{\bar S_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\SgK}[2][\relax]{S_{\mathrm{G}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\SgP}[2][\relax]{S_{\mathrm{G}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\Lb}[1][\relax]{L_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barLb}[1][\relax]{\bar L_{\mathrm{B}\ifx\relax#1\else, #1\fi}}
+\newcommand{\LbK}[2][\relax]{L_{\mathrm{B}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\LbP}[2][\relax]{L_{\mathrm{B}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\Lg}[1][\relax]{L_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\barLg}[1][\relax]{\bar L_{\mathrm{G}\ifx\relax#1\else, #1\fi}}
+\newcommand{\LgK}[2][\relax]{L_{\mathrm{G}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\LgP}[2][\relax]{L_{\mathrm{G}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\I}{\mathbb{I}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\sK}[2][\relax]{s_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\sP}[2][\relax]{s_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\lK}[2][\relax]{l_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\lP}[2][\relax]{l_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\XK}[2][\relax]{X_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\XP}[2][\relax]{X_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\YK}[2][\relax]{Y_{#2,\cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\YP}[2][\relax]{Y_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\SK}[2][\relax]{S_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\SP}[2][\relax]{S_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\LK}[2][\relax]{L_{#2,\cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\LP}[2][\relax]{L_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\BK}[2][\relax]{B_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\BP}[2][\relax]{B_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\AK}[2][\relax]{A_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\AP}[2][\relax]{A_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\WK}[2][\relax]{W_{#2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\WP}[2][\relax]{W_{\cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\WS}[1][\relax]{W_{\mathrm{S}\ifx\relax#1\else, #1\fi}}
+\newcommand{\WSK}[2][\relax]{W_{\mathrm{S}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\WSP}[2][\relax]{W_{\mathrm{S}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+\newcommand{\WL}[1][\relax]{W_{\mathrm{L}\ifx\relax#1\else, #1\fi}}
+\newcommand{\WLK}[2][\relax]{W_{\mathrm{L}, #2, \cdot\ifx\relax#1\else, #1\fi}}
+\newcommand{\WLP}[2][\relax]{W_{\mathrm{L}, \cdot, #2\ifx\relax#1\else, #1\fi}}
+
+\newcommand{\XC}[1][\relax]{X_{\mathrm{C}\ifx\relax#1\else, #1\fi}}
+\newcommand{\boldXC}[1][\relax]{\mymathbf{X}_{\mathrm{C}\ifx\relax#1\else, #1\fi}}
+\newcommand{\rmc}{\mathrm{c}}
+\newcommand{\rmC}{\mathrm{C}}
+\newcommand{\rmCX}{\mathrm{CX}}
+\newcommand{\rmX}{\mathrm{X}}
+\newcommand{\rmY}{\mathrm{Y}}
+\newcommand{\tr}{\mathsf{t}}
+
+\newcommand{\wTG}{w_{\mathrm{TG}}}
+\newcommand{\wGT}{w_{\mathrm{GT}}}
+
+\newcommand{\dII}[1][\relax]{D_{\mathrm{I}\mathrm{I}\ifx\relax#1\else, #1\fi}}
+\newcommand{\dIO}[1][\relax]{D_{\mathrm{I}\mathrm{O}\ifx\relax#1\else, #1\fi}}
+\newcommand{\dOI}[1][\relax]{D_{\mathrm{O}\mathrm{I}\ifx\relax#1\else, #1\fi}}
+\newcommand{\dOO}[1][\relax]{D_{\mathrm{O}\mathrm{O}\ifx\relax#1\else, #1\fi}}
+\newcommand{\pawt}{p_{\mathrm{AWT}}}
+\newcommand{\pstat}{p_{\mathrm{STAT}}}

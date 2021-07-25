@@ -1,0 +1,49 @@
+<body>
+Provides an interface for application programs interacting with a
+contact center simulator or evaluation system.
+The ContactCenters library can be used to create simulators modeling
+complex contact centers.  These simulators may be accessed from
+other programs, e.g., for optimization or statistical analysis.
+Programs may also use analytical
+formulas to get approximations of some performance measures, for more
+efficiency
+or for comparing with simulation.  This package defines an abstract
+interface permitting such programs to get their data in a standardized
+way.  Package {@link umontreal.iro.lecuyer.contactcenters.msk}
+provides a generic simulator implementing this interface.
+
+The defined interface, {@link
+umontreal.iro.lecuyer.contactcenters.app.ContactCenterEval},
+represents a system capable of performing
+evaluations for a contact center.
+We define an \emph{evaluation} as a process using
+user-specified parameters to estimate some performance measures with
+analytical formulas or simulation.
+The interface provides a standardized mechanism
+to run evaluations, and obtain estimates of
+performance measures.
+It also supports evaluation options, i.e., parameters that can be
+changed independently of the specific implementation.
+
+The {@link umontreal.iro.lecuyer.contactcenters.app.ContactCenterSim}
+extends the {@link
+umontreal.iro.lecuyer.contactcenters.app.ContactCenterEval} interface
+with methods for obtaining the variance, the minimum, the maximum, and
+computing confidence intervals.
+These statistics are available only when performing several
+replications of a simulation, or when dividing a simulation into
+batches.
+
+This package also provides an enumerated type, {@link
+umontreal.iro.lecuyer.contactcenters.app.PerformanceMeasureType}, that
+represents the type of a performance measure.
+An element of this enum can be used as a key to several methods in
+this package, or queried for information such as a name, the type of
+estimation, etc.
+Facilities are also provided to format matrices containing estimates
+of performance measures of a given type.
+
+This package also defines some commonly-used parameter objects for
+storing parameters for simulation experiments, and the values of
+thresholds for computing service levels.
+</body>

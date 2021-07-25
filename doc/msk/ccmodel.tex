@@ -1,0 +1,86 @@
+\begin{tikzpicture}[>=stealth]
+
+\node (a1) [shape=circle,draw,minimum size=1.2cm] {{\scriptsize 1}};
+\node (ai) [right of=a1] {$\ldots$};
+\node (an) [right of=ai,circle,draw,minimum size=1.2cm] {{\scriptsize $N_0(t)$}};
+\node (mid1) [below of=a1,shape=coordinate] {};
+\node (mid) [below of=ai] {$\vdots$};
+\node (midn) [below of=an,shape=coordinate] {};
+\node (a21) [shape=circle,draw,below of=mid1,minimum size=1.2cm] {{\scriptsize 1}};
+\node (a2i) [below of=mid] {$\ldots$};
+\node (a2n) [below of=midn,circle,draw,minimum size=1.2cm] {{\scriptsize $N_{I-1}(t)$}};
+
+\draw (a1.north west) +(-5mm,5mm) coordinate(topleftcorner)
+(a2n.south east) +(5mm,-5mm) coordinate(bottomrightcorner);
+\draw (topleftcorner) rectangle (bottomrightcorner);
+\draw (topleftcorner |- bottomrightcorner) coordinate(bottomleftcorner);
+\draw (topleftcorner -| bottomrightcorner) coordinate(toprightcorner);
+
+\draw (topleftcorner) ++(-3,-2) coordinate(qbottomleftcorner)
+rectangle ++(2,1) coordinate(qtoprightcorner);
+\foreach \x in {0,0.25,...,2}
+   \draw (qbottomleftcorner) ++(\x,0)
+-- +(0,1);
+
+\draw (qtoprightcorner |- qbottomleftcorner)
+coordinate(qbottomrightcorner);
+\draw (qtoprightcorner -| qbottomleftcorner)
+coordinate(qtopleftcorner);
+
+\path (bottomleftcorner)
+ -- node [below] {Agent groups} (bottomrightcorner);
+\path (qbottomleftcorner)
+-- node [below] {Waiting queue} (qbottomrightcorner);
+
+\draw (qtopleftcorner) ++(-1,2.3) node (k0) [shape=circle,draw,minimum size=1cm] {{\scriptsize $0$}};
+%\node (kk) [below of=k0] {$\vdots$};
+\draw (qtopleftcorner) ++(-1,0.3)
+node (kK) [shape=circle,draw,minimum size=1cm]
+{{\scriptsize $\Ki-1$}};
+\path (k0) to
+node (kk) {$\vdots$}
+(kK);
+\node (k0l) [left of=k0,shape=coordinate] {};
+\draw[->] (k0l) -- (k0);
+\node (kKl) [left of=kK,shape=coordinate] {};
+\draw[->] (kKl) -- (kK);
+\draw (qbottomleftcorner) ++(-1,-0.3)
+node (ko0) [shape=circle,draw,minimum size=1cm] {{\scriptsize $\Ki$}};
+\draw (qbottomleftcorner) ++(-1,-2.3)
+node (koK) [shape=circle,draw,minimum size=1cm] {{\scriptsize $K - 1$}};
+\path (ko0) to
+node (kok) {$\vdots$}
+(koK);
+\node [below of=koK] {Contact types};
+
+\path (qtopleftcorner) -- 
+coordinate [very near start] (qcenterleft1)
+coordinate [near start] (qcenterleft2)
+coordinate [near end] (qcenterleft3)
+coordinate [very near end] (qcenterleft4) (qbottomleftcorner);
+\draw[->] (k0) -- (qcenterleft1);
+\draw[->] (kK) -- (qcenterleft2);
+\draw[->] (ko0) -- (qcenterleft3);
+\draw[->] (koK) -- (qcenterleft4);
+\path (topleftcorner) --
+coordinate [near end] (centerleft1)
+coordinate [very near end] (centerleft2)
+(bottomleftcorner);
+\draw[->] (centerleft1) to [bend left] (ko0);
+\draw[->] (centerleft2) -- (koK);
+
+\path (qtoprightcorner) -- 
+coordinate (qcenterright)
+(qbottomrightcorner);
+\path (topleftcorner) --
+coordinate (centerleft)
+(bottomleftcorner);
+\draw [->] (qcenterright) -- (centerleft);
+
+\draw (topleftcorner) ++(-1,1) node (ab) [above right] {Abandonment};
+\path (qtopleftcorner)
+--
+coordinate(qtopcenter)
+(qtoprightcorner);
+\draw[->] (qtopcenter) |- (ab);
+\end{tikzpicture}

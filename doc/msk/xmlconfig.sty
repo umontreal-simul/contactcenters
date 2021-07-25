@@ -1,0 +1,16 @@
+\ProvidesPackage{xmlconfig}[2004/12/13 XMLConfig]
+
+\newcommand{\entrylabel}[1]{%
+\parbox[b]{\labelwidth}{\makebox[0pt][l]{#1}\\\mbox{}}\hfil\relax}
+\newenvironment{xmlelements}{\begin{list}{}{%
+\renewcommand{\makelabel}{\entrylabel}}}{\end{list}}
+
+\newenvironment{xmlattributes}{\begin{list}{}{%
+\renewcommand{\makelabel}{\entrylabel}}}{\end{list}}
+\def\ps@nomark {\def\leftmark{} \def\rightmark{}}
+
+\def\@xmlconfigclssection{\@startsection{section}%
+   {1}{0mm}{-\baselineskip}{0.5\baselineskip}%
+   {\LARGE\bfseries}}
+\newcommand{\defxmlconfigclass}[1]{\newpage\@xmlconfigclssection{#1}
+    \markboth{#1}{#1}\thispagestyle{nomark}}

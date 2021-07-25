@@ -1,0 +1,71 @@
+<ccmsk:MSKCCParams defaultUnit="MINUTE" periodDuration="PT1H" numPeriods="1"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk" >
+   <inboundType>
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="MINUTE">
+         <defaultGen>2</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" group="0"
+                   unit="MINUTE">
+         <defaultGen>1.0</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" group="2"
+                   unit="MINUTE">
+         <defaultGen>1.6</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>6</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType>
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="MINUTE">
+         <defaultGen>3.2</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" group="1"
+                   unit="MINUTE">
+         <defaultGen>0.8</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" group="2"
+                   unit="MINUTE">
+         <defaultGen>1.6</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>2</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <agentGroup name="Specialist type 0">
+      <staffing>3</staffing>
+   </agentGroup>
+   <agentGroup name="Specialist type 1">
+      <staffing>2</staffing>
+   </agentGroup>
+   <agentGroup name="Generalist">
+      <staffing>4</staffing>
+   </agentGroup>
+
+   <router routerPolicy="LONGESTWEIGHTEDWAITINGTIME">
+      <typeToGroupMap>
+         <row>0 2</row>
+         <row>1 2</row>
+      </typeToGroupMap>
+      <groupToTypeMap>
+         <row>0</row>
+         <row>1</row>
+         <row>0 1</row>
+      </groupToTypeMap>
+      <queueWeights>3 0.8</queueWeights>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT19.8S</row>
+         <row>PT19.8S</row>
+         <row>PT19.8S</row>
+      </awt>
+      <target>
+         <row>0</row>
+         <row>0</row>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

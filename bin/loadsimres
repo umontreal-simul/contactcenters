@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec java $CCJVMOPT umontreal.iro.lecuyer.contactcenters.app.LoadSimResults "$@"

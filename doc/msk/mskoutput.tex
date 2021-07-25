@@ -1,0 +1,282 @@
+\section{The output of the simulator}
+\label{sec:mskoutput}
+
+Any report produced by the simulator contains the following elements:
+\begin{itemize}
+\item General information about the experiment
+\item Statistics for each selected performance measure
+\end{itemize}
+
+\subsection{The contents of a report}
+
+General information includes the names of the parameter files, the
+date at which the experiment started, the CPU time required to carry
+out the complete simulation, the sample size, etc.  This information
+is presented in the form of one (key: value) pair per line.
+The main part of the report contains statistics for performance
+measures.
+
+Several quantities are computed during the simulation: event
+counts, average times, and integrals.  Each time a call exits
+the system, counters are updated to keep track of various quantities.
+All these random variables can be regrouped into a random vector
+$\boldX=(X_0,\ldots,X_{d-1})$ we will call
+an \emph{observation}.  Using some experimental techniques
+presented in section~\ref{sec:mskexp}, the simulator can obtain $n$
+copies of $\boldX$ which is called a \emph{sample}.  Statistics are
+computed by applying some functions on this sample
+$\boldX_0,\ldots,\boldX_{n-1}$, where $\boldX_r=(X_{0, r}, \ldots,
+X_{d-1, r})$ is the $r$th observation.
+Let
+\[\bar{\boldX}_n=(\bar X_{0, n}, \ldots, \bar X_{d-1, n})=\frac1n\sum_{r=0}^{n-1}\boldX_r\]
+the \emph{average} of $\boldX_r$,
+which is used to estimate the expected value of $\boldX$, denoted as
+\[\E[\boldX]=(\E[X_0], \ldots, \E[X_{d-1}]).\]
+The vector
+$\bar{\boldX}_n$ is an unbiased estimator of $\E[\boldX]$ if the
+observations are independent and identically distributed (i.i.d.).
+We are also interested in functions $g(\boldX)$ such as ratios.
+The function of averages $g(\bar{\boldX}_n)$ is used to estimate the
+function
+of expectations $g(\E[\boldX])$.  This estimator is biased, unless
+$g(\boldX)$ is a linear function of $\boldX$.
+Subsection~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.PerformanceMeasureType}
+explains how these quantities are regrouped in matrices for easier reporting.
+
+For each performance measure, i.e., element $\E[X_j]$ or function
+$g(\E[\boldX])$, the simulator outputs the following
+statistics (all statistics are of course undefined when $n=0$):
+\begin{description}
+\item[Minimum] The minimal value of $X_j$ among all observations.  No
+  minimum is available for functions of multiple averages.
+\item[Maximum] The maximal value of $X_j$ among all observations.  No
+  maximum is available for functions of multiple averages.
+\item[Average] The average $\bar X_{j, n}$, or function of averages
+  $g(\bar{\boldX}_n)$, of the
+  observations.
+\item[Standard deviation] The sample standard deviation of the observations,
+  i.e., $\sqrt{\Var[X_j]}$ or $\sqrt{n\Var[g(\bar{\boldX}_n)]}$.  This
+  corresponds to the asymptotic standard deviation in the case of a
+  function of several averages.
+  The value is undefined if $n<2$.
+\item[Confidence interval] An interval $[a, b]$ containing $\E[X_j]$ (or
+  $g(\E[\boldX])$) with probability $1-\alpha$, where $1-\alpha$
+  is a \emph{confidence level} that can be adjusted via a simulation
+  parameter.
+  The interval is computed using the normality assumption.
+  The value is undefined if $n<2$.
+\end{description}
+Using the element \texttt{printed\-Stat\-Params} in the parameters of
+the report, %(see
+%section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.PrintedStatParams})
+one can decide which performance measures appear in the report, and
+determine if all the statistics or only the averages are needed.
+
+We now explain the last two statistics in more details.
+Let
+\[
+\boldS_n = \frac1{n-1}\sum_{r=0}^{n-1} (\boldX_r -
+\bar{\boldX}_n)^\tr(\boldX_r - \bar{\boldX}_n),
+\]
+be the \emph{sample covariance} of the $\boldX_r$'s,
+which is used to estimate the covariance matrix
+\[\boldSigma = \E[(\boldX - \E[\boldX])^\tr(\boldX - \E[\boldX])].\]
+The simulator computes only parts of this sample covariance matrix, in
+particular
+elements $(j, j)$ estimating $\Var[X_j]=n\Var[\bar X_{j, n}]$,
+which can be used to estimate the error on $\bar X_{j,
+  n}$.
+% To estimate the error on $\bar X_{j, n}$ for $j=0,\ldots,d-1$, the
+% simulator computes the \emph{sample variance}
+% \[S_{X_j, n}^2=\frac1{n-1}\sum_{r=0}^{n-1} (X_{j, r} - \bar X_{j,
+%   n})^2\]
+% which estimates the variance of the random variate $X_j$, defined as
+% \[\Var(X_j)=\E[X_j^2] - \E[X_j]^2.\]
+
+The sample variance is used to compute a confidence interval on the
+true mean $\E[X_j]$ for any $j\in\{0, \ldots, d-1\}$.  Assuming that
+$X_{j, r}$ follows the normal distribution,
+\[\sqrt{n}(\bar X_{j, n} - \E[X_j])/S_{X_j, n}\]
+follows the Student-$t$ distribution with $n-1$ degrees of freedom.
+Here, $S_{X_j, n}$ is the sample standard deviation of $X_j$.
+If the desired probability that this (random)
+interval covers the true mean $\E[X_j]$ (a constant) is $1-\alpha$,
+the interval is given by $\bar X_{j, n}\pm t_{n-1, 1-\alpha/2}S_{X_j,
+  n}/\sqrt{n}$, where $t_{n-1,1-\alpha/2}$ is the inverse of the
+Student-$t$ distribution function with $n-1$ degrees of freedom,
+evaluated at $1-\alpha/2$.
+
+Confidence intervals on functions of means are computed
+using the delta theorem \cite{tSER80a}.
+Here, we explain the special case of ratios used by the simulator.
+One can refer to \cite{tSER80a,sLEC06a,iBUI05b} for the general case.
+Let $(X,Y)$ be a random vector for which the simulator can
+generate a sample $((X_0, Y_0), \ldots, (X_{n-1}, Y_{n-1}))$.  Let
+$\bar X_n$ be the average for $X$ and $\bar Y_n$ the average for $Y$;
+these quantities estimate $\mu_1=\E[X]$, and $\mu_2=\E[Y]$,
+respectively.
+Then, the function $\bar\nu_n=\bar X_n/\bar Y_n$
+estimates the ratio of means $\nu=\mu_1/\mu_2$.  By a Taylor expansion
+of the ratio of averages,
+%if $(\bar X_n, \bar Y_n)$ is a multinormal vector,
+the asymptotic variance of $\bar X_n/\bar Y_n$, i.e., the variance
+when $n$ is large, is given by $\sigma^2/n$, where
+\[\sigma^2=(\Var[X] + \nu^2\Var[Y] - 2\nu\Cov[X, Y])/\mu_2^2.\]
+The variance
+$\sigma^2$ can be estimated by using sample means, variances and covariance.
+%as follows:
+%\[\hat\sigma_n^2=(S_{X,n}^2+\bar\nu_n^2S_{Y,n}^2
+%-2\bar\nu_nS_{XY, n})/\bar Y_n^2\]
+%where $S_{X, n}$ estimates the variance of $X$, $S_{Y, n}$ estimates
+%the variance of $Y$, and $S_{XY, n}$ estimates the covariance of $X$
+%and $Y$.
+%\[S_{XY, n}=\frac1{n-1}\sum_{r=0}^{n-1} (X_r - \bar X_n)(Y_r - \bar
+%Y_n).\]
+
+Assuming that $(\bar X_n, \bar Y_n)$ follows the multinormal
+distribution,
+the confidence interval on the ratio of expectations with confidence
+level $1-\alpha$ is given by $\bar\nu_n\pm
+z_{1-\alpha/2}\sigma_n/\sqrt{n}$, where
+$\Phi(z_{1-\alpha/2})=1-\alpha/2$, $\Phi(x)$ being the distribution
+function of a standard normal variable.
+
+Note that each confidence interval is computed for a single mean or
+ratio of means, independently of other performance measures of the
+system.  As a result, if $d>1$ output values are analyzed
+simultaneously, the confidence level of the $d$ intervals
+is $1-d\alpha<1-\alpha$.
+The confidence level for individual performance measures must then be
+higher to get the same overall confidence level.
+
+The value of $0/0$ is usually undefined and assigned the NaN (Not a Number) flag.
+However, in some ratios, $0/0$ can have some meaning.
+In our simulator, $0/0$ is defined as 0 for most performance measures except service level.
+For example, if there is no arrival, it is sensible to set the
+abandonment ratio and the average waiting time to 0, and
+the service level to 1.
+
+For expectations of ratios, $0/0$ observations are not collected,
+because fixing an arbitrary value would result in biased estimators.  As a
+result, the average is made on less observations, and the average is
+NaN if all observations are rejected.
+
+\subsection{The format of the report}
+\label{sec:reportformat}
+
+At this moment, four file formats are supported for reports:
+XML, plain text, \LaTeX, and
+Microsoft Excel.
+The first format is intended to be readable by programs while
+the last three formats are human-readable.
+
+\subsubsection{Program-readable format}
+
+The XML format is intended to be parsed by Java programs
+using the ContactCenters library.
+It could also be parsed and processed by any other program
+compatible with XML.
+Produced XML output files have root element
+\texttt{Contact\-Center\-Sim\-Results}, in
+namespace URI
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters/app}.
+The XML schema for output files can be found in the \texttt{schemas}
+subdirectory of ContactCenters, and HTML documentation is available
+in \path{doc/schemas}.
+%The binary format, using Java
+%serialization, may be faster to read, but the XML format may be
+%more easily
+%reusable by other programs not using ContactCenters, even not using
+%Java.
+
+Alternatively, the program can export to a XML file
+and compress the file using GZip to save
+disk space.
+This can be done by giving a file name with the \texttt{.xml.gz}
+extension rather than \texttt{.xml}.
+
+\subsubsection{Plain text}
+
+When exporting to plain text, the simulator uses the
+platform-default character encoding and line separator.
+As a result, the created text file can be opened in any text editor
+such as Notepad, GNU Emacs, etc.
+After the general information, the report contains a table of summary
+results, e.g., the performance measures concerning every call type,
+agent group, and period.  Then, for each group of performance
+measures, a table of detailed results appear in the report.
+Note that the formatting of numbers is locale-specific.  For example,
+if the current locale is set to French, the decimal separator
+is the comma while the separator is a period for the US locale.
+
+The \LaTeX\ output, which is also plain text but with formatting
+instructions,
+is intended to be processed by \LaTeX\ to generate printable tables of
+results.
+
+\subsubsection{Microsoft Excel}
+
+The Microsoft Excel format is used to transfer results to spreadsheets
+for further analysis and reporting.
+One is not restricted to Microsoft Excel since
+many other spreadsheets, e.g., OpenOffice.org and KOffice,
+can read and write Excel files.
+
+The Excel report is divided in at most three sheets.
+The first sheet provides summary information only: the general
+information, and summary statistics, i.e., statistics for aggregate
+performance measures.
+The latter are split in two groups: source-related (or call-related)
+statistics and destination-related (agent-related and waiting
+queue-related) statistics.
+The second sheet provides a detailed report for all time-aggregate
+performance measures.  This includes, e.g., the service level for
+each individual call type but not for each period.
+The last sheet contains a detailed report for all performance
+measures, including statistics for individual periods.
+
+\subsubsection{Localized format for reports}
+
+Some aspects of the reports produced by \texttt{mskcallcentersim}
+depend on the host environment of the JVM.
+These aspects include the character encoding of the report,
+the line delimiters, strings describing types of performance measures,
+and the format of the numbers.
+The last two elements are influenced by the locale of the virtual
+machine which executes the simulator, which corresponds to the default
+locale of the host environment.
+At this moment, only English and French are supported as languages for
+reports. If the current locale corresponds to another language,
+all text in the report will be in English, with locale-specific
+formatting for numbers.
+
+Some of these aspects can be customized using OS-specific options.
+For example, calling \texttt{LC\_ALL=en\_US.UTF-8 mskcallcentersim}
+launches the simulator with the US English locale, and UTF-8 encoding;
+this is the default for most UNIX/Linux distributions.
+However, on other operating systems, such as Microsoft's Windows,
+there is no built-in way to alter the default locale for a given
+program without changing the system-wide regional settings.
+However, Java properties can be changed to alter the default locale,
+and other parameters, in a platform-independent way.
+Table~\ref{tab:repjavaprop} lists such properties.
+The properties can be modified through the \texttt{-D} JVM option.
+For example, setting the \texttt{CCJVMOPT} environment variable
+to \texttt{-Duser.language=en} sets the language of reports to
+English.
+
+\begin{table}
+\caption{Most common Java properties affecting reporting}
+\label{tab:repjavaprop}
+
+\centering\begin{tabular}{|l|ll|}\hline
+Property & Action & Sample value \\ \hline
+\texttt{user.language} & Language of strings in reports & \texttt{en}
+\\
+\texttt{user.region} & Region affecting number and date format &
+\texttt{US} \\
+\texttt{file.encoding}  & Character encoding for reports &
+\texttt{UTF-8} \\
+\hline
+\end{tabular}
+\end{table}

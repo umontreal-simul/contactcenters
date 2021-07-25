@@ -1,0 +1,21 @@
+<body>
+Manages a predictive dialer capable of making outbound contacts.
+A \emph{predictive dialer} is normally used to generate outbound calls.
+The dialer's policy determines the number of calls to try on each occasion,
+and supplies a list to extract them from.
+Each extracted contact is then tested for success or failure.
+The dialer defines separate lists of new-contact listeners for right
+party connects, and
+failed calls.
+
+This package provides the
+{@link umontreal.iro.lecuyer.contactcenters.dialer.Dialer}
+representing the predictive dialer.
+Any dialing policy is an implementation of the interface
+{@link umontreal.iro.lecuyer.contactcenters.dialer.DialerPolicy}
+and dialer lists are represented by
+{@link umontreal.iro.lecuyer.contactcenters.dialer.DialerList}
+objects.
+The package provides implementations of dialer lists as well as
+commonly used dialing policies.
+</body>

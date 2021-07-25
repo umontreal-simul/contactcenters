@@ -1,0 +1,249 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+   xmlns:ssj="http://www.iro.umontreal.ca/lecuyer/ssj"
+   xmlns:cc="http://www.iro.umontreal.ca/lecuyer/contactcenters"
+   xmlns="http://www.w3.org/1999/xhtml"
+   targetNamespace="http://www.iro.umontreal.ca/lecuyer/contactcenters"
+   elementFormDefault="unqualified" jxb:version="2.0">
+   <xsd:annotation>
+      <xsd:documentation>
+         Defines basic types usable by simulators of contact center.
+         This schema defines a complex type representing parameters of
+         random variate generators over multiple periods.
+      </xsd:documentation>
+      <xsd:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="umontreal.iro.lecuyer.contactcenters.params">
+               <jxb:javadoc>
+                  <![CDATA[Defines basic types usable by simulators of
+                contact center.
+                This package contains JAXB-derived classes for XML namespace
+                <tt>http://www.iro.umontreal.ca/lecuyer/contactcenters</tt>.]]>
+               </jxb:javadoc>
+            </jxb:package>
+         </jxb:schemaBindings>
+      </xsd:appinfo>
+   </xsd:annotation>
+
+   <xsd:import schemaLocation="ssj.xsd"
+      namespace="http://www.iro.umontreal.ca/lecuyer/ssj" />
+
+   <xsd:complexType name="MultiPeriodGenParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents parameters for a random variate generator over
+            multiple periods. Such a generator is defined by specifying
+            a random variate generator for each main period of the time
+            horizon, using
+            <tt>periodGen</tt>
+            elements. One can also give a specific generator for the
+            preliminary and wrap-up periods using
+            <tt>preGen</tt>
+            , and
+            <tt>wrapGen,</tt>
+            respectively. For more convenience, this type defines
+            attributes for the distribution class, generator class,
+            parameter estimation, and shift that are inherited by child
+            elements. This permits one to omit these attributes in the
+            child elements corresponding to parameters of random variate
+            generators. A
+            <tt>repeat</tt>
+            attribute can also be used to duplicate the same parameters
+            over several successive periods. Moreover, the default
+            distribution, if given using the
+            <tt>defaultGen</tt>
+            element, is used as follows by the simulator. Let
+            <i>P</i>
+            be the total number of main periods of the time horizon. If
+            at least
+            <i>P</i>
+            period-specific sets of parameters are available, the first
+            <tt>P</tt>
+            sets are used to construct the generator. Otherwise, the
+            <i>Q &lt; P</i>
+            available sets of parameters are used, and the default set
+            of parameters is used
+            <i>P - Q</i>
+            times to replace missing sets of parameters.
+            <p>
+               Variates can be transformed after they are generated.
+               First, they are converted from the unit given by
+               <tt>unit</tt>
+               to the default time unit used by the application. Then,
+               they are multiplied by the factor given by the
+               <tt>mult</tt>
+               attribute. They may also be multiplied by other factors
+               depending on the role of the random variates.
+            </p>
+            <p>
+               The class
+               <tt>CCParamReadHelper</tt>
+               in package
+               <tt>umontreal.iro.lecuyer.contactcenters</tt>
+               provides helper methods to create a random variate
+               generator for multiple periods from any instance of the
+               class derived by JAXB from this complex type.
+            </p>
+
+            <p>
+               For example, let
+               <tt>mpg</tt>
+               be an element representing a random variate generator
+               over multiple periods. The following XML code describes a
+               random variate generator with parameters depending on the
+               main period.
+            </p>
+            <pre><![CDATA[<mpg distributionClass="ExponentialDist" unit="MINUTE">
+                 <defaultGen>10</defaultGen> <periodGen repeat="3">5</periodGen>
+                 </mpg>]]>
+            </pre>
+            <p>
+               The
+               <tt>distributionClass</tt>
+               attribute of
+               <tt>mpg</tt>
+               is inherited by
+               <tt>defaultGen</tt>
+               and
+               <tt>periodGen</tt>
+               elements so every period-specific distribution is
+               exponential. The mean is 1/3min for the first three
+               periods while it is 1/10min for the other periods.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents parameters for a random variate generator
+                  over multiple periods.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="defaultGen" minOccurs="0" maxOccurs="1"
+            type="ssj:RandomVariateGenParams">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines the parameters of the default random variate
+                  generator. These parameters are used when the number
+                  of main periods exceeds the number of per-period
+                  parameters specified. This can also be used to specify
+                  a generator used for all periods.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="preGen" minOccurs="0" maxOccurs="1"
+            type="ssj:RandomVariateGenParams">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines the parameters of the random variate generator
+                  used during the preliminary period. If this element is
+                  omitted, the generator of the first main period is
+                  used during preliminary period.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="wrapGen" minOccurs="0" maxOccurs="1"
+            type="ssj:RandomVariateGenParams">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines the parameters of the random variate generator
+                  used during the wrap-up period. If this element is
+                  omitted, the generator of the last main period is used
+                  during wrap-up period.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="periodGen" minOccurs="0"
+            maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines the parameters of a random variate generator
+                  used during a specific main period of the time
+                  horizon. For convenience, parameters can be repeated
+                  more than once for successive main periods by using
+                  the
+                  <tt>repeat</tt>
+                  attribute.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:complexContent>
+                  <xsd:extension base="ssj:RandomVariateGenParams">
+                     <xsd:attribute name="repeat" type="ssj:nonNegativeInt" default="1">
+                        <xsd:annotation>
+                           <xsd:documentation>
+                              Gives the number of successive main
+                              periods for which this set of parameters
+                              is reused. Repeating the parameters using
+                              this attribute results in a single random
+                              variate generator being created and reused
+                              for the concerned periods; this can be
+                              useful to reduce memory usage. If this
+                              attribute is omitted, this set of
+                              parameters is repeated only once.
+                           </xsd:documentation>
+                        </xsd:annotation>
+                     </xsd:attribute>
+                  </xsd:extension>
+               </xsd:complexContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="distributionClass" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the default Java class name for the probability
+               distribution. This attribute is inherited by children of
+               this element if they do not specify it.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="generatorClass" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the default Java class name for the random variate
+               generator. This attribute is inherited by children of
+               this element if they do not specify it.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="shift" type="xsd:double">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the default shift subtracted to any generated
+               value. This attribute is inherited by children of this
+               element if they do not specify it.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="estimateParameters" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if parameter estimation needs to be performed
+               by default.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="unit" type="ssj:TimeUnitParam">
+         <xsd:annotation>
+            <xsd:documentation>
+               Defines the time unit in which generated values are
+               expressed.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="mult" type="ssj:nonNegativeDouble" default="1">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the multiplier applied to each random value
+               generated by this multi-period generator. This multiplier
+               can be used to change the mean of the random variates
+               without altering each period-specific distribution. The
+               default value of the multiplier is 1.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,4 @@
+<ccapp:repSimParams minReplications="100"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95"/>
+</ccapp:repSimParams>

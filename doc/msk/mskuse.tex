@@ -1,0 +1,345 @@
+\section{Running simulations from the command line}
+\label{sec:mskuse}
+
+This section gives some examples on how to use the blend/multi-skill
+call center simulator from the command-line.
+This requires a Java Virtual Machine to be installed, and the
+environment to be set up to access the Java code for the simulator.
+See \ccurl{} for more information
+about installing ContactCenters.
+
+\subsection{Calling the generic simulator from the command-line}
+\label{sec:cmdline}
+
+The simplest way to invoke the simulator is from the command-line,
+e.g., the DOS prompt under Microsoft Windows or a shell under
+UNIX/Linux.  The
+simulator requires two file names: the call
+center and simulation parameter files.  It reads these
+files, performs the simulation, and prints a full statistical report.
+The file for call center parameters must contain a root element named
+\texttt{MSKCCParams}.
+% (see
+%section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallCenterParams}).
+The root element for simulation parameters is
+\texttt{batch\-Sim\-Params} to use batch means
+%(see
+%Section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.BatchSimParams}),
+or \texttt{rep\-Sim\-Params} to use independent replications.
+%(see Section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.RepSimParams}).
+For example, the simulator can be launched with the following
+command.
+
+%\noindent\texttt{java
+%  umontreal.iro.lecuyer.contactcenters.msk.CallCenterSim}\\
+%\texttt{mskccParamsThreeTypes.xml batchSimParams.xml}
+\noindent\texttt{mskcallcentersim}
+ \texttt{ mskccParamsThreeTypes.xml \ batchSimParams.xml}
+
+To run a non-stationary simulation, a file containing parameters for an
+experiment using independent replications needs to be given instead of
+a file with parameters for batch means.
+The (long) statistical report is printed on the standard output and
+contains results for every supported performance measure, unless
+specific measures are selected via the experiment parameters,
+through the
+\texttt{printed\-Stat} element.
+%(see
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.app.ReportParams:getPrintedStatParams()}).
+The first part of the report contains a table giving the aggregate
+performance measures whereas the second part gives all elements of the
+matrices of results.
+Listing~\ref{lst:exout} presents an example of such a report.
+
+\begin{lstlisting}[language={}, caption={Sample output of the
+    simulator}, label=lst:exout]
+Call center parameter file       singleQueue.xml
+Simulation parameter file        repSimParamsStat.xml
+Experiment started on            May 9, 2008 3:02:30 PM
+Number of simulated replications 300
+Total CPU time                   0:0:3.88
+
+Aggregate performance measures
+                  | Values
+                  | Min Max Average Std. Dev. Conf. Int.
+------------------------------------------------------------
+M Service level   | --- --- 94.4%   1.69%     [94.2%, 94.6%]
+e Occupancy ratio | --- --- 55.8%   1.68%     [55.7%, 56%]
+a
+s
+u
+r
+e
+s
+
+Service level
+                                    | Values
+                                    | Min Max Average Std. Dev. Conf. Int.
+------------------------------------------------------------------------------
+T Inbound Type, sl 20s, 8:00:00 AM  | --- --- 78.1%   11.2%     [76.8%, 79.4%]
+y Inbound Type, sl 20s, 9:00:00 AM  | --- --- 85.9%   9.17%     [84.8%, 86.9%]
+p Inbound Type, sl 20s, 10:00:00 AM | --- --- 97.5%   3.05%     [97.1%, 97.8%]
+e Inbound Type, sl 20s, 11:00:00 AM | --- --- 93.7%   5.96%     [93.1%, 94.4%]
+s Inbound Type, sl 20s, 12:00:00 PM | --- --- 90.1%   7.33%     [89.3%, 91%]
+  Inbound Type, sl 20s, 1:00:00 PM  | --- --- 93%     6.41%     [92.3%, 93.8%]
+  Inbound Type, sl 20s, 2:00:00 PM  | --- --- 97.4%   3.21%     [97.1%, 97.8%]
+  Inbound Type, sl 20s, 3:00:00 PM  | --- --- 97.3%   3.36%     [97%, 97.7%]
+  Inbound Type, sl 20s, 4:00:00 PM  | --- --- 93.5%   5.61%     [92.9%, 94.2%]
+  Inbound Type, sl 20s, 5:00:00 PM  | --- --- 97%     3.92%     [96.6%, 97.5%]
+  Inbound Type, sl 20s, 6:00:00 PM  | --- --- 87.3%   9.99%     [86.2%, 88.4%]
+  Inbound Type, sl 20s, 7:00:00 PM  | --- --- 91.8%   7.64%     [91%, 92.7%]
+  Inbound Type, sl 20s, 8:00:00 PM  | --- --- 94.7%   5.73%     [94%, 95.3%]
+  Inbound Type, sl 20s, all periods | --- --- 92.5%   1.90%     [92.2%, 92.7%]
+  Inbound Type, sl 30s, 8:00:00 AM  | --- --- 81.8%   10.7%     [80.6%, 83%]
+  Inbound Type, sl 30s, 9:00:00 AM  | --- --- 89.2%   8.08%     [88.3%, 90.1%]
+  Inbound Type, sl 30s, 10:00:00 AM | --- --- 98.4%   2.45%     [98.1%, 98.7%]
+  Inbound Type, sl 30s, 11:00:00 AM | --- --- 95.7%   5.03%     [95.1%, 96.2%]
+  Inbound Type, sl 30s, 12:00:00 PM | --- --- 93%     6.30%     [92.3%, 93.7%]
+  Inbound Type, sl 30s, 1:00:00 PM  | --- --- 94.9%   5.59%     [94.3%, 95.6%]
+  Inbound Type, sl 30s, 2:00:00 PM  | --- --- 98.4%   2.58%     [98.1%, 98.7%]
+  Inbound Type, sl 30s, 3:00:00 PM  | --- --- 98.3%   2.85%     [97.9%, 98.6%]
+  Inbound Type, sl 30s, 4:00:00 PM  | --- --- 95.4%   4.75%     [94.8%, 95.9%]
+  Inbound Type, sl 30s, 5:00:00 PM  | --- --- 97.9%   3.33%     [97.6%, 98.3%]
+  Inbound Type, sl 30s, 6:00:00 PM  | --- --- 89.6%   9.26%     [88.6%, 90.7%]
+  Inbound Type, sl 30s, 7:00:00 PM  | --- --- 93.5%   6.80%     [92.7%, 94.3%]
+  Inbound Type, sl 30s, 8:00:00 PM  | --- --- 95.8%   5.17%     [95.2%, 96.4%]
+  Inbound Type, sl 30s, all periods | --- --- 94.4%   1.69%     [94.2%, 94.6%]
+\end{lstlisting}
+
+The stationary simulation is divided in several steps.
+The non-stationary simulation uses a similar logic, except that there
+is no system initialization and warmup, and independent replications
+are simulated instead of batches.
+
+\begin{enumerate}
+\item Parameters are read from the given XML files and verified for
+  validity using XML schemas.  An error message is printed in case of
+  a problem.
+\item If the initialization is non-empty, i.e., the
+  \texttt{init\-Non\-Empty} attribute is \texttt{true} in parameter
+  file, the system starts simulating
+  arrivals until the number of busy agents is sufficiently high,
+  discarding any calls which cannot be served due to unavailable free
+  agents.  No services end during this initialization period.
+\item The simulation starts with a warmup period with fixed
+  duration.  No statistical observations are collected during this
+  period.
+\item The target number of batches is initialized to the minimal
+  number of batches.
+\item Simulate until the target number of batches is available.
+% \item The following steps are repeated until the target relative error is
+%   reached, \texttt{max\-Batches} real batches are simulated,
+%   or only once if sequential sampling is not used.
+%   \begin{enumerate}
+%   \item Simulate until the target number of batches is available.
+%   \item Compute the estimators for checked
+%     performance measures as well as confidence
+%   intervals to estimate the relative error.
+%   \item If no sequential sampling is used, or if the relative error
+%     is smaller than the target relative error, stop the simulation.
+%   \item Estimate the number of additional batches needed to reach the
+%   target error and continue the simulation.
+%   \end{enumerate}
+\item Print the statistical report.
+\end{enumerate}
+
+\subsubsection{Calling the CTMC simulator}
+
+The simplified simulator using the CTMC model can be called from the
+command-line by using the \texttt{ctmccallcentersimmp} command.
+This command is similar to \texttt{mskcallcentersim}, except that the
+parameter file for the experiment must contain a root element with
+name \texttt{ctmcrep\-Sim\-Params}.
+
+A simpler simulator is available for a single period simulated for
+some fixed time duration.  This simulator can be accessed using the
+\texttt{ctmccallcentersim} command.
+
+\subsubsection{Passing options to the JVM}
+
+Any option given after the command \texttt{mskcallcentersim} is passed
+to the simulator, not to the JVM. One must call \texttt{java}
+directly or  set the \texttt{CCJVMOPT}
+environment variable (for \emph{ContactCenters Java Virtual Machines
+  Options}) to pass options to the JVM.
+For example, the following code can be used to enable assertion
+checking on UNIX/Linux, using the Bourne shell.
+
+{\noindent\ttfamily
+CCJVMOPT="-ea" mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+or
+
+{\noindent\ttfamily
+export CCJVMOPT="-ea"\\
+mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+For Microsoft Windows, one can use
+
+{\noindent\ttfamily
+set CCJVMOPT="-ea"\\
+mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+Another JVM option can be used to increase the maximal heap size,
+when the simulator throws  an \texttt{Out\-Of\-Memory\-Error}.
+See Section~\ref{sec:exerr} for more information.
+
+JVM options are also used to set properties for the Java program, by
+passing the \texttt{-D} argument to the JVM.
+In particular, the simulator supports the \texttt{cc.noprogressbar}
+property which can be used to prevent the simulator
+from displaying the progress bar. On UNIX/Linux, this can be done as follows:
+
+{\noindent\ttfamily
+CCJVMOPT="-Dcc.noprogressbar"\\
+mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+or
+
+{\noindent\ttfamily
+export CCJVMOPT="-Dcc.noprogressbar"\\
+mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+For Microsoft Windows, one can use
+
+{\noindent\ttfamily
+set CCJVMOPT="-Dcc.noprogressbar"\\
+mskcallcentersim mskccParamsThreeTypes.xml batchSimParams.xml
+}
+
+Moreover, as we will see in Section~\ref{sec:reportformat},
+properties can be used to set the locale of the program in a
+platform-independent way.
+
+\subsection{Exporting the statistical report}
+
+Running the
+simulator from the command-line is a good way to test parameter files
+and get a first idea on the simulation results.
+However, for further analysis and comparison of scenarios, exporting
+the obtained results is a necessity.
+A first idea for this is to use the
+operating system's redirection to export the output of
+the simulator into a plain text file.
+This can usually be done by appending
+\texttt{$>$ output.txt} to the command-line, where \texttt{output.txt}
+is the name of the output file.
+% This works under Windows and Linux, I do not know for Mac.
+However, the resulting text file may be long, finding performance
+measures of interest may be hard, and further processing requires
+parsing the file, which can be difficult and not recommended
+as its
+format could change in the future.
+
+The \texttt{mskcallcentersim} program supports an optional argument
+allowing the statistical results to be exported into a file rather
+than displayed on-screen.
+At this moment, four file formats are supported: plain text, \LaTeX,
+XML, and
+Microsoft Excel.
+See Section~\ref{sec:reportformat} for more information on these
+reports.
+
+Exporting to plain text is equivalent to using
+redirection except it does not rely on an operating system specific
+syntax. The enhanced command-line for file exportation is
+
+\noindent\texttt{mskcallcentersim} \texttt{ mskccParamsThreeTypes.xml
+ \ batchSimParams.xml \ output.ext}
+
+The file format is selected based on the extension \texttt{ext} of the
+output file.  The \texttt{txt} extension instructs the program to
+create a text file.
+%If \texttt{ext} is set to \texttt{bin}, a binary file is
+%produced.
+If \texttt{ext} is set to \texttt{xml}, one obtains an XML file.
+With \texttt{ext} set to \texttt{xml.gz}, the program produces a XML
+file, but compresses it using GZip; this can be used to save space
+when simulating a large number of scenarios and storing results in XML
+files for future processing.
+If \texttt{ext} is set to \texttt{tex}, the output file is in a format
+suitable to be included into a \LaTeX\ document.
+If \texttt{ext} is \texttt{xls}, the program produces an Excel
+document.
+For any other extension, a plain text file is created after a warning
+is displayed.
+
+\subsubsection{Case sensitivity}
+
+Note that the file extensions are case sensitive.
+For example, if the name of the output file is
+\texttt{output.XLS}, the program will produce a plain text file, even
+though \texttt{XLS} extension seems to refer to Excel.
+The correct file name is \texttt{output.xls}.
+
+\subsubsection{Exporting versus redirection}
+
+Note that if the redirection operator \texttt{>} is used before the
+file name, the file extension is ignored, and a plain text file is
+produced.
+For example, \texttt{mskcallcentersim singleQueue.xml repSimParams.xml
+> output.xls} will produce a text file named \texttt{output.xls}, not
+an Excel document.
+Removing the \texttt{>} character results in an Excel document.
+This is due to the fact that with redirection, the program does not
+know the name of the output file.
+
+\subsubsection{Existing output file}
+
+The behavior of the simulator when the specified output file already
+exists depends on the format.
+The general rule is to avoid destructive overwriting.
+Whenever possible, the new output is appended to the old file;
+new text is added to text files, and new sheets to Excel workbooks.
+For XML files, a warning message is displayed before a file
+with a name of the form \texttt{nameN.ext} is created.
+Here, \texttt{name} and \texttt{ext} are the original name and
+extension while \texttt{N} is a number.
+If redirection is used instead of giving a file name to the simulator,
+the behavior depends on the operating system, which usually overwrites
+existing files.
+
+One can use the \texttt{loadsimres} program to load back a file
+containing results, and save it to another format.
+The first argument for the program gives the
+name of the binary or XML file to load while the second,
+optional argument, provides the name of the output file.
+If the latter argument is omitted, the results are printed on-screen.
+The loading mechanism cannot import text and Excel files.
+
+\subsection{Getting estimated parameters}
+\label{sec:estparprg}
+
+For XML files containing data to estimate probability distributions
+from, the \texttt{mskestpar} program can be used to convert the data
+into parameters from the command line.  For example, the following
+command line converts the XML file presented in
+Section~\ref{sec:singleQueueMLE} into a file with estimated parameters.
+
+\noindent\texttt{mskestpar singleQueueMLE.xml singleQueueMLEOut.xml}
+
+\subsection{Converting old parameter files}
+
+The \texttt{oldmskccparamsconverter} and
+\texttt{oldsimparamsconverter} programs can be used
+to convert model and experiment parameter files from
+the old format used by ContactCenters 0.8, to the new format
+used by ContactCenters 0.9.
+These can be used as follows.
+
+\noindent\texttt{oldmskccparamsconverter singleQueueOld.xml singleQueueNew.xml}
+
+This converts a file named  \texttt{mskCCOld.xml} containing
+model parameters into a file with name
+\texttt{mskCCNew.xml} usable by ContactCenters 0.9.
+
+\noindent\texttt{oldsimparamsconverter repSimParamsOld.xml repSimParamsNew.xml}
+
+This converts a file named \texttt{repSimParamsOld.xml} containing
+experiment parameters into a file with name
+\texttt{repSimParamsNew.xml} usable by ContactCenters 0.9.

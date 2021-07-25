@@ -1,0 +1,1402 @@
+\section{Running simulations from Java code}
+\label{sec:mskusejava}
+
+This section presents how the simulator can be embedded into a Java
+program.  This requires some programming and access to the API
+specification of the ContactCenters library.  This specification is
+available in PDF or HTML formats.
+
+Simulators of call centers implement common interfaces to be used
+from a Java program.  A Java \emph{interface} specifies a given
+number of methods that an implementation needs to provide.
+These methods are often accessed only through the interface,
+hiding the implementation details to the greatest part of the
+program.
+When using interfaces this way,
+the construction of the simulator is
+implementation-specific, but its access is standardized.  Each predefined
+simulator implements the \texttt{Contact\-Center\-Sim} interface which
+extends the \texttt{Contact\-Center\-Eval} interface,
+and
+specifies methods to start the simulation and obtain estimates for
+performance measures.
+In the particular cases of \texttt{Call\-Center\-Sim},
+parameters are obtained from XML files
+which are directly mapped to Java parameter objects.
+Using the \texttt{CallCenterSim} is a three-steps process.
+%
+\begin{enumerate}
+\item Construct an object encapsulating the parameters of the call center
+  (\texttt{CallCenterParams}).
+\item Construct a second object encapsulating the parameters of the experiment
+  (\texttt{BatchSim\-Params} or \texttt{RepSimParams}).
+\item Construct the simulator (\texttt{CallCenterSim}).
+\end{enumerate}
+%
+An instance of the class
+\texttt{Call\-Center\-Params} encapsulates all parameters of the
+call center being simulated.  Usually, such a parameter object is
+constructed from an XML file.
+Any instance of this class encapsulates
+parameter objects for
+call types, agent groups, the router, etc.
+
+Parameters for experiments using batch means are encapsulated into
+instances of the  \texttt{Batch\-Sim\-Params} class
+whereas \texttt{Rep\-Sim\-Params} contains parameters for experiments
+using independent replications.
+Both classes share a common parent called \texttt{Sim\-Params}
+defining common parameters.
+When reading the XML parameter files, each XML element or attribute is
+mapped to one field in the corresponding parameter object.
+Special methods called \emph{accessors} must be used to access or
+modify the values of fields rather than manipulating the fields directly.
+
+\subsection{Getting estimates for performance measures}
+
+Listing~\ref{lst:CallSim} demonstrates how the simulator can be
+created and called from an application program.
+The program is composed of a class \texttt{Call\-Sim} containing a
+single \texttt{main} method performing the necessary steps.
+
+\lstinputlisting[
+caption={\texttt{CallSim.java}: calling the simulator to extract the service level},%
+emph={main},label=lst:CallSim
+]
+{CallSim.java}
+
+First, the program creates a converter for call center parameters.
+This object can unmarshal an XML file to a parameter object, or
+marshal an object to an XML file.
+Validation using the appropriate XML Schema is performed for both
+operations.
+The \texttt{unmarshal\-Or\-Exit} method is called to
+perform unmarshalling, which creates an instance of
+\texttt{Call\-Center\-Params}.
+When an error occurs during call to this method, a message
+is printed, and the program exits.
+This method is used only for simple console applications.
+Programs with a more sophisticated user interface
+should instead use \texttt{unmarshal}, and
+catch the \texttt{JAXBException} to handle the error.
+A similar converter is used for experiment parameters, which are
+encapsulated in an instance of the \texttt{Sim\-Params} class.
+
+The simulator is then ready to be constructed, using the two
+previously created parameter
+objects. Before an object of class \texttt{Call\-Center\-Sim} is constructed,
+the method \texttt{init\-Seed} from
+\texttt{Sim\-Random\-Stream\-Factory} is called to initialize the seed
+of the first random stream created by the simulator using information
+in the \texttt{random\-Streams} element of the experiment parameters.
+If no \texttt{random\-Streams} element exists, the
+\texttt{init\-Seed} method has no effect.
+
+It is recommended to use
+the \texttt{sim} instance as a \texttt{Contact\-Center\-Sim} only, if
+possible.  This
+way, it becomes possible to replace the implementation
+without any code modification except for constructing the simulator.
+In particular, the \texttt{Call\-Center\-Sim} instance can be replaced
+by an instance of
+\texttt{Basic\-Call\-Center\-CTMC\-Sim\-MP} to use the simplified CTMC
+simulator instead of the generic one based on the more detailed model.
+
+The last lines of the program can be used as is for
+any future simulators or
+approximations.
+In this part of the program, the \texttt{eval} method is used to perform
+the evaluation, i.e., the simulation with this implementation.  The
+estimated
+service level is extracted using the \texttt{get\-Performance\-Measure}
+specified in \texttt{Contact\-Center\-Eval}.  This method accepts any
+enum constant of \texttt{Performance\-Measure\-Type} which acts as a
+key to select the required set of performance measures.  The available
+keys are listed in the API specification as well as in
+Section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.PerformanceMeasureType}.
+The estimates for the queried performance
+measures are returned as a 2D matrix of double-precision values whose
+dimensions and roles depend on the type of performance measure.    For
+the aggregate service level, one
+simply accesses the lower-right element of the returned matrix.
+Note that some implementations of
+\texttt{Contact\-Center\-Eval}, especially approximations, do not
+estimate all performance measures listed in
+\texttt{Performance\-Measure\-Type}.
+
+Listing~\ref{lst:CallSimSL} shows how estimates of the service level
+over the whole horizon can be obtained.
+The matrix returned by \texttt{get\-Performance\-Measure} contains
+$M\Ki'$ rows where $M$ is the number of matrices of thresholds while $\Ki'$
+is the total number of segments of call types in the model.
+If no segment was set by the user, $\Ki'=\Ki+1$ if $\Ki>1$, and $\Ki'=\Ki$ if
+$\Ki\le 1$.
+Row $m\Ki'+k$ in the matrix of service levels corresponds to
+call type~$k$, with the $m$th matrix of acceptable waiting times.
+
+\begin{lstlisting}[caption={Part of \texttt{CallSimSL.java}: obtaining
+    service level estimates for each call type and acceptable waiting
+    time},label=lst:CallSimSL]
+      sim.eval ();
+      final PerformanceMeasureType pm = PerformanceMeasureType.SERVICELEVEL;
+      final DoubleMatrix2D sl = sim.getPerformanceMeasure (pm);
+      System.out.println (pm.getDescription ());
+      for (int k = 0; k < sl.rows (); k++) {
+         System.out.printf ("%s: %.3f%n",
+               pm.rowName (sim, k),
+               sl.get (k, sl.columns () - 1));
+      }
+\end{lstlisting}
+
+In the listing, we iterate over each row of the matrix. For each row,
+we print the estimate of the service level in the last column of the
+matrix, along with the name associated with the row.
+The row name returned by \texttt{row\-Name} is of the form
+\texttt{Call type k, sl m}, or simply \texttt{Call type k} if $M=1$.
+
+The role of the rows in matrices returned by
+\texttt{get\-Performance\-Measure} depends on the type of performance
+measure;
+see
+Section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.RowType}
+  for the possible types of rows.
+
+\subsection{Exporting results}
+\label{sec:export}
+
+Listing~\ref{lst:CallSimExport} demonstrates how
+one can provide the user with the same facility as
+\texttt{mskcallcentersim} to export results into files.
+
+\lstinputlisting[
+caption={\texttt{CallSimExport.java}: calling the simulator to export results},%
+emph={main},label=lst:CallSimExport
+]
+{CallSimExport.java}
+
+The program is similar to Listing~\ref{lst:CallSim}, except it exports
+the results rather than extracting only the service level.
+The program first looks for a third argument on the command-line, and
+gives this argument to the \texttt{format\-Results} method.
+We also add a JAXB exception in the \texttt{throws} clause of
+the \texttt{main} method, because this exception may be thrown
+by \texttt{format\-Results}
+when the output format is XML.
+The \texttt{add\-Experiment\-Info} method, called after the
+construction of the simulator, adds the name of the parameter files
+and current date to
+the evaluation information of the simulator to
+be displayed at the beginning of statistical reports.
+
+\subsection{Extracting observations}
+\label{sec:extobs}
+
+The next program displays the observations that were used to
+estimate the expected rate of calls waiting less than the
+acceptable waiting time, used to compute the service level.
+This is also called the number of calls \emph{in target}.
+The previously-returned
+service level is estimated by averaging two quantities, and dividing
+the two averages.  As a result, after the simulation, only a single
+copy of the ratio of averages is available, so observations cannot be
+printed.  However, the number of calls in target is estimated by averaging
+observations.  We may be interested in getting all individual
+observations, e.g., for determining quantiles or displaying a
+histogram.  Note that the demonstrated technique can also be used for
+any performance measure whose type \texttt{m} satisfies
+\texttt{m.getEstimationType() != EstimationType.FUNCTIONOFEXPECTATIONS}.
+Listing~\ref{lst:CallSimObs} presents this program that first creates
+the simulator and starts an evaluation before printing observations.
+
+\lstinputlisting[
+caption={\texttt{CallSimObs.java}: calling the simulator to extract observations},%
+emph={main},label=lst:CallSimObs
+]
+{CallSimObs.java}
+
+This time, we use a \texttt{Contact\-Center\-Sim\-With\-Observations},
+a subinterface of \texttt{Contact\-Center\-Sim} that defines a
+mechanism to obtain observations.
+% The value of the printed rate depends on a simulation parameter
+% called
+% \texttt{normalize\-To\-Default\-Unit}
+% %(see p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.app.SimParams:getNormalizeToDefaultUnit()}).
+% If this parameter is \texttt{true}, the rate is relative to a simulation time unit.
+% However, if the parameter is \texttt{false}, the rate is relative
+% to one main period.
+
+First, the simulator needs to
+be told to store observations, because it discards them
+by default to save memory. These observations are not needed
+in most common cases, because
+the simulator only computes
+basic statistics.  However, the attribute \texttt{keep\-Obs}
+%(see p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.app.SimParams:getKeepObs()}).
+of \texttt{rep\-Sim\-Params} or \texttt{batch\-Sim\-Params}
+can be used to store all observations.  In the program, we
+test this attribute by calling \texttt{get\-Keep\-Obs}
+to determine if we can print a list of
+observations.  If observations are not kept, we print a warning and
+modify the parameter to keep observations.
+After the evaluation, we then obtain an
+array using the \texttt{get\-Obs} method,
+for the bottom-right
+element of the matrix of performance measures of type
+\texttt{RATEOFSERVICESBEFOREAWT}, which corresponds to the rate of served
+inbound contacts having waited less than the acceptable waiting time.
+% \texttt{RATEOFINTARGETSL}, which is the aggregate number of
+% calls in target.
+% If we had tried to get an array of observations for
+% \texttt{SERVICELEVEL} rather than \texttt{RATEOFINTARGETSL}, the
+% program would have thrown an exception.
+Each element of the
+array of observations is printed on a single line for demonstration purposes.
+
+\subsection{Tracking the progress of a simulation}
+
+By default, calling \texttt{eval} triggers the simulation and the
+method returns only when the experiment is completed.
+However, it is sometimes necessary to track the progress of the
+experiment.
+This can be useful to display a progress bar in a graphical user
+interface, or to abort the simulation if it is too long, or
+if the user presses on a cancel button.
+Listing~\ref{lst:CallSimListener} shows how a listener can be used to
+track the state of a simulator.
+
+\lstinputlisting[
+caption={\texttt{CallSimListener.java}: tracking the progress of a call center simulator},%
+emph={main,SimListener},label=lst:CallSimListener
+]
+{CallSimListener.java}
+
+This program is very similar to the first example, except it uses an
+\texttt{Observable\-Contact\-Center\-Sim} rather than a
+\texttt{Contact\-Center\-Sim}.  The subinterface provides a method
+called \texttt{add\-Contact\-Center\-Sim\-Listener} we
+use to add our \texttt{Sim\-Listener} observer.  Each time a batch or
+replication is completed, our listener is notified and displays status
+information.
+
+Note that one can
+also use the predefined listener
+\texttt{Contact\-Center\-Progress\-Bar} to display a progress bar on
+the console.
+This progress bar is used, for example, in the program called by
+\texttt{mskcallcentersim}.
+
+\subsection{Running experiments with multiple staffing levels}
+\label{sec:multipleexp}
+
+The \texttt{Contact\-Center\-Eval} interface specifies efficient ways
+to perform multiple experiments, without reconstructing the whole
+simulator between each one.  By using \emph{evaluation options}, one
+can change parameters between each call to the \texttt{eval}
+method without reconstructing the simulator.  Random number streams
+are automatically reset from calls to
+calls, allowing common random numbers to be used by default.  This
+permits, e.g.,
+to test a call center with various staffing levels.
+For example, the staffing matrix can be changed as follows:
+
+\begin{lstlisting}[language=Java,frame={}]
+   sim.setEvalOption (EvalOptionType.STAFFINGMATRIX, staffing);
+\end{lstlisting}
+
+Here, \texttt{staffing} is a 2D array of integers containing the
+one $P$-dimensional staffing vector for each agent group, thus forming
+a $I\times P$ staffing matrix.
+For a single-period or stationary simulation, the length of this
+gives a $I\times 1$ matrix.
+
+For such cases, one can alternatively use \texttt{STAFFINGVECTOR}
+instead of \texttt{STAFFINGMATRIX}.  The argument \texttt{staffing}
+must then be an array of integers of length $I$ giving the number of
+agents in each group.
+If \texttt{STAFFINGVECTOR} is used for
+a multi-periods simulation, the length of the \texttt{staffing} array
+must be $IP$ (the number of agent groups multiplied by the number of
+main periods), and
+for a period~$p$ and the agent group~$i$,
+the number of agents is given by the element with index
+$Pi + p$.  For example, in a simulation with two agent groups
+and two main periods, the vector
+$\{1,2,3,4\}$, constructed in Java by the following code,
+would set the number of
+agents in group~0 to 1 for the first
+main period and 2 for the second period.
+
+\begin{lstlisting}[language=Java,frame={}]
+   int[] staffing = new int[] { 1, 2, 3, 4 };
+\end{lstlisting}
+
+In other words, both \texttt{STAFFINGVECTOR} and
+\texttt{STAFFINGMATRIX} evaluation options can be used to access or
+modify the staffing, but the matrix may be easier to access than the
+vector in a multi-period setup.  However, using 2D arrays in Java is
+less efficient, because the memory allocated for the
+obtained array of arrays
+may not be contiguous.
+
+Listing~\ref{lst:CallSimSubgradient} estimates the subgradient for the
+service level when adding a single agent in each group.
+Let $g(\boldtheta)$ be the service level for the staffing vector
+$\boldtheta$. The $(Pi+p)$th component of the subgradient is given by
+\[g(\boldtheta + e_{Ip+i}) - g(\boldtheta),\]
+where $e_j$ is the elementary vector containing one at position $j$,
+and zero elsewhere.
+Such a subgradient can be used, e.g., for optimization.
+
+\lstinputlisting[
+caption={\texttt{CallSimSubgradient.java}: estimating a subgradient},%
+emph={main},label=lst:CallSimSubgradient
+]
+{CallSimSubgradient.java}
+
+First, the simulator is initialized as previously, and an evaluation
+at $\boldtheta$ is performed.
+Then, for each element $(i, p)$ of the staffing matrix
+returned by the
+appropriate evaluation option, an agent is added, the staffing matrix
+is updated, and a new evaluation is performed.
+This results in an evaluation at staffing level
+$\boldtheta + e_{Ip+i}$.
+The components of the subgradient are stored in a 2D array, and printed
+at the end of the simulations.
+We use a chrono to print the CPU time for the whole operation.
+
+Note that the staffing cannot be modified this way if the agent groups
+of a model use a schedule.  In this case, one needs to use the method
+\begin{lstlisting}[language=Java,frame={}]
+   sim.setEvalOption (EvalOptionType.SCHEDULEDAGENTS, scheduledAgents);
+\end{lstlisting}
+Here, \texttt{scheduled\-Agents} is a 2D array with dimensions
+$I\times J$, where $I$ is the number of agent groups and $J$ is the
+number of shifts. Each element $(i,j)$ of the 2D array gives the
+number of agents in group~$i$ for the shift~$j$.
+
+When manipulating the schedule of agents, it is often needed to get
+access to the information concerning the shifts of the agents.
+This can be done by obtaining a reference to the agent group manager
+of any group~$i$, which provides a method for obtaining the associated
+schedule.
+Information about shifts can then be extracted from there.
+The following code fragment gives an example of this.
+\begin{lstlisting}[language=Java,frame={}]
+   AgentGroupManager grp = sim.getModel().getAgentGroupManager (i);
+   AgentGroupSchedule schedule = grp.getSchedule();
+   boolean[][] shifts =
+      schedule.getShiftMatrix (sim.getModel().getPeriodChangeEvent());
+\end{lstlisting}
+The returned 2D array has dimensions $I\times J$, and element
+$(j,p)$ is \texttt{true} if and only if agents in shift~$j$ are
+scheduled
+during main period~$p$.
+Note that in general, the list of shifts might depend on the agent
+group, but a common set of shifts is often used for all groups.
+
+If one needs to manipulate staffing vectors even though schedules were
+used, in XML parameter files,
+the attribute
+\texttt{convert\-Schedules\-To\-Staffing} can be used for a specific
+\texttt{agent\-Group} element in
+\texttt{MSKCCParams}.
+
+Some
+parameters cannot be changed using evaluation options, e.g., the
+number of call types or agent groups.  In this case, one can force the
+parameter objects to be reread by using the \texttt{reset} method in
+\texttt{Contact\-Center\-Eval}.  This will update the simulator and
+maximize random number synchronization.
+A \texttt{reset} method taking new parameter objects is provided
+in \texttt{Call\-Center\-Sim}.
+The \texttt{Call\-Center\-Sim} simulator also contains a
+\texttt{get\-Streams}
+method allowing one to get an object containing the random streams
+used by the simulator.
+This object can be used to construct a new simulator having the same
+random streams as the old one.
+This allows to construct two different but random-synchronized
+simulators (e.g., one with batch means, one with replications) to
+compare systems.
+
+% Note that parameter objects can be cloned if several copies of the
+% same parameter set need to be modified independently.  Cloning is more
+% efficient than rereading the parameters from the XML file.  The
+% \texttt{clone} method can be used to create a copy of any cloneable
+% object.
+
+\subsection{Controlling the random seeds}
+\label{sec:randomstreams}
+
+By default, each evaluation is performed using the same sequence of
+random numbers.  Therefore, after any number of successive calls
+to \texttt{eval()} with no change of parameters,
+\texttt{get\-Performance\-Measure}
+will return the exact same estimates, because the same sequences of
+random numbers are reused for each evaluation.
+When performing sensitivity analysis or estimating subgradients, this is
+a desired behavior, because using the same random numbers for all
+compared configurations helps reducing the variance of the difference
+of the estimated performance measures.
+This technique is called \emph{common random numbers}.
+However, if \texttt{set\-Auto\-Reset\-Start\-Stream} is called with
+\texttt{false} before calling \texttt{eval}, the sequence of random
+numbers will not be reset after each call to \texttt{eval}, so each
+call will generate different results.
+The sequence of random numbers can be reset manually by calling
+\texttt{reset\-Start\-Stream}.
+
+Additionally, any execution of the same program using the simulator
+will produce the exact same result, because the seed of random numbers
+is initialized in a deterministic way.  This differs
+from many standard
+random number packages which initialize the seed using some random
+information such as the time of the day.
+As we explained in Section~\ref{sec:seeds}
+this starting seed may be altered by modifying the XML file for the
+experiment parameters.
+
+Seeds can also be changed during the execution of a program by calling
+the \texttt{new\-Seeds} method.
+This method recreates the simulator with completely different streams
+of random numbers, so any subsequent call to
+\texttt{eval} will return results independent from previous calls.
+This can be used, e.g., for repeating an optimization algorithm
+several times, independently, while still using common random numbers
+for each replication of the scheme.
+
+% Synchronization, i.e., using the same random numbers
+% at the same places, is important for common random numbers to be
+% efficient.  The simulator tries to ensure this by using multiple
+% streams of random numbers, and resetting them at the end of each
+% replication.
+% More specifically,
+% the (large) period of the random number generator used by the simulator
+% is divided into streams
+% which are themselves separated into substreams.
+% In the call center simulator, a stream is associated with a specific
+% type of event, e.g., arrival of calls of a given type, service times
+% of a specific type, etc. Unless
+% \texttt{set\-Auto\-Reset\-Start\-Stream} was called with
+% \texttt{false},
+% all the streams are reset to their starting point after each call to
+% \texttt{eval()}.
+% Moreover, after each replication, all the streams are reset to the
+% beginning of their next substreams.
+% This restores the synchronization of random numbers at the beginning
+% of each replication.
+
+For example, suppose that we need to examine the impact on the number
+of calls waiting less than a given threshold if $\delta$ agents are
+added in group $i$, with a confidence interval on the difference.
+Listing~\ref{lst:TestCRN} gives an example program doing this for a
+single type of performance measure.
+It initializes a simulator before calling \texttt{eval} three times:
+the first time with the original staffing of the model, a second time
+with the modified staffing but using the same random numbers as with
+the first time, and a third time with the modified staffing but
+independent random numbers.
+The collected differences are then averaged out to get an estimate of
+the difference with a variance and a confidence interval.
+
+\lstinputlisting[
+caption={\texttt{TestCRN.java}: estimating a difference with CRNs},%
+emph={main},label=lst:TestCRN
+]
+{TestCRN.java}
+
+First, the program calls
+\texttt{set\-Auto\-Reset\-Start\-Stream} which disables the automatic
+call of \texttt{reset\-Start\-Stream} after \texttt{eval}.
+Therefore, the user needs to manually call
+\texttt{reset\-Start\-Stream} after the first call to \texttt{eval}.
+This makes sure that the second call to \texttt{eval} uses the same
+random numbers as the first call.
+The third call uses independent random numbers because no stream were
+reset after the second call.
+
+After each call, observations are obtained the same way as in
+Section~\ref{sec:extobs}.
+The program obtains observations for the global performance measure,
+which corresponds to the bottom right element of the matrix of
+statistics for the selected type.
+In Section~\ref{sec:extobs}, we obtained the dimensions of the matrix
+by calling methods on the matrix object returned by
+\texttt{get\-Performance\-Measure}.
+In this example, we show a different method consisting of calling
+the \texttt{rows} and \texttt{columns} method of
+\texttt{Performance\-Measure\-Type}.
+After the three arrays of observations are obtained, the differences
+are summed up into tallies, and reports are printed for IRNs and CRNs.
+
+Of course, this program can be greatly extended to report differences
+for multiple performance measures, with multiple changes of staffing
+vectors.
+
+\subsection{Extracting parameters}
+\label{sec:getparams}
+
+Sometimes, parameters are needed for other purposes than simulation.
+For example, arrival rates might be needed by an optimization algorithm
+to set the initial staffing vector.
+A program needing such parameters can traverse parameter objects
+the same way the simulator does in order to extract needed parameters.
+One should refer to the API specification of ContactCenters for the
+available methods.
+It is also possible to create a \texttt{Call\-Center} object which is
+used internally by \texttt{Call\-Center\-Sim}, and contains processed
+model parameters.
+For example, listing~\ref{lst:GetParams} shows how to obtain the
+arrival rates, the mean service times, and the staffing vector for a
+user-defined period.
+
+\lstinputlisting[
+caption={\texttt{GetParams.java}: getting the arrival rates, service rates, and staffing vector},%
+emph={main},label=lst:GetParams
+]
+{GetParams.java}
+
+The \texttt{ccPs} object is first constructed the same way as in the
+preceding examples.
+Then, a call center \texttt{cc} is created using the parameters.
+This performs additional validation not supported by the XML Schema,
+and creates the model of the call center.
+
+Then, for each of the $\Ki$ inbound call type, the arrival rate
+$\lambda_k$ is obtained by using the
+\texttt{get\-Expected\-Arrival\-RateB} of the
+\texttt{Contact\-Arrival\-Process} class.
+This method computes the expected arrival rate in a way depending on the type of
+arrival process.
+For example, with a Poisson arrival process, the expected arrival rate is the
+deterministic arrival rate,
+i.e., the expected number of arrivals per simulation run.
+However, with other arrival processes, the arrival rate might be
+random.
+The expected arrival rate is multiplied by $\E[B]$, which corresponds
+to the expected busyness factor.
+Usually, $\E[B]=1$, but this can be changed if arrival rate
+multipliers are set using \texttt{arrivalsMult} attributes.
+We assume here that
+an arrival process, whose parameters are defined in
+\texttt{Arrival\-Process\-Params}, is attached to each inbound call
+type.
+
+The mean service time is obtained by calling the \texttt{get\-Mean}
+method for the appropriate random variate generator.
+The generator is accessed using \texttt{get\-Service\-Time\-Gen} which
+is defined in \texttt{Call\-Factory}.  The call factory is accessed
+using the \texttt{get\-Call\-Factory} method on the call center model \texttt{cc}.
+
+Note that \texttt{get\-Expected\-Arrival\-RateB}, and
+\texttt{get\-Mean} accept period indices which differ
+from main period indices.
+See Section~\ref{sec:periods} for the difference between periods and
+main periods.
+For a method accepting period indices, the first main period (main
+period with index 0) is denoted by the index 1, period index 0 being
+reserved for the preliminary period.
+
+The staffing vector is obtained by using the \texttt{get\-Effective\-Staffing}
+method of \texttt{Agent\-Group\-Manager}.
+This method returns a $P$-dimensional array containing the number of
+agents for each period.
+One can also use the \texttt{STAFFINGVECTOR} evaluation option, as we
+do in Section~\ref{sec:multipleexp}, but this requires the creation of a
+\texttt{Call\-Center\-Sim} instance.
+
+The program then extracts scheduling information if available. For
+this, the agent group manager is cast to
+\texttt{Agent\-Group\-Manager\-With\-Schedule}.
+The shift matrix is extracted using the \texttt{get\-Shift\-Matrix}
+method while the schedule vector is obtained with
+the \texttt{get\-Num\-Agents} method.
+
+\subsection{Constructing parameter objects}
+\label{sec:makeparams}
+
+As we saw in Section~\ref{sec:mskconfig}, parameter files for call
+centers are rather complex.
+Sometimes, one might only need a restricted subset of these
+parameters.  For example, when analyzing a call center during a single
+period and comparing simulation with queueing formulas, arrival rates,
+service rates, and the staffing vector might be the only interesting
+parameters.
+In this case, using XML files might be cumbersome and error-prone.
+Consequently, one might prefer to create
+parameter objects from a custom file format.
+
+Usually, parameter objects are created from XML files as in the
+preceding examples.  However, one can also construct them manually
+using data obtained from such a simplified file.
+Note that if the simplified file format is also XML, it might be
+simpler to transform the simple file into a parameter file using
+XSLT rather than writing a program creating the parameter objects directly.
+
+Listing~\ref{lst:CreateParams} shows how an instance of
+\texttt{Call\-Center\-Params} might be created from scratch,
+for a model based on the example in
+Section~\ref{sec:mskccParamsThreeTypes}.
+The constructed parameter object is saved as an XML file named
+\texttt{testParams.xml} which can be used to run simulation using the
+examples in the preceding sections.
+
+\lstinputlisting[
+caption={\texttt{CreateParams.java}: creating an instance of \texttt{CallCenterParams} from scratch},%
+emph={main},label=lst:CreateParams
+]
+{CreateParams.java}
+
+First, the program creates the \texttt{Call\-Center\-Params} instance,
+and sets simple parameters using methods.
+Then, for each call type, an \texttt{Inbound\-Type\-Params} object is
+constructed, and
+added into the list of inbound types of the call center parameters.
+For each inbound type, an arrival process is constructed and set:
+its type is defined as Poisson, and the arrival rate is set.
+Then, random variate generators are configured for patience times and
+service times.
+
+Agent groups are constructed in a similar way:
+an \texttt{Agent\-Group\-Params} instance is created for each group,
+and the number of agents in the group is set.
+The router is then constructed and defined to use the
+agents' preference-based policy.
+A $I\times K$ matrix of 1's is used to have $\rGT(i, k)=1$ for each
+$k$ and $i$.
+The 2D array then needs to be marshalled into a JAXB object before it
+can be added to the parameter file.
+This results in arriving calls selecting the longest-idle agents while
+agents select the calls with the longest waiting time.
+
+After the router is set, the parameters for the service level
+estimation are defined.
+For this, we need to create \texttt{Duration} objects representing
+the acceptable waiting times.  This is done using a
+\texttt{DatatypeFactory}.
+The matrix of durations, which is also a 2D array, also needs to be
+marshalled before it can be stored into the parameter object.
+
+A converter is then created in order to marshal the newly-created
+\texttt{ccPs} object.
+The \texttt{marshal\-Or\-Exit} method is used to perform marshalling,
+with validation using XML Schema.
+
+\subsection{Performing a sensitivity analysis}
+
+Suppose that we need to evaluate the impact of changing the
+arrival rate, mean service time, and staffing on the performance,
+for a given model of call center.
+This requires the simulation of many different scenarios, and the
+compilation of the obtained results into a summary table.
+
+Of course, this can be done manually by creating a baseline XML file,
+and adjusting the file for each and every scenario. The results of the
+scenarios can be stored into XML or Excel files, and the resulting files can be
+compiled manually into a summarizing table.
+However, this task is time-consuming, and error prone.
+In this example, we show how this can be partly automated.
+
+First, we need to figure out how to change the parameters of the model
+for each scenario.
+A first idea is to modify the XML file, for example using a XSLT style
+sheet.
+Alternatively, one could modify the \texttt{Call\-Center\-Params}
+object by calling methods.
+However, these methods are rather elementary, and as we have seen in
+the preceding section, modifying the parameter object directly is
+often cumbersome.
+A third solution is to alter the state of the \texttt{Call\-Center}
+object which represents the model of the call center.
+This object can be accessed through the \texttt{get\-Model} method of
+\texttt{Call\-Center\-Sim}.
+
+We could of course manipulate the arrival rates, the distributions of
+the service time, and the staffing directly using the
+\texttt{Call\-Center} object.
+For this, one needs to traverse the hierarchy of objects composing the
+model by calling the appropriate methods. The names of the methods to
+call can be obtained by looking at the API specification of
+ContactCenters.
+
+However, the way to change arrival rates and mean service times
+depends on the particular arrival process and service time
+distribution, and
+this must be done separately for each main period.
+This can become tedious if one need to alter the parameters globally,
+for all main periods.
+The simulator therefore provides a way for changing parameters over
+all main periods with the help of multipliers.
+
+More specifically, each arrival process has a multiplier $a_k$ which
+defaults to 1.  There is also a global multiplier $a$, which also
+defaults to 1.  These multipliers affect the arrival rates by
+multiplying the busyness factor with $a_ka$.   The base busyness factor,
+denoted $B$, is a random variate whose distribution is determined by
+the \texttt{busyness\-Gen} element.
+If the element is not present, as in this example, $B=1$.
+
+Similarly, each service time of call type~$k$ by agent in group~$i$
+is multiplied by $s_{k,i}s_ks$ where $s_{k,i}$, $s_k$, and $s$ are
+user-defined multipliers defaulting to 1.
+This way, the mean service time can be altered without knowing exactly
+the distribution of the service times.
+The same can be done for patience times, except that there is no
+multiplier specific to an agent group.
+
+There are multipliers for staffing as well: one specific to the agent
+group,
+along with one for the whole model. After these are applied,
+the resulting staffing is rounded to the nearest integer.
+This allows one to increase or decrease the overall staffing while
+preserving the distribution of the agents across periods.
+Note that setting the staffing using the \texttt{STAFFINGVECTOR} or
+\texttt{STAFFINGMATRIX} evaluation options resets these multipliers to 1.
+
+After each scenario is simulated, the results can be written to XML
+using, e.g., the exporting facilities we illustrated in
+Section~\ref{sec:export}.
+Of course, we need to assign a unique file name to each scenario.
+
+Listing~\ref{lst:SimulateScenarios} demonstrates this technique.
+The program accepts the names of the parameter files for the model and
+the experiments, as well as a prefix for building the names of
+result files.
+It considers changing the global arrival rate, mean patience and
+service times, and staffing level, independently
+ to 80\%, 100\%, and 120\% of their
+original values.
+The program tests all the $3^4$ possible combinations of parameter changes.
+
+The program defines a class providing methods to adjust the parameters we want
+to analyze the impact with respect to, and simulate scenarios.
+The \texttt{main} method creates a call center simulator, and uses it
+to perform the experiments.
+
+\lstinputlisting[
+caption={\texttt{SimulateScenarios.java}: simulating scenarios for sensitivity analysis},%
+emph={main},label=lst:SimulateScenarios
+]
+{SimulateScenarios.java}
+
+In this program, we alter only the global multipliers.
+For each multiplier we need to change, we create one field containing
+the original value, and a second field with the value set for the experiment.
+The fields for the original values end with \texttt{Orig} while the
+ones for experimental values end with \texttt{Exp}.
+The constructor of the class initializes the original multipliers
+while the experimental multipliers are set to 1.
+
+Then, four methods are defined to set each of the four multipliers we
+want to experiment with.
+Each method sets the appropriate multiplier in the model
+to the product of the original and experimental multipliers,
+and update the experimental multiplier.
+After the four methods, a comment shows how to
+set corresponding multipliers specific to call types and agent groups.
+This is for illustration purposes only; this has no role here, since
+this is a comment.
+
+The \texttt{simulate\-Scenario} method, which performs the
+experiment,
+works as follows.
+First, a file name is built using the current values of the
+experimental multipliers.
+If that file does not exist, a simulation is performed, and the
+results are stored in the file with that name.
+Evaluation information is added to the simulator object in order to
+keep track of the parameters the simulation was made with.
+Since the file names end with \texttt{.xml.gz}, results are stored
+into XML files compressed using GZip.
+
+The \texttt{main} method simply creates the simulator, and an instance
+of \texttt{Simulate\-Scenarios}.
+The four multipliers can take values 0.8, 1, and 1.2, and we would
+like to test all the $3^4$ combinations of multipliers.
+This can be done using the nested loop in the program.
+For example, a multiplier for arrival rates of 0.8 means that
+all arrival rates will be multiplied by 80\% for the simulation.
+
+Many other parameters could be modified in such experiments.
+For example, one can get an instance of the router using
+\texttt{sim.get\-Model().get\-Router()}, cast it to the appropriate
+subclass, and alter the routing parameters such as priority matrices,
+delays, etc.
+
+Parameter files produced by the above program can be loaded one at a
+time using the \texttt{loadsimres} command.
+This command takes the name of the XML file to load as its first argument, as
+well as the name of an output file as an optional second argument.
+If the second argument is omitted, the loaded results are printed onscreen.
+The second argument is useful to convert the XML file into
+another format, e.g., Microsoft's Excel.
+
+However, loading each file at a time to examine results might be
+tedious if there are many files.
+A program generating summary information might be helpful, if not
+crucial in given circumstances.
+Such a program can be easily written using the
+\texttt{CC\-Results\-Writer} helper class which provides a mechanism
+to iterate over directories containing result files.
+
+Listing~\ref{lst:WriteSummary} presents a Java program for this.
+The program accepts any number of files as arguments, and formats a
+one-line report for each file. The report includes the value of the
+four multipliers we experimented with in the last program as
+well as the global service level, abandonment ratio, average speed of
+answer, and occupancy ratio of agents.
+
+\lstinputlisting[
+caption={\texttt{WriteSummary.java}: simple program writing summary results for different scenarios},%
+emph={main},label=lst:WriteSummary
+]
+{WriteSummary.java}
+
+The program is a class extending \texttt{CC\-Results\-Writer}, and
+implementing the \texttt{write\-Results} abstract method
+to perform the writing.
+The \texttt{main} method of the program simply creates an instance of
+this class, and calls the \texttt{write\-Summary} method for each
+command-line argument.
+The latter method opens the given file, and creates objects holding
+results of call center simulations.  These results are passed to the
+method \texttt{write\-Results} we implement.
+
+The evaluation information to include in the report as well as the
+desired types of performance measures are hard-coded into the fields
+\texttt{keys} and \texttt{pms} of this class.
+The constructor uses this information to construct a pattern that will
+be used to format each line of the report.
+It also formats a header line for the report.
+The formatting is done using Java 5's \texttt{Formatter} which is
+similar to C's \texttt{printf}.
+
+For each string in \texttt{keys}, we look for an evaluation
+information by using the \texttt{get} method on the map returned by
+\texttt{get\-Eval\-Info}. If the resulting object corresponds to a
+number, it is assigned to the appropriate argument for formatting.
+Otherwise, \texttt{Double.NaN} is used.
+
+Then, for each performance measure in \texttt{pms}, the overall
+average is obtained as in previous examples, and assigned to the
+appropriate argument for formatting.
+The initialized array of arguments is then given to the formatter,
+along with the pattern created in the constructor.
+
+Of course,  a summary writer might be far more complex than this,
+outputting several statistics for many call types, and even computing
+custom statistics adapted to a specific analysis.
+The summary might as well be written in a more sophisticated file
+format, e.g., XML or Excel.
+
+\subsection{Performing simulations in parallel}
+
+In the preceding subsection, we showed an example which simulated
+several scenarios of a call center.
+However, if this program is executed on a machine with multiple
+processors, or with processors with multiple cores, only one
+processor or core is used.
+A natural extension of this example is thus to take advantage of
+this CPU power by using multiple Java threads.
+
+In general, the classes in ContactCenters are not thread-safe.  This
+means that if one tries to make multiple threads use a single instance
+of these classes, unpredictable behavior may result.
+However, if each object is used by a single thread, no problem should
+occur.
+In particular, one can have a \texttt{Call\-Center\-Sim} instance for
+each thread, because each instance has its own simulation clock and
+event list.
+
+A first idea is to use one Java thread for each scenario to simulate.
+However, when more threads than the number of available processors are
+used, the operating system makes each processor cycle through threads,
+allocating a small time slice to each thread.
+The frequent context switch required to change the active thread can
+degrade performance.
+In addition, most operating systems limit the maximal number of
+possible threads.
+As a result, it is better to keep the number of threads small so we
+need to use a thread pool.
+
+Listing~\ref{lst:SimulateScenariosThreads} presents a multi-threaded
+program for simulating the scenarios of the preceding example.
+It accepts the same arguments as the previous program, with an
+additional optimal argument giving the desired number of threads.
+If this last argument is omitted, one thread is created for each
+available processor.
+The program uses a pool of threads, with
+one instance of \texttt{Simulate\-Scenarios} of
+Listing~\ref{lst:SimulateScenarios} per thread.
+The thread pool is implemented by an executor from the Java Concurrent
+API, which can be used to schedule tasks, and execute them later.
+
+\lstinputlisting[
+caption={\texttt{SimulateScenariosThreads.java}: simulate scenarios with multiple threads},%
+emph={main},label=lst:SimulateScenariosThreads
+]
+{SimulateScenariosThreads.java}
+
+This program loads parameter files, and creates one instance of the
+simulator for each thread.
+It then schedules a task for each scenario to simulate, and instructs
+the executor to process these tasks, letting it assign them to threads
+automatically.
+A scenario is implemented as a runnable object which provides code
+performing the simulation.
+
+The simulators
+and the executor are created in the constructor of
+\texttt{Simulate\-Scenarios\-Threads} which accepts the two usual
+parameter objects, the base file name for results, and the required
+number of threads.
+
+For each needed thread, the program creates an instance of
+\texttt{Call\-Center\-Sim} object and encapsulates it into an instance
+of \texttt{Simulate\-Scenarios}.
+These scenario simulators are stored in a list to be retrieved later.
+However, some care must be taken with random streams.
+By default, each simulator will receive independent random streams so
+scenarios will not all be simulated with common random numbers.
+If we give the same set of random streams to all simulators,
+thread
+synchronization problems will happen, because random streams are not
+thread-safe.
+The solution is to clone the random streams to have a copy with the
+same seed for each simulator, which is done with the \texttt{clone}
+method.
+
+The \texttt{main} method constructs the multi-threaded simulator, and
+schedules a scenario using the \texttt{schedule\-Scenario} method
+accepting the four multipliers required in this experiment.
+This method creates a \texttt{Scenario} instance, and schedules it
+with the executor.
+The \texttt{simulate} method is then used to start simulation.
+This latter method returns only after all scenarios are simulated.
+
+The \texttt{Scenario} class represents the tasks given to the executor
+in this program.
+It implements \texttt{Runnable} to provide some code to execute in the
+\texttt{run}.
+This method obtains a scenario simulator, configures it with its
+internal multipliers, and simulates the scenario.
+
+The simulator is obtained using a thread-local variable, implemented
+by an instance of \texttt{Thread\-Local} stored in the \texttt{sceTh} field.
+This is similar to a usual local variable, with a different copy for
+each thread.
+If \texttt{sceTh.get ()} returns \texttt{null} reference, this means
+that no simulator was assigned to the current thread.
+In this case, a simulator is extracted from the list created in the
+constructor, and assigned to the thread-local variable.
+However, the active thread could change after \texttt{sce} is obtained
+from the list but before it is assigned to the thread local, or
+\emph{while}  the list of scenarios is manipulated.
+The newly active thread could then see the list in an inconsistent
+state.
+To prevent these problems, a lock is acquired before \texttt{sce} is
+obtained from the list, and released after it is assigned to the
+thread local.
+
+Why don't we construct the simulators in the \texttt{run} method
+rather than the constructor?
+This would avoid the use of an intermediate list, but
+the active thread could change while random streams are constructed
+or cloned.
+Moreover, if a random stream is cloned by a thread while another
+thread changes its state, the cloned random stream could be in an
+inconsistent state.
+
+\subsection{Making a histogram of the waiting time distribution}
+
+By default, the simulator estimates the average waiting time, average
+speed of answer (waiting time for served calls), and average time to
+abandon (waiting time for calls having abandoned).
+It also estimates the number of calls waiting less than some
+predefined thresholds.
+However, these summary statistics may not be sufficient to analyze a
+given call center.
+For example, one might observe a good service level while some calls
+wait for an extremely long time before they get service.
+Such behaviors can be examined by making a histogram of the waiting
+time distribution.
+
+The histogram can be constructed by counting the average number of
+calls waiting less than, say, 20s, the average number of calls waiting
+between 20s and 40s, between 40s and 60s, etc.,
+and the average number of calls waiting more than a given threshold.
+Each count produces a bar in the histogram.
+The average counts may be obtained using a sequence of
+\texttt{service\-Level} elements in the XML parameter file.
+
+Listing~\ref{lst:WaitingTimeHistogram}
+presents a Java program constructing such a histogram.
+The program accepts as arguments the names of parameter
+files for the model and experiment,
+two boolean indicators determining if waiting times of served
+or abandoned calls are counted,
+and thresholds on the waiting time for making the histogram.
+It performs a simulation experiment with the given parameters,
+and outputs the counts for the histogram.
+In this listing, the $\backslash$ character indicates that a line
+is broken in the listing while it is not in the program.
+
+\lstinputlisting[
+caption={\texttt{WaitingTimeHistogram.java}: program constructing a histogram for the waiting time
+  distribution},%
+label=lst:WaitingTimeHistogram,breaklines,prebreak={\char92}
+]
+{WaitingTimeHistogram.java}
+
+The program contains a single \texttt{main} method which performs
+the actions.
+It first loads the parameter files using JAXB as with previous
+examples.
+Then, it replaces the service level
+parameters read from the original
+parameter file with a sequence
+parameters obtained
+from the thresholds given as arguments.
+The simulation is then performed, and
+the counts are extracted from the matrix of average number of calls
+waiting less than the given thresholds.
+We now examine these steps in more details.
+
+After the parameter files are loaded, the program modifies
+the \texttt{Call\-Center\-Params} structure in order to replace the
+parameters
+for the service level.
+This is necessary, because after the \texttt{Call\-Center\-Sim} is
+created, there is no way to add or remove matrices of acceptable
+waiting times.
+For each acceptable waiting time given on the command-line,
+the program creates a \texttt{Service\-Level\-Params} instance and
+adds it to the list of service level parameters of the call center.
+It converts the given AWT to a duration assuming times are in seconds,
+and puts this duration into a $1\times 1$ 2D array.
+The conversion to durations is done using a
+\texttt{Datatype\-Factory}, whose method \texttt{new\-Duration} accepts
+a time in milliseconds.
+The created array is then marshalled to a
+\texttt{Non\-Negative\-Duration\-Array} to be given to
+\texttt{Service\-Level\-Params}.
+
+We can then create the simulator as in previous examples.
+We additionally register a listener to display a progress bar during
+simulation.
+After this step, the simulation is performed using the \texttt{eval}
+method.
+
+Then, the \texttt{in\-Target} and \texttt{out\-Target} matrices are
+initialized using simulation results.
+The first matrix gives the average number of calls having waited less
+than or equal to the acceptable waiting times while the
+second matrix gives the average number of calls having waited
+more than the acceptable waiting times.
+These matrices contain $M\Ki'$ rows, where $M$ is the number of
+user-defined
+thresholds, and $\Ki'$ is the number of segments of inbound call
+types.
+These segments include the $\Ki$ elementary segments containing a
+single inbound call type,
+the implicit segment regrouping all types, and any
+user-defined segment.
+Let $0<\tau_0<\tau_1<\ldots<\tau_{M-1}<\infty$ be the
+user-defined acceptable waiting times.
+Row $m\Ki' + k$ of the matrices,
+for $m=0,\ldots,M-1$ and $k=0,\ldots,\Ki'-1$,
+gives the number of calls
+in type segment $k$ with a waiting time less than or equal to
+$\tau_m$.
+Columns correspond to segments of main periods
+so we pick up the last column of the matrices which contain
+results over all periods.
+
+The matrices are obtained using
+the \texttt{get\-Performance\-Measure} method.
+The types of performance measures used
+depend on
+the two flags
+\texttt{count\-Served} and \texttt{count\-Abandoned} which
+determine whether waiting times of served or abandoned calls
+are counted.
+If both flags are \texttt{true}, i.e., all waiting times are
+considered,
+matrices are summed up to get the number of calls waiting less than
+AWT and more than AWT.
+In this program, we use static imports to avoid the
+\texttt{Performance\-Measure\-Type} prefix in the code obtaining
+\texttt{in\-Target} and \texttt{out\-Target}.
+
+Using these matrices, we can then construct a
+$(M+1)\times \Ki'$ matrix of average counts, where $M$
+is the number of user-specified thresholds while
+$\Ki'$ is the total number of segments regrouping inbound call types.
+For $k=0,\ldots,\Ki'-1$,
+element $(0, k)$ gives the number of calls
+in type segment $k$ with a waiting time less than or equal $\tau_0$.
+Element $(m, k)$, for $m=1,\ldots,M-1$,
+gives the number of calls in type segment
+$k$ with a waiting time greater than threshold
+$\tau_{m-1}$, but smaller than or equal to threshold $\tau_m$.
+Element $(M,k)$ gives the number of calls in type segment $k$
+waiting more than $\tau_{M-1}$.
+The first $M$ rows of the matrix are constructed using the
+\texttt{in\-Target} matrix while the last
+row requires using \texttt{out\-Target}.
+
+The constructed matrix is then printed.
+For clearer formatting, a name is assigned to each row and column.
+This output may be imported into a spreadsheet or a statistical
+analysis tool to get histograms of the waiting time distribution for
+any call type.
+One can also use charting facilities in SSJ to get the histogram.
+As an example, we plot a histogram for the waiting time distribution
+of all calls.
+
+\subsection{Using a custom probability distribution or random variate
+  generator}
+
+Any XML element accepting a probability distribution in model parameters, for
+example \texttt{service\-Time}, requires an attribute named
+\texttt{distribution\-Class} giving the fully qualified name of a Java
+class implementing the distribution.
+Most of the times, one gives the name of a built-in class, which can
+be any class in package \path{umontreal.iro.lecuyer.probdist}.
+However, it is also possible to create a user-defined probability
+distribution by writing a class implementing the
+\path{umontreal.iro.lecuyer.probdist.Distribution} interface.
+This requires writing methods to compute the
+mean, variance, distribution,
+and inverse distribution functions, etc.
+For continuous distributions, the base class
+\texttt{Continuous\-Distribution} can be extended to implement the
+interface,
+while \texttt{Discrete\-Distribution\-Int} can be used for discrete
+distributions over the integers.
+See the documentation of SSJ for more information on these interfaces
+and base classes.
+The name of the new class can then be given as a value to the
+\texttt{distribution\-Class} attribute.
+
+Likewise, custom random variate generators can be made by extending
+the base class \texttt{Random\-Variate\-Gen} from package
+\path{umontreal.iro.lecuyer.randvar}.
+The user-defined class must provide a constructor accepting a random
+stream, and a probability distribution, which is called at the time
+the generator is created by the simulator.
+The method
+\texttt{next\-Double} must also be overridden
+to generate random numbers using the
+associated stream and distribution.
+
+Listing~\ref{lst:ExpKernelDensityGen}
+gives an example of a custom random variate generator using the kernel
+density method with a Gaussian kernel.
+We suppose that the user has some observations of a random variable,
+say service times.
+We provide the logarithms of these observations as data for an
+empirical distribution, and use kernel density to generate
+observations.
+The log-service times then need to be converted back to service times
+using the $\exp(\cdot)$ function.
+The documentation of the \texttt{Empirical\-Dist} class in SSJ gives
+more information on the empirical distribution used.
+
+\lstinputlisting[
+caption={\texttt{ExpKernelDensityGen.java}: random variate generator using kernel density with a Gaussian
+kernel},%
+label=lst:ExpKernelDensityGen
+]
+{ExpKernelDensityGen.java}
+
+The program first defines a class which extends
+\texttt{Kernel\-Density\-Gen} which in turn extends
+\texttt{Random\-Variate\-Gen}.
+This class must provide a constructor taking
+a random stream as well as a distribution.
+The constructor simply calls the superclass' constructor, and enables
+positive reflection.
+This ensures that any generated negative value is multiplied by $-1$.
+See the documentation of the class \texttt{Kernel\-Density\-Gen} in
+SSJ for more information about this method of generating random
+numbers from an empirical distribution.
+The \texttt{next\-Double} method simply calls the method with the same
+name in the superclass, and applies the exponential function on the
+returned value.
+
+To use this generator, one simply needs to give
+\texttt{Empirical\-Dist} as the value of \texttt{distribu\-tion\-Class}
+attribute,
+and \texttt{Exp\-Kernel\-Density\-Gen} as the value of
+\texttt{generator\-Class} attribute.
+The \texttt{Empirical\-Dist} class name matches the parameter of the
+constructor in the custom class.
+The distribution parameters correspond to the empirical data.
+The following code is an example of an element using the generator.
+\begin{lstlisting}[language=XML]
+   <serviceTime distributionClass="EmpiricalDist"
+                generatorClass="ExpKernelDensityGen">
+      <defaultGen>1.2  3.5   9.2  ...</defaultGen>
+   </serviceTime>
+\end{lstlisting}
+
+\subsection{Implementing a custom routing policy}
+\label{sec:mskCustomRouting}
+
+Sometimes, no predefined routing policy can be adapted to a specific
+model.
+In this case, one can implement a custom routing policy, and register
+it with the simulator.
+The first step for this is to make a subclass of \texttt{Router}
+providing the implementation.
+Then, a router factory must be created to construct the router from
+parameters extracted from XML.
+The router factory is then registered with the router manager in order
+to be queried during the initialization of the simulator.
+
+Listing~\ref{lst:Sim2SkillRouter} presents a program implementing
+the customization of the routing described in
+subsection~\ref{sec:sim2skill}.
+The considered model has two call types, one agent group devoted to
+each call type, and a third group of generalists.
+However, there must be a minimal number of free generalist agents
+before any type-1 call can be sent to generalists.
+
+\lstinputlisting[
+caption={\texttt{Sim2SkillRouter.java}: simulation program using a custom router},%
+emph={main},label=lst:Sim2SkillRouter
+]
+{Sim2SkillRouter.java}
+
+The main class of the program contains two nested classes, one for the
+router implementation, and another one for the router factory.
+The custom routing policy is represented by a subclass of
+\texttt{Router}.
+In the original example, we used longest weighted waiting time as the
+routing policy.
+It is thus natural in this example to extend
+\texttt{Longest\-Weighted\-Waiting\-Time\-Router} to implement our router.
+
+The constructor of the custom router passes most of its arguments to
+the superclass' constructor. It then checks that there are two call
+types, and three agent groups before storing the user-provided minimal
+number of generalists.
+
+The \texttt{select\-Agent} method is overridden to customize how agent
+selection is done.
+This method receives an object representing the call to be routed.
+It returns an event representing the call in service, or \texttt{null}
+if no agent can be found.
+In this example, we apply custom routing only for calls of type 1.
+For other calls, we fall back to the original routing by calling the
+superclass.
+When a type-1 call arrives, we first query the agent group 1 for
+specialists, and route the call there if there is at least one agent
+free.
+Otherwise, we route the call to a generalist only if there is at least
+the user-specified minimum of generalists.
+We route a call to an agent group by calling the \texttt{serve}
+method, and returning the created end-service event.
+Otherwise, the call is queued.
+
+We also need to override the \texttt{select\-Contact} method which
+assigns a queued call to an agent which became free.
+This method reverts to the super class for agent groups 0 and 1, which
+correspond to the specialists.
+It also uses the superclass for agent group 2 if there are enough
+generalist agents.
+Otherwise, it only queries the waiting queue corresponding to type-0
+calls.
+
+Of course, making such custom routing policies requires some
+familiarity with the ContactCenters API.
+See the API specification for more information.
+The guide of examples using ContactCenters directly also contains some
+other custom routing policies.
+
+The second nested class, \texttt{My\-Factory}, implements the
+\texttt{Router\-Factory} interface which specifies
+a single
+method \texttt{create\-Router}
+that returns an instance of the class representing the custom
+router, or \texttt{null}.
+This method reads information from the supplied parameter object, possibly
+with the help of the given router manager.
+The parameter object is constructed from the \texttt{router} XML
+element in the XML parameter file.
+Router factories are registered with the simulator, and
+queried when the user gives an unrecognized name for a router's
+policy.
+A router factory indicates that it does not recognize a given policy
+by returning \texttt{null} rather than a valid reference to a subclass
+of \texttt{Router}.
+
+Thus, the first step of the \texttt{create\-Router} method is to
+obtain the name of the routing policy, and check that it supports it.
+Here, we return \texttt{null} for any name different from
+\texttt{SIM2SKILL}.
+The second step is to obtain the parameters of the routing policy.
+For this, \texttt{Router\-Manager} offers a lot of help by
+unmarshalling the type-to-group map, matrix of ranks, etc., and
+checking the validity of the data structures.
+We therefore use methods in the router manager to initialize the
+needed data structures, and to get references to them.
+
+However, no parameter in the XML Schema for the \texttt{router}
+element is defined for the minimal number of generalists.
+We work around this by using a custom property.
+The router factory needs to get the value of that property, and to
+pass it to the
+router.
+
+The last step is to register the router factory with the router
+manager.
+The simplest way to do this is by using the
+\texttt{add\-Router\-Factory} method at the beginning of the
+\texttt{main} method. However, this requires a special program to
+perform simulation with the custom routing policy.
+
+An alternative way to register a router factory is to use the Java
+service loading API.
+For this, one needs to place the three class files obtained by
+compiling
+the \texttt{Sim2SkillRouter} program into a JAR file along with a file
+named
+\path{META-INF/services/umontreal.iro.lecuyer.contactcenters.msk.spi.RouterFactory}.
+This text file contains a single line with the text
+\texttt{Sim2SkillRouter\$MyFactory}.
+The JAR with the class name and configuration file must then be added
+to the \texttt{CLASSPATH} environment variable to be detected by the
+service loader.
+For more information about this mechanism, see the
+\texttt{Service\-Loader} class in the Java API specification.
+
+To use this routing policy, we can replace the \texttt{router} element
+of
+the example in Listing~\ref{par:sim2skill} by the following:
+\begin{lstlisting}[language=XML]
+   <router routerPolicy="SIM2SKILL">
+     <properties>
+        <integer name="minGeneralists" value="2"/>
+       </properties>
+      <typeToGroupMap>
+         <row>0 2</row>
+         <row>1 2</row>
+      </typeToGroupMap>
+      <groupToTypeMap>
+         <row>0</row>
+         <row>1</row>
+         <row>0 1</row>
+      </groupToTypeMap>
+      <queueWeights>3 0.8</queueWeights>
+   </router>
+\end{lstlisting}
+
+
+% Using a custom probability distribution or random variate generator
+% Developing a custom routing policy, arrival process, or dialing
+% policy.
+% Adding a custom statistic.
+% Building a parameter file using XSLT

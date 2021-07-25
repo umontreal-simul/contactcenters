@@ -1,0 +1,28 @@
+\ProvidesPackage{contactcenters}[2004/11/21 ContactCenters]
+\RequirePackage{tcode}
+\RequirePackage{apidoc}
+\RequirePackage{ccsymb}
+
+\pagestyle{apidocheadings}
+\dateheadtrue
+
+\textwidth=6.5 true in\textheight=9.0 true in
+\tolerance=500 \parskip=.08in plus .1in minus .06in
+\vbadness=10000
+
+\newif\ifnotes\notestrue
+% \notesfalse             %%  Uncomment this line to hide footnotes.  <----
+%
+\def\boxnote#1#2{\ifnotes\fbox{\footnote{\ }}\ \footnotetext{ From #1: #2}\fi}
+\def\pierre#1{\boxnote{Pierre}{#1}}
+\def\hpierre#1{}
+\def\richard#1{\boxnote{Richard}{#1}}
+\def\hrichard#1{}
+\def\eric#1{\boxnote{\'Eric}{#1}}
+\def\heric#1{}
+
+% \def\citep{\@ifnextchar [{\@tempswatrue\@citexp}{\@tempswafalse\@citexp[]}}
+
+\newcommand{\sectionnonumber}[1]{\section*{#1}\addcontentsline{toc}{subsection}{#1}}
+
+\newcommand\ccurl{\url{http://www.iro.umontreal.ca/~simardr/contactcenters}}

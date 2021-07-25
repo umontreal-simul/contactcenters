@@ -1,0 +1,87 @@
+\section*{Overview}\addcontentsline{toc}{section}{Overview}
+\markboth{OVERVIEW}{}
+
+The ContactCenters library provides some generic precompiled simulators for the
+most common cases.
+These simulators use XML parameter files and can
+estimate several performance measures.
+However, they do not cover
+every contact center and it is sometimes needed to make
+customizations to match specific needs.
+In addition,
+a simulator specialized for the needed model is often more efficient
+than a generic system adapted for a wider range of contact centers.
+
+The ContactCenters library is more than a set of
+programs; it is a toolkit permitting the construction of simulators.
+It provides building blocks to model the simulation
+logic of contact centers using the SSJ simulation library \cite{iLEC04j} and
+Colt \cite{iHOS02a}.  The simulated horizon can be finite or
+infinite.
+
+We present some Java simulation programs using the ContactCenters
+library.  These examples will help the reader better
+understand how the contact center simulation works and how new models
+can be implemented by combining or extending the components provided
+by the library.  Reading these examples is a good way to start learning about
+the ContactCenters library.
+While studying the programs, the reader can refer to the functional 
+definitions of ContactCenters classes and methods in the guides of the 
+corresponding packages.
+It is preferable to refer to the PDF versions of the guides,
+because they contain a more detailed and complete documentation
+than the HTML versions, which are better suited for quick
+on-line referencing for those who are already familiar with
+ContactCenters.
+
+A basic understanding
+of the SSJ library is needed to read these examples.  See the SSJ
+examples and API documentation for more information \cite{iLEC04j}.
+Knowledge
+of the Java programming language is also strongly recommended.
+See \cite{iFLA99a} or the Java tutorial and Java API documentation for
+more information.
+Familiarity with contact center simulation is also recommended
+\cite{ccGAN02a,ccMEH03a}.
+
+Section~\ref{sec:MMC} presents a $M/M/c$ queue with
+FIFO discipline
+to illustrate the structure of a basic ContactCenters simulator.
+The simple system is then extended several ways to demonstrate various
+aspects of the library.
+Section~\ref{sec:CallCC} gives a second simplified call center
+supporting multiple periods.
+Section~\ref{sec:SimpleMSK} demonstrates how to construct a
+non-stationary multi-skill contact center.
+Sections~\ref{sec:Telethon}, \ref{sec:Bilingual}, \ref{sec:Bank},
+and~\ref{sec:Teamwork} describe four
+examples of non-stationary simulators which have been adapted from
+Rockwell's
+\emph{Arena Contact Center Edition}
+sample models in order to help the user map the features of this
+commercial tool to the ContactCenters library.
+The last example, in section~\ref{sec:Blend}, models a blend contact
+center in order to demonstrate how to put a dialer into action.
+
+Since these examples model call centers, a contact corresponds to a
+phone call in this guide.  However, the library is capable of
+simulating any type of contacts such as fax, e-mail, chat, etc.
+
+The examples do not implement the high-level interface defined in the
+\texttt{app} package for simplicity.  In most cases, it is recommended
+to implement it since it allows other programs such as statistical
+analyzers or optimizers to better interact with the simulator.
+
+Moreover, most examples shown here use the basic SSJ API which does not
+support parallel simulations.
+This means that
+if several instances of the example classes are created
+in a Java program, and one
+instance is associated with one thread, the resulting multi-threaded
+application will not work, because all instances will share the same
+simulation clock and event list.
+Making parallel simulations requires the use of the \texttt{Simulator}
+class rather than static methods in the \texttt{Sim} class.
+However, multiple instances of the \texttt{java} command
+executing copies of the following examples can run
+concurrently without problem.

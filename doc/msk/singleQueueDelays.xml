@@ -1,0 +1,60 @@
+<ccmsk:MSKCCParams   defaultUnit="SECOND" periodDuration="PT1H"
+     numPeriods="13" startingTime="PT8H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <inboundType name="Inbound Type 1">
+      <probAbandon>0.1</probAbandon>
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>1000</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>100</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>75 100 100 100 100 30 50 80 90 70 40 40 10</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Inbound Type 2">
+      <probAbandon>0.1</probAbandon>
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>1000</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>150</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>25 50 50 80 100 120 100 70 30 30 40 30 50</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <agentGroup name="Inbound-only agents 1">
+      <staffing>1 4 4 3 2 4 5 6 5 5 2 3 3</staffing>
+   </agentGroup>
+   <agentGroup name="Inbound-only agents 2">
+      <staffing>3 2 4 5 6 3 3 2 1 1 2 1 1</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREFWITHDELAYS" agentSelectionScore="NUMFREEAGENTS">
+     <ranksTG>
+       <row>1  2</row>
+       <row>2  1</row>
+     </ranksTG>
+     <delaysGT>
+        <row> PT0S     PT30S</row>
+        <row>PT30S      PT0S</row>
+     </delaysGT>
+     <routingTableSources ranksGT="ranksTG"/>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT20S</row>
+         <row>PT60S</row>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+         <row>0.8</row>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

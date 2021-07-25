@@ -1,0 +1,34 @@
+<body>
+Manages the simulation of the contact's service process.
+The purpose of the contact center is to offer some service which
+is provided by a pool of servers or agents sharing the same skills.
+
+An \emph{agent group}~$i$, represented by an instance of
+{@link umontreal.iro.lecuyer.contactcenters.server.AgentGroup},
+contains $N_i(t)\in\NN$ members at simulation time~$t$.
+Among these agents, $\Ni[i](t)$ are idle, and $\Nb[i](t)$  are
+busy.
+Only $\Nf[i](t)\le\Ni[i](t)$ agents are available to serve new contacts.
+
+The service of a contact is divided in two steps.
+After communicating with a customer (first step), an agent can perform
+after-contact work (second step), e.g., update an account, take some notes, etc.
+After the first step, the contact may exit the system, or be
+transferred to another agent.  However, the agent becomes free only
+after the second step (if any) is over.
+
+By default,  for better efficiency, an agent group does not contain an object
+for each agent, preventing the simulator from differentiating them.
+Individual agents can of course be simulated by creating groups
+with a single member, but regrouping the agents can be useful for more
+efficient routing.  The subclass
+{@link umontreal.iro.lecuyer.contactcenters.server.DetailedAgentGroup} offers
+an implementation where
+each individual agent is a separate object with its own characteristics.
+Each such agent can be added to or removed from a group at any time during a
+simulation.
+
+This package also provides helper classes to assign service times to
+contacts and compute the integrals of the number of agents over
+simulation time.
+</body>

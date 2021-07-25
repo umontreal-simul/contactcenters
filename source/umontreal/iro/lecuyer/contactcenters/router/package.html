@@ -1,0 +1,177 @@
+<body>
+Contains the contact routing facilities.
+A \emph{router}, called an \emph{automatic call distributor} (ACD) for call centers,
+can be any class listening to new contacts, and
+assigning them to agent groups or adding them to waiting
+queues.  The router listens to service terminations to assign queued
+contacts to free agents and to waiting queue events for statistical
+collection and overflow support.
+
+This package provides the {@link
+umontreal.iro.lecuyer.contactcenters.router.Router}
+base class as a basis to implement routers using almost arbitrary policy.
+It can listen to new contacts and interact with waiting queues and
+agent groups, which makes it a central point in any contact center.
+For contacts to be counted correctly during statistical collection,
+an \emph{exited-contact listener} can also be registered
+with a router which knows exactly when contacts abandon,
+are blocked, and are served.
+Figure~\ref{fig:umlRouting} gives a UML diagram summarizing how the
+router is connected to the other parts of the system.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[shape=rectangle,fill=gray!20,>=stealth]
+\node (Contact) [draw,fill] {\texttt{Contact}};
+\node (AgentGroup) [above of=Contact,node distance=2cm,draw,fill]
+{\texttt{AgentGroup}};
+\node (WaitingQueue) [below of=Contact,node distance=2cm,draw,fill]
+{\texttt{WaitingQueue}};
+\node (DequeueEvent) [below of=Contact,node
+distance=1cm,draw,fill,xshift=-2.5cm]
+{\texttt{DequeueEvent}};
+\node (EndServiceEvent) [above of=Contact,node
+distance=1cm,draw,fill,xshift=-2.5cm]
+{\texttt{EndServiceEvent}};
+\node (Router) [right of=Contact, node distance=3cm,draw,fill]
+{\texttt{Router}};
+\node (ExitedContactListener) [below of=Router,node
+distance=2.8cm,draw,fill]
+{\texttt{ExitedContactListener}};
+\node (AgentGroupListener) [left of=AgentGroup,node
+distance=3cm,draw,fill,yshift=1cm]
+{\texttt{AgentGroupListener}};
+\node (WaitingQueueListener) [left of=WaitingQueue,node
+distance=3cm,draw,fill,yshift=-1cm]
+{\texttt{WaitingQueueListener}};
+\node (DetailedAgentGroup)
+[above of=AgentGroup,xshift=2cm,draw,fill]
+{\texttt{DetailedAgentGroup}};
+\node (Agent)
+[below of=DetailedAgentGroup,xshift=2cm,draw,fill]
+{\texttt{Agent}};
+\node (AgentListener)
+[below of=Agent,node distance=1cm,draw,fill]
+{\texttt{AgentListener}};
+
+\draw (Router)
+to [bend left]
+node [very near end,right] {0,*}
+(WaitingQueue);
+\draw (Router)
+to [bend right]
+node [very near end,right] {0,*}
+(AgentGroup);
+\draw[->,fill=black] (Contact)
+to
+coordinate(cwq)
+node [right] {Mise en file}
+(WaitingQueue);
+\draw[->,fill=black] (Contact)
+to
+coordinate(cag)
+node [right] {Service}
+(AgentGroup);
+\draw (cwq) -- (DequeueEvent);
+\draw (cag) -- (EndServiceEvent);
+\draw (Router)
+to
+node [right] {Broadcasts to}
+node [very near end,right] {0,*}
+(ExitedContactListener);
+ \draw (WaitingQueue)
+ to [bend right]
+node [left] {Broadcasts to}
+ node [very near end,right] {0,*}
+ (WaitingQueueListener);
+ \draw (AgentGroup)
+to [bend left]
+ node [left] {Broadcasts to}
+ node [very near end,right] {0,*}
+ (AgentGroupListener);
+\draw[->,>=open triangle 60]
+(DetailedAgentGroup) -- (AgentGroup);
+\draw (DetailedAgentGroup)
+to [bend left]
+node [very near end,right] {0,*}
+(Agent);
+\draw (Agent)
+to
+node [right] {Broadcasts to}
+node [very near end,left] {0,*}
+(AgentListener);
+\end{tikzpicture}
+\end{center}
+
+\caption{UML diagram describing the routing of contacts}
+\label{fig:umlRouting}
+\end{figure}
+
+The routing policy itself must be implemented in a subclass by defining fields
+for the data and implementing or overriding methods for the routing logic.
+The router needs schemes for agent and contact selections, and
+it can optionally clear waiting queues when the contact center
+does not have idle or busy agents capable of serving the waiting contacts.
+Algorithms to process dequeued and served contacts may also be needed
+in complex systems supporting overflow or service by multiple agents.
+
+This package provides a few predefined policies inspired
+from \cite{ccWHI04a} and \cite{ccKOO03a}.
+These policies do not cover all possible scenarios, but new policies
+can easily be added.
+
+A first class of policies uses ordered lists as follows.
+For each contact type~$k$, the \emph{type-to-group map} defines an
+ordered list $i_{k, 0}, i_{k, 1}, \ldots$ of agent groups.  For each
+agent group~$i$, the \emph{group-to-type map} defines an ordered list
+$k_{i, 0}, k_{i, 1}, \ldots$ of contact types.
+These lists indicate which agent groups
+can serve a contact of type~$k$ and which contact types can be served
+by agents in group~$i$, respectively.  The order of the elements can
+be used to define priorities.
+This data structure prevents contact types or agent groups
+from sharing the same priority, and
+may produce inconsistent routing policies.  For example, a bad router
+could assign new contacts of type~$k$ to agents in group~$i$ without
+pulling contacts of type~$k$ from queues when an agent in group~$i$
+becomes free.  Checker methods are provided in
+{@link umontreal.iro.lecuyer.contactcenters.router.RoutingTableUtils}
+to detect this problem,
+but they need to linearly scan the routing tables.  As a result, they
+must be manually called by the user to avoid decreasing the
+performance.
+
+In a second type of policy, \emph{matrices of ranks} assign ranks or priorities
+$\rTG(k, i)$ and
+$\rGT(i, k)$ to contacts of type~$k$ served by agents in group~$i$.
+If the rank is $\infty$, i.e., {@link java.lang.Double#POSITIVE_INFINITY},
+contacts of type~$k$ cannot be served by
+agents in group~$i$.  Otherwise, the smaller is the rank,
+the higher is the priority of contacts of type~$k$ for
+agents in group~$i$.  The matrix defining $\rTG(k, i)$ specifies how
+contacts prefer agents, and is used for agent selection.
+The second matrix, defining $\rGT(i, k)$, specifies how agents prefer
+contacts, and is used for contact selection.
+In many cases, it is possible to have $\rGT(i, k)=\rTG(k, i)$ and
+specify a single matrix of ranks.
+This structure allows equal priorities to exist,
+but routing policies are more complex.  When ranks are equal, a
+secondary algorithm must be used for tie breaking, reducing the
+performance of the simulator.
+
+The package also supports
+the \emph{incidence matrix}, which assigns a boolean value $m(i, k)$
+for each contact types and agent groups.  $m(i, k)$ is \emph{true} if
+and only if contacts of type~$k$ can be served
+by agents in group~$i$.  Such a matrix is not used for
+routing because it does not encode any priority, but the package
+provides methods to convert it to a type-to-group, group-to-type, or
+matrix of ranks.
+
+The package also provides some helper classes and methods
+to ease the implementation of routers with complex
+routing policies.  These methods can test the consistency of routing
+information data structures, and perform conversions from one
+structure to another.  They can also help in contact and agent
+selections.
+</body>

@@ -1,0 +1,609 @@
+\section{$M/M/c$ queue and variants}
+\label{sec:MMC}
+
+\subsection{$M/M/c$ queue}
+
+One of the simplest system that can be modeled with the
+library is a
+call center with a single call type, and a single agent group having a fixed
+capacity~$c$, i.e., a $M/M/c$ queue with FIFO discipline.
+This model is implemented for demonstration purposes only since
+simple formulas are available to compute the average
+waiting time, the average queue length, etc. \cite{pKLE75a}
+It could also be implemented without ContactCenters, as shown in the
+Examples user's guide of SSJ \cite{iLEC04j}.
+
+Arrivals
+follow an homogeneous Poisson process with rate
+$\lambda$, and customers
+are queued if they cannot be served immediately.  Abandonment is not
+allowed and service times are i.i.d.\ exponential variables with mean~$1/\mu$.
+
+The
+system estimates
+the service level, the expected speed of answer,
+and the agents' occupancy ratio.
+Let $\Sg(s)$ be the number of
+served contacts
+having waited in queue for less than an \emph{acceptable waiting time}
+$s$, and let $S$
+be the total number of served contacts.
+Since no abandonment occurs, this is equivalent to
+the number of arrivals.
+ Let $\WS$ be the sum of waiting times for
+served contacts.
+The \emph{service level} is defined by
+\begin{equation}
+g_0(s)=\frac{\E[\Sg(s)]}{\E[S]}.\label{eq:slnoab}
+\end{equation}
+The \emph{speed of answer} is defined by
+\begin{equation}
+w_{\mathrm{X}}=\frac{\E[\WS]}{\E[S]}.\label{eq:sans}
+\end{equation}
+The \emph{agents' occupancy ratio} is defined by
+\begin{equation}
+o=\frac{\E\left[\int_0^{t_P} \Nb(t)\ dt\right]}{\E\left[\int_0^{t_P}
+    (N(t)+\Ng(t)) dt\right]}.\label{eq:occ}
+\end{equation}
+$t_P$ corresponds to the time at which the contact center closes.
+$\Ng(t)$ gives the number of \emph{ghost agents}, i.e.,
+agents that must exit the system after finishing their current
+service.  Since ghost agents appear only when $N(t)$ changes with time,
+$\Ng(t)=0$ for this model.
+To get an estimate of each performance measure of interest, we perform
+$n$ independent replications of a simulation on a
+finite horizon.
+
+Most elements of the contact center simulator are
+provided by the ContactCenters library as independent components.
+The modeler's task consists of assembling these elements and
+providing some glue code for statistical collecting, routing and stopping
+conditions, some elements being optional.
+For this example, whose code is presented on Listing~\ref{lst:MMC},
+simpler programs can be written, especially
+if the library is not used.  However,
+we prefer to demonstrate how to balance simplicity and scalability in
+a contact center simulation.
+
+The first part of the program defines and constructs various objects
+while the second part contains the simulation logic. The \texttt{main}
+method, at the end of the file, constructs a $M/M/c$ queue simulator,
+triggers a
+simulation by calling \texttt{simulate}, and prints a statistical
+report using \texttt{print\-Statistics}.  A \texttt{Chrono} is used to
+determine the CPU time taken by the simulation.
+The \texttt{simulate} method calls
+\texttt{simulate\-One\-Day} $n$ times to perform the
+replications while \texttt{simulate\-One\-Day} initializes the system,
+performs the simulation, and collects some observations.
+
+\lstinputlisting[
+caption={A $M/M/c$ queue implemented with ContactCenters},%
+emph={main,simulateOneDay,MyContactFactory,MyContactMeasures},
+label=lst:MMC
+]
+{MMC.java}
+
+At the beginning of the program, the necessary classes are retrieved
+using \texttt{import} statements, and
+a class named \texttt{MMC} and representing the simulator is declared.
+Because variants of this example will be presented later as subclasses of
+\texttt{MMC}, some indirections that might appear
+unnecessary will be used in the program.
+
+In this example and most of the following ones, hard-coded constants are
+used as
+input data for simplicity.  In general, it is strongly
+recommended to use a parameter file, since it allows modification of
+the parameters without recompiling the simulator.  The package
+\path{umontreal.iro.lecuyer.xmlconfig} provides facilities to support
+XML-based configuration files.  As with the underlying SSJ library,
+the simulation
+logic of ContactCenters makes no assumption about the time unit, but
+input data should be defined consistently to avoid confusion in the
+future.  In our examples, unless specified otherwise, the time
+unit is the minute.  For example, the arrival rate specifies the
+expected number of contacts per minute.
+
+The objects representing components of the contact center, such as
+the arrival process, waiting queue, agent group, as well as
+the random variate generator for the service times can be accessed
+through fields of the \texttt{MMC} class.
+Since the components themselves do not compute any statistic, the
+simulator defines some counters and statistical collectors to estimate
+the performance measures of interest.
+Counters are used during replications to compute observations while
+statistical collectors are used at the end to collect them.
+We use integers for counting events
+rather than statistical probes to clearly show the difference between
+the two steps during the simulation.
+\texttt{vstat} is used to compute the integrals of the number of
+agents over simulation time, for estimating the occupancy ratio.
+Each agent group volume statistical object contains accumulates
+observing the
+total number of agents, the number of busy agents, etc.\ for a single
+agent group.
+For each counter, a statistical probe is defined to collect the
+observations computed during each replication.
+
+When instantiating the \texttt{MMC} class, the constructor, shown
+after the declaration of fields, creates
+the contact center objects and connects them together.
+Inbound contacts are simulated using an arrival process which needs
+to determine how to construct contacts.
+Contacts are represented by \texttt{Contact} instances which are
+constructed by a \emph{factory}, i.e.,
+a mechanism permitting the instantiation of objects from the
+\texttt{Contact} class, or any subclass.
+In contrast, a constructor instantiates objects from a
+single class.  A contact factory is defined by creating a class
+implementing the \texttt{Contact\-Factory} interface.  The
+\texttt{new\-Instance}
+method, specified by this interface, must construct and return an
+initialized instance of \texttt{Contact} (or any subclass of
+\texttt{Contact}).  In this example, \texttt{My\-Contact\-Factory}
+creates the contacts and sets their service times.
+
+Arrival processes of different types could use the same contact
+factory, but in this example, a single Poisson process is needed.
+In addition to the contact factory, the process requires a
+random stream for generating the exponential inter-arrival times, and
+an arrival rate.
+
+Constructing the agent group only requires the number of agents in
+it.
+This object manages the service of contacts and keeps counters for the
+number of free and busy agents.  All agents of a group are usually
+considered identical, simplifying the routing significantly.
+The agent group automatically schedules events to manage service
+termination if service times are associated with handled contacts.
+
+The constructed standard waiting queue
+orders waiting contacts based on their arrival times only,
+implementing \emph{First In First Out} (FIFO) or \emph{Last In First
+  Out} (LIFO) disciplines; the choice between FIFO and LIFO is made by
+the routing policy.
+
+The router uses a queue priority policy, but in
+fact, any routing policy will act identically here since there is a
+single call type and a single agent group.  The only important parameters
+are the type-to-group and group-to-type maps which are always the same
+for a single-type and single-group contact center.
+To maximize the flexibility of the
+library, no assumption is made about the connections between
+components.  Arrival processes, agent groups,
+and waiting queues must be manually connected
+to the router.
+
+The components of the library communicate using the \emph{observers} design pattern
+\cite{iGAM98a}.  In that setting, an \emph{observable}
+object, also called a \emph{broadcaster}, is
+capable of transmitting some information to a list of registered
+listeners known at runtime only.
+A \emph{listener}, also called an \emph{observer}, is an object
+receiving information
+broadcast by an observable object.
+In Java, listeners are required to implement a particular interface the
+broadcaster uses to transmit the information through specified
+methods.
+Each component of the library defines its own listener interface to
+avoid the necessity of type casting by observers.
+
+Each time
+a new contact is created by the factory and returned to the arrival
+process, it is broadcast to a list of registered \emph{new-contact
+  listeners}.  Such a listener can correspond to any object
+implementing the \texttt{New\-Contact\-Listener} interface, which
+specifies a \texttt{new\-Contact} method receiving \texttt{Contact}
+objects.  For the contacts to be processed, the list bound to the
+arrival process being used
+must include a reference to the router, which can listen to new
+contacts.
+
+While it
+does not interact with the arrival process, the router affects the
+waiting queue by inserting new contacts when they cannot be served
+immediately, or by
+pulling ones when agents are free.  It also affects agent
+groups by sending them contacts to serve.  The linking mechanism is
+different from arrival processes
+to emphasize the two types of relationships.
+
+The simulator also needs to be notified
+about contacts leaving the router through an
+\emph{exited-contact listener}.  Such a listener object implements an
+interface called \texttt{Exited\-Contact\-Listener} specifying methods
+to receive exited contacts.  Each method transmits all available
+information, permitting the simulator to count events under complex
+conditions.
+
+These
+connections can easily be changed during the life cycle of the
+simulator:  new listeners can be added, and old ones can be removed.
+It is even possible, with some care, to completely replace the router
+at runtime, allowing different routing policies to be tested without
+recreating the entire system.
+
+The \texttt{simulate} method initializes the statistical collectors
+and performs $n$ independent replications by using
+\texttt{simulate\-One\-Day}.  The latter method may be considered as
+the heart of the program.  First, the simulation clock is initialized, and
+the event list is cleared by \texttt{Sim.init}.  An event for the end
+of the day is then scheduled, and
+all the contact center's components are reset, avoiding
+any side effect from previous replications.  This initialization
+disables the arrival
+process.  Then, after the event
+counters are reset to 0, the arrival process is started, scheduling
+the first contact.  The simulation can now be started using
+\texttt{Sim.start}.  This instructs SSJ to start executing events,
+until the event list is empty.
+
+When the first arrival occurs, the Poisson arrival process calls the
+\texttt{new\-Instance} method of \texttt{My\-Contact\-Factory} to get
+a new  contact object.
+This method simply constructs the appropriate object and generates a
+service time which is stored in the
+contact object to be retrieved later by the agent group.
+After the new contact is returned, it is broadcast to the router, and a
+new arrival is scheduled.  The user only needs to
+provide the \texttt{new\-Instance} method, the rest of the logic being
+implemented once in \texttt{Contact\-Arrival\-Process}, and inherited by
+\texttt{Poisson\-Arrival\-Process}.
+
+In its \texttt{new\-Contact} method,
+the router sends the newly-constructed contact to an agent, or
+adds it to the waiting queue if no agent is available.
+The way the agent or the waiting queue are selected, called \emph{agent
+  selection} and \emph{queue selection}, respectively, depends on the
+algorithm implemented in the chosen subclass of \texttt{Router}.
+In this example,
+when a service starts, a free agent becomes busy, and an event is
+scheduled to happen after the service time elapses.
+By default, the service time is extracted from contacts, but this can
+be customized in many ways if needed, as we will do in
+section~\ref{sec:Bank}.
+Since the default service time is infinite, it is important to set a
+service time in the contact factory, or change the service time
+generator of the agent group.
+If the contact is queued, the contact is added, with extra
+information, to an internal linked list.
+
+When a service ends, the router is notified,
+the contact exits the
+system, and it is broadcast to the \texttt{served}
+method of \texttt{My\-Contact\-Measures}.
+This method receives all information about the served contact
+through the \emph{end-service event} object.  In this example, after a
+service is
+counted, the waiting time of the contact must be obtained: the served
+\texttt{Contact} is extracted from the end-service event, and the
+total queue time is queried.  Note that this obtains the
+\emph{cumulative} queue time, i.e., the time spent by the contact in
+all waiting queues.  In simple systems, this is the same as the waiting
+time in the last queue since the contact waits only once.
+Other information such as the starting time of the service, and the
+reason why the service ended can be extracted from the event.
+The two other methods of \texttt{My\-Contact\-Measures} contain no
+code, because no contact is blocked or abandons in this model.
+
+When an agent became free due to the service termination, the
+router tries to perform \emph{contact selection}, i.e., it
+scans waiting queues to assign a waiting contact to the free agent.
+Without contact selection, all queued contacts would wait forever.  In
+this example, the router simply takes the first contact
+in the waiting queue, implementing a FIFO discipline.  If the queue is
+empty at pull time, the affected agent remains free until the
+following arrival.
+
+When the simulation clock reaches \texttt{DAYLENGTH}, the
+\texttt{End\-Sim\-Event} is executed, which calls \texttt{end\-Sim} to
+disable the arrival
+process.  This cancels the last scheduled arrival, breaking the life
+cycle of the process.
+If the arrival process is never disabled, the simulation will run
+forever, and results will never be printed.
+\texttt{end\-Sim} also stores the integrals of $N(t)$ and $\Nb(t)$ for
+the occupancy ratio to exclude the wrap-up period following the
+closing time.  No more arrival occurs, but in-progress and queued
+contacts are served before the end of the replication.  After all
+these services are over, \texttt{Sim.start} ends and the
+\texttt{simulate\-One\-Day} method continues its execution.
+Note that in a further example, the \texttt{end\-Sim} method will be
+overridden to change how the simulation is terminated.
+
+It is important not to end the simulation abruptly using
+\texttt{Sim.stop}, otherwise the system will end non-empty:
+queues will contain contacts, and some
+agents will still be serving customers.  If the simulation is stopped
+abruptly, the program needs to take this non-empty state into account
+during statistical collecting.
+
+The \texttt{addObs} method is called to add observations to
+statistical collectors.  In further examples, this will be overridden
+to change how observations are collected.
+The number of served contacts as well as the service level for the
+replication are added into tallies.  A tally for functions of multiple means is used for the
+service level to get a ratio of averages instead of an average of ratios.
+This estimates the long-term service level rather than the performance
+measure during a single day.
+The integrals for $\Nb(t)$ and
+$N(t)$ are added to tallies for estimating the occupancy ratio.
+As with the service level, we
+try to estimate a long-term measure.
+
+After $n$ independent replications of this process, we have
+statistical results for the estimated performance measures, including
+sample averages, sample variances, and Student-$t$ confidence
+intervals.  For the ratios, confidence intervals are computed using
+the delta theorem \cite{tSER80a}.  The \texttt{print\-Statistics}
+method is used to show a statistical report similar to Listing~\ref{res:MMC}.
+
+\lstinputlisting[caption={Results of the program \texttt{MMC}},%
+label=res:MMC,language={},float=htb
+ ]{MMC.res}
+
+\subsection{Supporting abandonment}
+
+To support abandonment, some modifications to the previous program are
+necessary: patience times must be generated and associated with
+contacts, and the contacts having abandoned need to be counted.  Even
+if the abandonment count is not required, the service level
+computation must be
+altered as follows to take this new aspect into account.
+
+Let $\Lb(s)$ be the number of
+contacts having abandoned after a waiting time greater than $s$, and
+let $L$ be the total number of abandoned contacts.  The new service
+level estimator is defined by
+\begin{equation}
+g_1(s)=\frac{\E[\Sg(s)]}{\E[S + \Lb(s)]}.\label{eq:slab}
+\end{equation}
+If abandonment is disabled, the new estimator reverts
+to~(\ref{eq:slnoab}).
+
+Listing~\ref{lst:MMCAb} presents an extension of the previous
+program supporting abandonment.  Instead of rewriting the whole
+simulator, we inherit from it and change its behavior by overriding
+appropriate methods.
+
+\lstinputlisting[
+caption={An extension of the $M/M/c$ model supporting abandonment},%
+emph={main,MyContactFactoryAb,MyContactMeasuresAb},
+label=lst:MMCAb
+]
+{MMCAb.java}
+
+Patience times are i.i.d.\ exponential variables with mean~$1/\nu$,
+and are generated the same way as service times.
+To support this aspect,
+new fields containing the abandonment rate $\nu$ as well as a random
+variate generator for the patience time are defined.
+Then, a new counter and a new statistical
+collector are declared for the number of abandoned contacts.
+A statistical probe is also defined for the new service level estimator.
+The logic of the main method is the same as for the previous example,
+except it constructs an instance of \texttt{MMCAb} rather than
+\texttt{MMC}.
+
+The constructor first calls the superclass' constructor to create the
+contact center, and alters the constructed system in the following
+ways.  When contacts are created by the factory, they
+must now be assigned a patience time.  To
+achieve this result, the factory bound to the arrival process is
+replaced by a new one called \texttt{My\-Contact\-Factory\-Ab}.  A
+second exited-contact listener is also connected to the router in order
+to count abandoned contacts.  The old listener, registered by the
+superclass,
+as well as the new one we have just created, will both be called by
+the router when broadcasting an exited contact.  This way, is is not
+necessary to completely rewrite the event-processing code.
+
+The \texttt{simulate} method needs to be overridden to initialize the
+added collectors.  \texttt{simulate\-One\-Day} is also overridden to reset
+the new counter at the beginning of each replication.  All the code in
+the superclass is reused, and overridden methods are called instead of
+old ones.
+
+\texttt{My\-Contact\-Factory\-Ab} extends the previous contact
+factory to set the patience time of newly-constructed contacts. The
+\texttt{new\-Instance} method of the superclass is first used to create the
+contact, then a patience time is set in a way similar to the service time.
+
+Abandonment is managed automatically by the waiting queue as follows.
+Rather than contact instances, the queue stores objects representing
+simulation events
+happening at the time of automatic removal, e.g., abandonment,
+disconnection, transfer to another queue, etc.
+In the previous subsection, these \emph{dequeue events} were never
+scheduled,
+because patience times default to infinity if unspecified.  The
+patience time, more generally the \emph{maximal queue time}, is by
+default extracted from the contacts, the same way as the service
+time.
+
+
+\lstinputlisting[caption={Results of the program \texttt{MMCAb}},%
+label=res:MMCAb,language={},float=htb
+ ]{MMCAb.res}
+
+The
+\texttt{My\-Contact\-Measures\-Ab} class defines the \texttt{dequeued}
+method to count abandoned contacts.  In a way similar to
+\texttt{served} in \texttt{My\-Contact\-Measures}, this method takes
+an object representing a
+dequeue event to receive maximal
+information.  An abandoned contact is counted, and if the waiting time is
+greater than or equal to $s$, a contact having abandoned after the
+acceptable waiting time is added.  In contrast with the contact
+factory,
+\texttt{My\-Contact\-Measures\-Ab} has no inheritance relationship
+with its counterpart in \texttt{MMC}.  Both inner classes are
+independent observers performing complementary tasks.
+
+The \texttt{addObs} method is overridden to collect the number of
+abandoned contacts and to compute service level differently.
+The superclass' method is called and adds observations in the old and
+inherited collectors.
+
+Finally,
+\texttt{print\-Statistics} is overridden to take the number of
+abandoned contacts into account.  Listing~\ref{res:MMCAb} presents the
+results of the extended program.
+Abandonment increases the service level, because it reduces the size
+of the waiting queue and allows customers to be served more quickly.
+The occupancy ratio of agents is reduced, because some customers
+served in the $M/M/c$ system abandon.
+
+
+\subsection{Clearing the queue at the end of the day}
+
+If the contact center was very busy, a big queue could build up
+during the day.  This would result in agents working for a long time
+after their shifts.  To make the model more realistic without
+supporting abandonment,
+when the contact center closes, queued contacts may be disconnected
+instead of being served.
+Agents still terminate their services, but the queued contacts are not
+served.  To implement this, at the end of the simulation, the
+\texttt{queue.clear} method
+is called to remove all contacts.  This method accepts a
+\emph{dequeue type} giving the reason why contacts are removed.
+The dequeue type~0 is reserved for contacts to be served while dequeue
+type~1 is used for abandoned contacts.  In this example, we clear the
+queue with an indicator different from~1 to permit statistical
+collectors to distinguish abandonment from disconnection.
+Listing~\ref{lst:MMCClrQ} presents a second extension of the
+$M/M/c$ queue, with support for disconnection.  This new aspect has an
+impact on the original service level estimator.  We therefore define a
+new collector for a corrected estimator including the number of
+disconnected contacts in its denominator.
+
+\lstinputlisting[
+caption={An extension of the $M/M/c$ model supporting disconnections},%
+emph={main,MyContactMeasuresClr},
+label=lst:MMCClrQ
+]
+{MMCClrQ.java}
+
+\lstinputlisting[caption={Results of the program \texttt{MMCClrQ}},%
+label=res:MMCClrQ,language={},float=htb
+ ]{MMCClrQ.res}
+
+As it was made for abandonment
+in the previous example, the base $M/M/c$ program is extended to
+support disconnection.  This time, a new contact factory is not
+needed.  As with the previous example, a second
+observer is connected to the router to count additional events.
+The exited-contact listener simply counts a
+disconnection when a contact leaves the queue.  However, if abandonment
+was additionally supported, it would be important to adapt the
+exited-contact listener to distinguish abandoned and disconnected
+contacts.  The \texttt{end\-Sim} method is
+overridden to clear the waiting queue.
+
+Listing~\ref{res:MMCClrQ} presents
+statistical result of this program.
+Clearing the waiting queue does not have a great impact on the
+performance of the contact center, because the queue at
+the end of the day is not too large.
+
+\subsection{Limiting the queue capacity}
+\label{sec:qclimit}
+
+The capacity of a real system is never infinite.  For example, call
+centers own a certain number of phone lines, and a caller arriving at
+a time when all lines are busy cannot be served or wait in queue; it is
+\emph{blocked} by the system.  To support this aspect,
+the \texttt{Router} class defines the
+\texttt{set\-Total\-Queue\-Capacity} method to limit the number of queued
+contacts.
+Blocked contacts are notified to the \texttt{blocked} method of registered
+exited-contact listeners and can be counted too.  With this mechanism,
+a limitation can be enforced on the
+capacity over all waiting queues only.  In section~\ref{sec:Telethon},
+we will
+see a more general way of limiting the capacity of a contact center,
+by using trunk groups.
+
+Listing~\ref{lst:MMCBlocked} presents an extension of the $M/M/c$
+basic model with limited queue capacity.  The program is similar to
+examples in previous subsections: we extend the \texttt{MMC} class to
+alter the contact center and add new statistical counters.  The
+estimator of the service level is also modified to add the number of
+blocked contacts in its denominator.
+This time, the \texttt{blocked} method of the exited-contact listener
+is defined and simply increments the counter for the number of blocked
+contacts.  The \texttt{bType} indicator may be useful to get the
+reason of blocking.
+
+\lstinputlisting[
+caption={An extension of the $M/M/c$ model with limited queue capacity},%
+emph={main,MyContactMeasuresBlocked},
+label=lst:MMCBlocked
+]
+{MMCBlocked.java}
+
+Listing~\ref{res:MMCBlocked} displays the statistical results of the
+new program.  Limiting the capacity has an effect similar to
+abandonment by limiting the number of contacts to serve.
+
+\lstinputlisting[caption={Results of the program \texttt{MMCBlocked}},%
+label=res:MMCBlocked,language={},float=htb
+ ]{MMCBlocked.res}
+
+\subsection{Preparing for parallel simulations}
+\label{sec:MMCSim}
+
+As mentioned in the overview, most examples of this guide use the
+\texttt{Sim} static class for simplicity.
+But
+if several instances of a simulator are needed, with one instance
+assigned to one thread, each call to
+static methods in the \texttt{Sim} class must be
+replaced with a call to methods in an instance of \texttt{Simulator}.
+The program in Listing~\ref{lst:MMCSim} is an adaptation of
+Listing~\ref{lst:MMC} showing how to do this.
+
+\lstinputlisting[
+caption={An extension of the $M/M/c$ model using \texttt{Simulator}},%
+emph={main},
+label=lst:MMCSim
+]
+{MMCSim.java}
+
+First, a field of type \texttt{Simulator} named \texttt{sim} is added
+to the program.
+This simulator encapsulates a simulation clock and event list specific
+to a \texttt{MMCSim} instance rather than having a clock and a list
+shared among all instances.
+Calls to \texttt{Sim.init} and \texttt{Sim.start}
+in the program are then replaced
+with calls to \texttt{sim.init} and \texttt{sim.start}.
+
+The simulator must be passed to most objects of ContactCenters.
+This includes contacts, arrival processes, statistical collectors
+for agent groups, and any user-defined event.
+Consequently, we had to add a constructor to the
+\texttt{End\-Sim\-Event} class in order to pass the simulator, and
+change how \texttt{arriv\-Proc} and \texttt{vcalc} are constructed.
+The \texttt{My\-Contact\-Factory} class is also modified to pass the
+simulator to each new contact.
+Agent groups and waiting queues do not need the simulator, because
+they use the one assigned to the contacts they process.
+
+If one forgets to give the simulator to an object that needs one, no
+compile or run time errors occur by default.
+The object in question  silently uses the default simulator, which
+could result in unexecuted simulation events or other unpredictable
+errors.
+To help in preventing this, we would like
+the program to crash as soon as
+possible if the default simulator is used.
+This can be done by replacing the default simulator with a dummy
+unusable object whose each method throws an
+\texttt{Unsupported\-Operation\-Exception}; we do this at the
+beginning of the \texttt{main} method in the program.
+If the program does not throw an exception, one can
+then be relatively
+confident that the default simulator is never used.

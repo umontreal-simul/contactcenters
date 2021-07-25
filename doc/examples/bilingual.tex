@@ -1,0 +1,207 @@
+\section{Bilingual contact center}
+\label{sec:Bilingual}
+
+This example represents a contact center serving an English and
+a Spanish population.  On each weekday, contacts of each type arrive
+following a Poisson process with rate $100/$h from~8AM to~9AM, and
+$50/$h from~9AM to~5PM.
+7 English-speaking, 7 Spanish-speaking, and 4
+bilingual agents are available to serve contacts.  The contact
+center provides 40 phone lines to accommodate contacts.
+
+When a contactor
+arrives, the router randomly selects a free agent or queues the
+contact if there is no free agent.
+Patience times are i.i.d.\ exponential variables
+with mean 2~minutes.  I.i.d.\ service times follow the uniform distribution,
+ranging from 3~minutes to
+7~minutes for English contacts, and from 4~minutes to 6~minutes for
+Spanish contacts.
+
+If abandonment occurs, with probability~$0.75$,
+the contactor retries to join an agent after 20~minutes.
+Arena Contact Center Edition supports a generalization of this concept
+called \emph{contact backs}.  Whenever a contactor exits the system, he
+has the possibility to enter back with a certain probability, after a
+possibly random time.  In the call center terminology, contact backs
+after abandonment are denoted \emph{retrials} whereas contact backs
+after service are named \emph{returns}.  This differs from the concept
+of returns, i.e., agents recontacting customers, implemented in Arena
+Contact Center Edition.
+
+The program estimates the service level for contact types~$k=0$
+and~$1$,
+and the service level over
+all contact types, as well as the occupancy ratio for agent
+groups~$i=0,1,2$ and the ratio over all agent groups.
+Let $\SgK{k}(s)$ be the number of served contacts of
+type~$k$ having waited in queue for less than $s$, and let $\AK{k}$
+be the total number of arrivals of type~$k$.
+The \emph{service level for type~$k$} is defined by
+\begin{equation}
+\frac{\E[\SgK{k}(s)]}{\E[\AK{k}]}.\label{eq:slarenak}
+\end{equation}
+The occupancy ratio in group~$i$ is defined by~(\ref{eq:occi}).
+Since
+\begin{eqnarray*}
+S&=&\sum_{k=0}^{K-1} \SK{k},\\
+A&=&\sum_{k=0}^{K-1} \AK{k},\\
+N(t)&=&\sum_{i=0}^{I-1} N_i(t),\\
+\Nb(t)&=&\sum_{i=0}^{I-1} \Nb[i](t),\\
+&\mbox{etc.,}&
+\end{eqnarray*}
+equations~(\ref{eq:slarena}) and~(\ref{eq:occ}) can be used for
+the overall service level and occupancy ratio.
+
+The program given on Listing~\ref{lst:Bilingual} simulates the above
+model and computes required statistics.
+
+\lstinputlisting[
+caption={A simulation program for a bilingual contact center},%
+emph={create,main,MyRouter},label=lst:Bilingual
+]
+{Bilingual.java}
+
+The program uses a helper class called
+\texttt{Contact\-Center} providing convenience static methods for
+initializing components of the contact center.
+
+In real-life models, contact types and agent groups have names.
+However, for efficiency, to distinguish contact types and agent
+groups, the library uses numerical identifiers rather than strings.
+On the other hand, replacing names with numerical identifiers reduces the
+readability of the program and the produced statistical reports.
+To make the program clearer, constants are associated
+with each identifier.  The arrays \texttt{TYPENAMES} and
+\texttt{GROUPNAMES} contain names for contact types and agent groups
+being used for statistical reports.
+
+In this model, we are interested in statistics for each contact type
+separately as well as for all contact types.  In the program, many
+scalars are then replaced by arrays of $K+1$ elements, and lists of
+tallies are used instead of tallies for easier statistical collecting
+and reporting.
+Each list of tally has a \emph{global name} corresponding to a type of
+performance measure, e.g., service level.  Each element in a list of
+tallies also has its own
+\emph{local name} corresponding to a particular measure, e.g., the service
+level for a contact type, or the occupancy ratio of the agents in a a group.
+The list of tallies are constructed using a \texttt{create} method
+that also initializes the global and local names, and set
+reporting options to show confidence intervals.
+
+The model in Arena Contact Center Edition
+is made of two parent groups which create two waiting
+queues for contacts.  A \emph{parent group} is a set of agent groups
+defining
+a selection rule for the agents and assigning a preference for each
+contact type.  To implement the parent group efficiently, a
+queue is created for each contact type and the contact selection is
+implemented in the router.
+
+This contact center simulator requires a custom router to implement the
+random selection of agents as well as the contact back mechanism.  This
+router, represented by the \texttt{My\-Router} class,
+extends \texttt{Single\-FIFO\-Queue\-Router} used in
+section~\ref{sec:SimpleMSK}.   For this model, the type-to-group map
+indicates that an English contact must be served by an English-speaking
+or a bilingual agent, in that order.  A Spanish contact must be
+served by a
+Spanish-speaking or a bilingual agent.  The group-to-type map assigns
+contact types to agents:  an English-speaking agent can serve English
+people only whereas a Spanish-speaking agent can serve Spanish people.
+The bilingual agents are generalists since they can serve any contact
+type in this system.
+
+The agent selection rule of the chosen router is not appropriate,
+since we do not want specialists to have priority over
+generalists in this particular example.
+To implement random agent selection, the
+\texttt{select\-Agent} method is thus overridden.
+This method is called by the router when a contact arrives
+and must be assigned an agent.  It selects an agent, starts the
+service, and returns a reference to the end-service event.
+The \texttt{select\-Uniform} helper method manages the random
+selection automatically:  each agent group is assigned a probability
+of selection given by the number of free agents in the group over the
+total number of free agents capable of serving the contact.   If no
+group contains free agents, a
+\texttt{null} agent group reference is returned by
+\texttt{select\-Uniform}, and \texttt{select\-Agent} returns
+\texttt{null} to indicate the router that the contact must be queued.
+Otherwise, the service of the contact is started.
+
+When an agent becomes free, the
+router tries to pull contacts from waiting queues.  In this example,
+the contact selection rule of the inherited router does not need to be
+customized.  For specialists, the
+appropriate waiting queue is checked for a new contact which is removed and
+served.  For generalists, both waiting queues are checked and the
+contact with the longest waiting time is removed.
+
+Further customization is needed to support retrials,
+by overriding the \texttt{dequeued} method in
+the router.  First, if the effective dequeue type is~0, the method returns
+immediately because this is not an abandoning contact; the dequeue
+type~0 is reserved for contacts being removed from the queue to be
+served.  If the dequeue type is~1,
+with some probability, a \texttt{Contact\-Back\-Event} is
+scheduled after a fixed delay.  The contact then leaves the system,
+using the
+\texttt{exit\-Dequeued} method.  It is important to remove the contact from
+the system in order to free its associated phone line.  When the
+contact-back event occurs, the \texttt{new\-Contact} method is called
+with the \texttt{Contact} object.
+This is exactly what is performed by an
+arrival process broadcasting a new contact to the registered
+router.
+
+However, some internal checks are performed
+to avoid contacts entering multiple times in the system, which would
+produce wrong simulation results.  When a contact exits the system, the
+router sets an internal exit indicator
+that must be cleared
+before the contact can enter the router again.
+
+To count the number of retrials, we need to define a subclass of
+\texttt{Contact} with a new field being updated when retrial
+occurs.  The subclass \texttt{My\-Contact} must be
+referred to in \texttt{My\-Contact\-Factory} to get the appropriate
+instances and typecasts are often needed in listeners such as
+\texttt{My\-Contact\-Measures}.
+
+% The \texttt{My\-Contact} subclass in the example defines a field named
+% \texttt{serial\-Version\-UID}, because the class inherits the
+% serializable property of \texttt{Contact}.  Although this is not
+% necessary for this example, since contacts are not serialized here,
+% the Java documentation recommends the association of a fixed serial
+% version UID with each serializable class.
+% Declaring this field can sometimes be useful to avoid warnings from
+% the Java compiler.
+
+As we can see in the program,
+using arrays requires more work than scalars.
+Of course, they must be constructed when declared or in the constructor of
+the simulator.
+Then, at the beginning of each replication, in the
+\texttt{simulate\-One\-Day} method, each element must be initialized
+separately.  Finally, in the exited-contact listener, events must be
+counted in
+two elements of the arrays.  When the event concerns a contact of
+type~$k$, the index~$k$ of the arrays must be updated in addition to
+index~$K$ for the measures for all types.
+In addition, in \texttt{add\-Obs}, estimating the occupancy ratio
+requires
+$\int_0^T \Nb[i](t)\ dt$ and
+$\int_0^T N_i(t)\ dt$ to be obtained for each agent group separately.
+
+\texttt{report} is used to format
+reports about each contact type or agent group, depending on the type
+of performance measure.  The list report contains the
+same information as the ordinary report, but, as shown on
+Listing~\ref{res:Bilingual}, it is more condensed and
+more appropriate for related performance measures.
+
+\lstinputlisting[caption={Results of the program \texttt{Bilingual}},%
+label=res:Bilingual,language={}
+]{Bilingual.res}

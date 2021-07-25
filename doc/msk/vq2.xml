@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccmsk:MSKCCParams numPeriods="26" periodDuration="PT30M"
+   xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk"
+   defaultUnit="SECOND" startingTime="PT8H"  waitingTimePredictorClass="LastWaitingTimePerQueuePredictor">
+   <inboundType name="Calls0" virtualQueueTargetType="1" waitingTimeDefaultVQ="25" windowSizeVQ="20">
+     <patienceTime distributionClass="ExponentialDistFromMean"
+                   unit="SECOND">
+       <defaultGen>400</defaultGen>
+       </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>608</defaultGen>
+      </serviceTime>
+      <expectedWaitingTimeThresh>PT2M</expectedWaitingTimeThresh>
+      <probVirtualQueue>0.5</probVirtualQueue>
+      <patienceTimesMultCallBack>1.7</patienceTimesMultCallBack>
+      <serviceTimesMultCallBack>
+         <row>0.75</row>
+      </serviceTimesMultCallBack>
+      <arrivalProcess normalize="true" type="PIECEWISECONSTANTPOISSON">
+<arrivals>
+ 466  621  869  946  1118  1163  1277  1296  1375  1354  1383  1378  1398
+ 1351  1346  1356  1365  1326  1314  1156  1080  1071  1029  1011  912  747
+</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Calls VQ1"/>
+   <inboundType name="Calls2" virtualQueueTargetType="3">
+     <patienceTime distributionClass="ExponentialDistFromMean"
+                   unit="SECOND">
+       <defaultGen>400</defaultGen>
+       </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>608</defaultGen>
+      </serviceTime>
+      <expectedWaitingTimeThresh>PT2M</expectedWaitingTimeThresh>
+      <probVirtualQueue>0.5</probVirtualQueue>
+      <patienceTimesMultCallBack>1.7</patienceTimesMultCallBack>
+      <serviceTimesMultCallBack>
+         <row>0.75</row>
+      </serviceTimesMultCallBack>
+      <arrivalProcess normalize="true" type="PIECEWISECONSTANTPOISSON">
+<arrivals>
+ 456  611  859  936  1108  1153  1267  1286  1365  1344  1373  1368  1388
+ 1341  1336  1346  1355  1316  1304  1146  1070  1061  1019  1001  902  737
+</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Calls VQ3"/>
+   <agentGroup name="Agents01" detailed="true">
+<staffing>
+   180  226  317  362  406  425  429  443  459  464  481  477  505  522
+   510 484  481  467  429  359  323  301  278  267  210  196
+</staffing>
+   </agentGroup>
+    <agentGroup name="Agents23" detailed="true">
+<staffing>
+   180  226  317  362  406  425  429  443  459  464  481  477  505  522
+   510 484  481  467  429  359  323  301  278  267  210  196
+</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREF">
+     <ranksTG>
+       <row>1 INF</row>
+       <row>1 INF</row>
+       <row>INF 1</row>
+       <row>INF 1</row>
+     </ranksTG>
+     <routingTableSources ranksGT="ranksTG"/>
+     </router>
+   <serviceLevel>
+      <awt>
+         <row>PT1M</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

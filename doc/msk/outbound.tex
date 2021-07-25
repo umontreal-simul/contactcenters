@@ -1,0 +1,27 @@
+\begin{tikzpicture}[shape=rectangle,>=stealth]
+\node (dialing) [draw, line width=2pt] {Dialing};
+\node (rpc) [draw, shape=diamond, node distance=5cm, right of=dialing,
+text width=2.5cm]
+{Reached call?};
+\node (failtime) [draw, node distance=3cm, above of=rpc]
+{Fail delay};
+\node (fail) [draw, shape=ellipse, right of=failtime, node distance=3cm]
+{Failing};
+\node (reachtime) [draw, node distance=5cm, below of=dialing]
+{Reach delay};
+\node (ib) [draw, shape=ellipse, node distance=5cm, right
+of=reachtime]
+{Enter system};
+
+
+\draw[->] (dialing) -- (rpc);
+\draw[->] (rpc)
+edge
+node [left] {Yes}
+(reachtime)
+edge
+node [left] {No}
+(failtime);
+\draw[->] (failtime) -- (fail);
+\draw[->] (reachtime) -- (ib);
+\end{tikzpicture}

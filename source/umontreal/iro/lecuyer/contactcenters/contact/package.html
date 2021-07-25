@@ -1,0 +1,100 @@
+<body>
+Manages contact arrivals into the contact center system.
+Any \emph{contact} traveling in the system is represented by an object from
+the
+{@link umontreal.iro.lecuyer.contactcenters.contact.Contact}
+class being defined in this package.
+This class defines a number of attributes associated with all
+contacts, and the user can add custom attributes by defining a subclass.
+
+Although an object representing a
+contact can be freely instantiated, it is usually constructed by
+a \emph{contact source}.  Two types of contact sources are available:
+\emph{contact arrival processes} provided by this package, and \emph{dialers}
+supported by the {@link umontreal.iro.lecuyer.contactcenters.dialer}
+package.
+Arrival processes determine when contact objects need to be created,
+according to specific (stochastic) arrival processes.
+Each concrete arrival process must correspond to an 
+algorithm for generating inter-arrival times. 
+These times could depend on the entire state of the system in a complicated way,
+but they often depend only on the simulation time and
+previous inter-arrival times.
+For each process, the first arrival is  scheduled when the arrival process is 
+started, often at the beginning of the simulation.
+Figure~\ref{fig:umlContacts} gives a UML diagram for this contact
+creation facility.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[>=open triangle 60,shape=rectangle,fill=gray!20]
+\node (ContactSource) [draw,fill] {\texttt{ContactSource}};
+\node (ContactArrivalProcess) [below
+of=ContactSource,draw,fill]
+{\texttt{ContactArrivalProcess}};
+\node (Dialer) [right of=ContactSource,draw,fill,node distance=6cm] {\texttt{Dialer}};
+\node (ContactFactory) [below of=ContactArrivalProcess,draw,fill,xshift=4cm] {\texttt{ContactFactory}};
+\node (NewContactListener) [below of=ContactFactory,draw,fill,node distance=2cm]
+{\texttt{NewContactListener}};
+\node (DialerPolicy) [above right of=Dialer,draw,fill,node distance=2cm]
+{\texttt{DialerPolicy}};
+\node (DialerList) [left of=DialerPolicy,draw,fill,node
+distance=4cm]
+{\texttt{DialerList}};
+\node (Contact) [above of=ContactFactory,draw,fill, node distance=1.5cm]
+{\texttt{Contact}};
+
+\draw [<-,dotted] (ContactSource) -- (ContactArrivalProcess);
+\draw [<-,dotted] (ContactSource) -- (Dialer);
+\draw[<-,>=open diamond] (Dialer) --
+node [near end,left] {1,1}
+ (DialerPolicy);
+\draw[<-,>=open diamond] (DialerPolicy) --
+node [very near end,above] {1,1}
+ (DialerList);
+\draw (ContactArrivalProcess) to [bend right]
+node [left] {Broadcasts to}
+node [above, very near end] {0,*}
+ (NewContactListener);
+\draw (Dialer) to [bend left]
+node [right] {Broadcasts to}
+node [above, very near end] {0,*}
+ (NewContactListener);
+\draw (ContactFactory)
+to 
+node [right] {Creates}
+node [very near end,left] {0,*}
+(Contact);
+\draw [<-,>=open diamond]
+(DialerList) to 
+node [left, near end] {0, *}
+(Contact);
+\draw (ContactArrivalProcess)
+to [bend right]
+node [very near end, below] {1,1}
+(ContactFactory);
+\end{tikzpicture}
+\end{center}
+
+\caption{UML diagram describing the facilities for creating
+                  contacts}
+\label{fig:umlContacts}
+\end{figure}
+
+The \emph{factory} design pattern is used to allow the sources to construct
+contacts without knowing their types explicitly.
+The {@link umontreal.iro.lecuyer.contactcenters.contact.ContactFactory}
+interface specifies a method  called
+\texttt{new\-Instance} returning a newly-constructed and configured
+contact object.  A contact source can create contacts from any class that 
+implements this interface simply by invoking this \texttt{new\-Instance} method.
+Thus, changing the type of contact (and the name of its explicit constructor)
+requires no change to the implementation of the contact source.
+
+When a new contact occurs, it is instantiated by the associated factory and 
+broadcast to the registered \emph{new-contact listeners}.
+Then the next arrival is scheduled.  
+Each contact source is assigned a factory that typically constructs
+contacts of a single type.  All contact sources can be
+initialized, started, and stopped.
+</body>

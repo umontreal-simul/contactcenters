@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?import umontreal.iro.lecuyer.probdist.*?>
+<?import umontreal.iro.lecuyer.randvar.*?>
+<mskccparams defaultUnit="HOUR"                   queueCapacity="infinity"
+             periodDuration="1h"                  numPeriods="1">
+   <!-- Call type 0 -->
+   <inboundType name="Type0; Mtl" sourceEnabled="true">
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            12.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 1 -->
+   <inboundType name="Type1; Mtl" sourceEnabled="true">
+      <probAbandon>0.06</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            6.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>120.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 2 -->
+   <inboundType name="Type2; Mtl" sourceEnabled="true">
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            12.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 3 -->
+   <inboundType name="Type0; Tor" sourceEnabled="true">
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            12.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 4 -->
+   <inboundType name="Type1; Tor" sourceEnabled="true">
+      <probAbandon>0.06</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            6.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>120.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 5 -->
+   <inboundType name="Type2; Tor" sourceEnabled="true">
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            12.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+            60.0</serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <!-- Agent group 0 -->
+   <agentGroup name="Group0; Mtl">
+      <staffing>1</staffing>
+   </agentGroup>
+   <!-- Agent group 1 -->
+   <agentGroup name="Group1; Mtl">
+      <staffing>2</staffing>
+   </agentGroup>
+   <!-- Agent group 2 -->
+   <agentGroup name="Group0; Tor">
+      <staffing>1</staffing>
+   </agentGroup>
+   <!-- Agent group 3 -->
+   <agentGroup name="Group1; Tor">
+      <staffing>2</staffing>
+   </agentGroup>
+
+   <router localSpecOverflowDelay="6s"
+           routerPolicy="LOCALSPEC">
+      <ranksGT>
+         <row>       4, 4, infinity,        4, 4, infinity</row>
+         <row>infinity, 4,        4, infinity, 4,        4</row>
+         <row>       4, 4, infinity,        4, 4, infinity</row>
+         <row>infinity, 4,        4, infinity, 4,        4</row>
+      </ranksGT>
+   </router>
+
+   <serviceLevel>
+      <awt k="0" value="20s"/>
+      <awt k="1" value="30s"/>
+      <awt k="2" value="15s"/>
+      <awt k="3" value="20s"/>
+      <awt k="4" value="30s"/>
+      <awt k="5" value="15s"/>
+      <awt value="20s"/>
+      <target k="0" value="0.78"/>
+      <target k="1" value="0.82"/>
+      <target k="2" value="0.79"/>
+      <target k="3" value="0.78"/>
+      <target k="4" value="0.82"/>
+      <target k="5" value="0.79"/>
+      <target value="0.8"/>
+   </serviceLevel>
+</mskccparams>

@@ -1,0 +1,156 @@
+% Note that some parts of this document is generated from Javadoc comments using a special
+% doclet called XMLConfigDoclet, which is included in the source code
+% of ContactCenters.
+% This doclet extends Texlet, which is used to produce LaTeX code from
+% Java files containing LaTeX Javadoc comments.
+% The build.xml file in the main directory of ContactCenters contains
+% a mskdoc target which allows to compile this document automatically.
+
+\documentclass[twoside, 12pt]{article}
+\usepackage{tcode}
+\usepackage{contactcenters}
+\usepackage{xmlconfig}
+\usepackage{ifpdf}
+\usepackage[dvipsnames]{xcolor}
+%\usepackage{crayola}
+\usepackage[procnames]{listings}
+
+\ifpdf
+  \hypersetup{
+     pdftitle={Generic Simulator for Blend and Multi-skill Call Centers},
+     pdfauthor={Eric Buist},
+     pdfsubject={User's Guide for ContactCenters Simulation Library},
+     pdfkeywords={Contact centers, Simulation, SSJ, Java},
+     pdfview=FitH,
+     pdfstartview=FitH,
+     pdfborder={0 0 0}
+  }
+\fi
+
+\lstloadlanguages{Java,XML}
+\lstset{language=Java,
+floatplacement=htbp,
+captionpos=t,
+frame=trbl,
+abovecaptionskip=1.5em,
+belowskip=2em,
+basicstyle=\small\ttfamily,
+stringstyle=\color{OliveGreen},
+commentstyle=\color{red},
+identifierstyle=\color{Bittersweet},
+basewidth={0.5em},
+showstringspaces=false,
+framerule=0.8pt,
+procnamestyle=\bfseries\color{blue},
+emphstyle=\bfseries\color{Cerulean},
+procnamekeys={class,extends,interface,implements}
+}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes}
+
+\setcounter{secnumdepth}{3}
+\newcommand{\javadoc}[1]{}
+\newcommand{\xmldoc}[1]{#1}
+\newcommand{\javaxmldoc}[2]{#2}
+\htmlexcludecomment{javadocenv}
+\htmlincludecomment{xmldocenv}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\begin{titlepage}
+\null\vfill
+\begin{center}
+  {\Large\bf User's Guide for ContactCenters Simulation Library }\\[20pt]
+  {\Large Generic Simulator for Blend and Multi-skill Call Centers} \\[20pt]
+ Version: \today \\
+\vfill
+ {\sc Eric Buist}
+\vfill
+\end{center}
+
+\vfill
+This document introduces a generic
+simulator for
+blend and multi-skill
+call centers.  The simulator is written
+using Java, SSJ, and the ContactCenters library.
+It is configured using
+XML files and supports call centers with
+inbound and outbound calls of multiple types,
+multiple groups of agents, and complex routing policies.
+This document presents the model implemented by the
+simulator,
+the format of the configuration files with some examples,
+and instructions to
+run the simulator from the command-line and to extend it internally in
+Java code.
+We also provide a reference guide documenting every supported
+parameter and performance measure.
+In this document, any reference to a contact corresponds to a call,
+since the simulator only considers calls as type of contacts.
+\end{titlepage}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage\listoftables
+\clearpage\listoffigures
+\clearpage\lstlistoflistings
+\pagenumbering{arabic}
+
+\include{mskoverview}
+\include{mskmodel}
+\include{mskconfig}
+\include{mskuse}
+\include{mskusejava}
+\include{msktrouble}
+
+\include{mskref}
+
+\makeatletter
+\def\@xmlconfigclssection{\@startsection{subsection}%
+   {2}{0mm}{-\baselineskip}{0.5\baselineskip}%
+   {\large\bfseries}}
+\makeatother
+
+
+\include{mskxml}
+
+% \include{mskccparams}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/CallCenterParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/CallTypeParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/InboundTypeParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/ArrivalProcessParamsxmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/ArrivalProcessTypexmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/OutboundTypeParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/DialerParamsxmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/DialerPolicyTypexmldoc}
+
+% \include{umontreal/iro/lecuyer/contactcenters/msk/AgentGroupParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/AgentGroupScheduleParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/ScheduleShiftParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/msk/ShiftPartParamsxmldoc}
+
+% \include{umontreal/iro/lecuyer/contactcenters/msk/RouterParamsxmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/RouterPolicyTypexmldoc}
+
+% \include{umontreal/iro/lecuyer/contactcenters/app/ServiceLevelParamsxmldoc}
+
+% \include{msksimparams}
+% \include{umontreal/iro/lecuyer/contactcenters/app/SimParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/ReportParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/PrintedStatParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/CallTraceParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/BatchSimParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/RepSimParamsxmldoc}
+% \include{umontreal/iro/lecuyer/contactcenters/app/PerPeriodCollectingModexmldoc}
+
+\include{mskexp}
+\include{mskoutput}
+\include{umontreal/iro/lecuyer/contactcenters/app/PerformanceMeasureTypexmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/RowTypexmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/ColumnTypexmldoc}
+\include{umontreal/iro/lecuyer/contactcenters/app/EstimationTypexmldoc}
+
+\input{ref}
+
+\end{document}

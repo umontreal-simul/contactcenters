@@ -1,0 +1,95 @@
+\part{Tutorial}
+\section{Overview}
+
+A \emph{contact center} is a set of resources (communication
+equipment, employees, computers, etc.) providing an interface between
+customers and a business \cite{ccMEH03a,ccGAN02a,ccAVR05b,ccAKS07a}.
+Each \emph{contact} represents a customer reaching the contact center
+to obtain some form of service.  The service is made by employees in
+the contact centers called \emph{agents}.  Each agent is a member of
+an \emph{agent group} which determines its characteristics
+(skills, speed of service, etc.).
+When a contact cannot be served immediately, it is put in a
+\emph{waiting queue} to be served later.  The contact center
+components are linked together by a \emph{router} which decides on how
+to assign calls to agents.  A \emph{call center} is a
+special form of contact center where each contact corresponds to a
+telephone call.
+
+The ContactCenters library is built using the Java
+programming language \cite{iGOS00a}
+and the Stochastic Simulation in Java (SSJ) library \cite{iLEC04j},
+and permits one to implement
+simulators for
+contact centers.  The library provides building blocks such
+as classes representing the contacts in the center, the agent groups,
+the waiting queues, and the router.  The programmer combines these
+blocks to make a simulator.
+However, creating a simulator
+directly using
+this library involves Java programming.
+
+This document presents a
+ready-to-use generic simulator for the particular case of a blend and
+multi-skill call center with multiple call types, agent groups and
+simulation periods.  It can simulate \emph{inbound} calls arriving in
+the system following a stochastic arrival process as well
+as \emph{outbound} calls made by predictive dialers.  Service and
+patience times are also random, and come from
+any
+probability distribution supported by SSJ, and parameters can change
+from time periods to periods.
+
+This simulator is configured
+through XML files. Compilation of Java
+code is not required, except if the simulator has to be extended,
+or used internally by another program.
+%  A XML file represents an hierarchical document composed of
+%a root element which can have attributes as well as nested text and
+%children elements.  Such a file can be
+%created and modified with any text editor, but specialized editors
+%dedicated to XML, e.g., XML Spy, are also available.
+%  While XML specifies how to
+%format elements and attributes in such a file,
+%schemas indicate
+%which structures are allowed for describing a specific concept.
+Any XML document intended to be processed by a program conforms to a
+schema.
+The simulator uses one such schema for the
+parameters of the simulated model, and a
+second schema for the parameters of the experiment method.
+
+% However, this simulator prevents the user from accessing all the
+% possibilities of ContactCenters. If custom arrival processes, routing
+% or dialing policies are needed, creating a full Java program using
+% ContactCenters may be easier than trying to adapt the complex generic
+% simulator.
+
+The rest of this document is organized as follows.
+In the next section, we present the call center model
+implemented by the generic simulator.  We define the structure of
+possible call centers as well as the supported types
+of experiments.
+Section~\ref{sec:mskconfig} introduces the format of the configuration
+files for the simulator by some commented examples.  This is
+a good way to learn how to make configuration files, not a
+reference documentation.
+Section~\ref{sec:mskuse} demonstrates how to run the
+simulator from the command-line while section~\ref{sec:mskusejava}
+shows how to interact with the simulator from a Java program.
+Section~\ref{sec:msktrouble} discusses most common problems encountered
+when using the simulator.
+The last sections contain a reference manual
+providing detailed documentation for each supported performance measure,
+routing policies, dialing policies, arrival processes, the
+supported types of experiments, and the format of generated reports.
+
+Section~\ref{sec:mskxml}
+gives a primer on XML, and the data types used in the
+parameter files.
+It also gives some examples on how parameter-specific documentation,
+which is available in HTML only, can be retrieved.
+The documentation for
+each parameter was generated from the annotations in the
+corresponding XML schemas, and can be located
+in the \path{doc/schemas} subdirectory of ContactCenters.

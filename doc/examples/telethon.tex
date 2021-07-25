@@ -1,0 +1,331 @@
+\section{Telethon call center}
+\label{sec:Telethon}
+
+This example, adapted from Rockwell's Arena Contact Center
+Edition~8.0,
+deals with the organization of a one-week pledge drive
+local public radio station.  In this model,
+on each weekday, from~6AM to~10AM,
+the 24 phone lines of the contact
+center accept contacts from donors while donations are managed by 12
+volunteers.
+If a contact cannot be served immediately when it enters the system,
+it is added to a FIFO queue.  The contact
+leaves the queue if
+\begin{enumerate}
+\item its waiting time is greater than its exponential
+patience time with mean 2~minutes (abandonment),
+\item its waiting time reaches 2~minutes (the contact leaves a message
+  and is disconnected),
+\item the contact center closes (disconnection),
+\item or a volunteer becomes idle and serves it.
+\end{enumerate}
+Service times are i.i.d.\ exponential variables with mean
+10~minutes, and arrivals follow a Poisson process whose
+rate is 50 contacts per hour.
+
+Since the expected number of
+donors is limited, the contact center must minimize busy signals and
+abandonment.  Key performance measures are blocked and abandoned
+contacts as well as the expected speed of answer, which
+is the expected time a contact must wait in queue
+before it is served.
+The program also estimates the service level defined as
+\begin{equation}
+g_3(s)=\frac{\E[\Sg(s)]}{\E[A]},\label{eq:slarena}
+\end{equation}
+where $A$ is the number of arrivals.
+It also estimates the occupancy ratio of agents defined by~(\ref{eq:occ}).
+
+\subsection{Implementing the model}
+
+\lstinputlisting[
+caption={A simulation program implementing the Arena Telethon example},%
+emph={create,main,simulateOneDay},label=lst:Telethon
+]
+{Telethon.java}
+
+Listing~\ref{lst:Telethon} gives the
+implementation of the simple non-stationary contact center described
+above.
+As with previous examples, fields are used for input data and objects,
+and a constructor is defined to create the
+necessary elements of the contact center.
+We first construct the event that will mark the beginning of new
+periods.
+In this example and all other sample programs adapted from Arena
+Contact Center Edition, the horizon is set to a full week, and
+simulation time is thus divided into
+$24*7$ 60-minutes main periods.
+The preliminary and wrap-up periods defined by the
+period-change event have length~0, but they must be counted
+in the total
+number of periods, so we need $24*7+2$ periods.
+
+As usual, we then construct an arrival process using a contact
+factory, a random stream, and other parameters.
+In contrast with Arena Contact Center Edition only expecting the
+number of arrivals for each main period, ContactCenters requires the
+user to specify which arrival process to use along with its
+parameters.
+The normalization is enabled for the given rates to be divided by the
+period duration.
+
+In contrast with most previous examples, the capacity of the system is
+limited.  As a result, some donors may receive a busy signal and be
+blocked.
+It could be possible to limit the number of phone
+lines by setting the queue capacity to 12 as shown in
+section~\ref{sec:qclimit}.
+With this setting, when the 12~agents are busy
+and 12~contacts are in queue, all the phone lines are busy, the system
+is full, and any new contact is blocked until a service ends or a donor
+leaves the queue.  However, in
+general, because the number of agents in the system changes, the limit
+on queue capacity needs to be updated at the beginning of each period.
+It is also
+possible to associate some contact types, e.g., premium contacts using a
+specific phone bank as opposed to ordinary contacts accessing an independent pool
+of phone lines.  Therefore, a more general framework for capacity
+limitation may be needed.
+The ContactCenters library supports the same notion of
+trunk groups as Arena Contact Center Edition, but it is disabled by
+default.  A \emph{trunk group} is a set of communication channels
+(e.g., phone lines)
+being allocated during the lifetime of contacts.  For this facility
+to be enabled, each contact needs to be linked to a trunk group by
+using the \texttt{set\-Trunk\-Group} method.  A
+channel is then allocated when the contact reaches the router, and
+freed
+when it leaves the system.  If a contact arrives when all channels of
+its trunk group are busy, it is blocked.
+To implement this feature
+in the Telethon example, the constructor creates a
+\texttt{Trunk\-Group} instance which is associated with new contacts in
+the \texttt{new\-Instance} method of the contact factory.
+
+The same constructor as in the two preceding examples is used to
+create the agent group and define the shift of the agents.
+In Arena Contact Center Edition, an agent group schedule defines the
+shifts for agents whereas agent groups only specify their capacity.
+The library does not define such an agent group schedule; agent groups
+can be created, as in section~\ref{sec:MMC},
+with a fixed number of agents which can change at any
+time, or, as in sections~\ref{sec:CallCC} and~\ref{sec:SimpleMSK},
+with a per-period number of members.
+In the example, the number of agents is constant, but it must be set
+to 0 when the
+contact center closes.  Therefore, an array of $P+2$ elements is
+constructed and any index corresponding to an opening hour is filled
+with 12, while the other values keep their default, 0.
+
+We then construct a standard waiting queue to use a FIFO discipline.
+In Arena Contact Center Edition, each agent group is associated with a
+waiting queue.  In the
+ContactCenters library, the waiting queues and agent groups are
+independent from each other for maximal flexibility.  It is the
+router's task to create the connection between these two elements.
+
+The same router as in sections~\ref{sec:MMC} and~\ref{sec:CallCC} is
+used since there
+is a single contact type and a single agent group.  However, to simulate the
+same model as with Arena Contact Center Edition, the queues have to be
+cleared when all the
+agents go off-duty.  The \texttt{Router} class fortunately provides
+some facilities to perform this clearing automatically if it is
+activated by the \texttt{set\-Clear\-Waiting\-Queues} method.
+For more simplicity, we do not simulate the
+30-seconds delay necessary for a donor to leave the message before
+being disconnected.  This aspect would require the definition of a
+custom router, which will be studied in the next subsection.
+
+The \texttt{simulate} and \texttt{simulate\-One\-Day} methods are very
+similar to their counterparts in previous examples. However, the
+simulation logic, i.e., which events are executed during
+\texttt{Sim.start}, differs slightly, because queued contacts can be
+disconnected.
+
+Automatic queue clearing is implemented by the router while the
+disconnection after 2~minutes must be implemented
+by setting a secondary \emph{queue
+  time distribution} through the \texttt{set\-Maximal\-Queue\-Time\-Generator}
+method of \texttt{Waiting\-Queue}.  By default, a waiting queue only
+has a
+primary maximal queue time generator associated with abandonment,
+i.e., dequeue type~1, and the
+generated value is the patience time extracted from contact objects.
+Each queue time distribution is given by an implementation of
+\texttt{Value\-Generator} which specifies a \texttt{next\-Double}
+method taking an argument of class \texttt{Contact} and returning a
+number.  To support message leaving,
+the constructor of \texttt{Telethon}
+therefore creates a constant value generator for a
+single contact
+type and assigns it to dequeue type~5.  This value was chosen
+arbitrarily, because any dequeue type
+different from~0 or~1 could be used.
+
+When a contact enters the previously-configured queue, if the
+extracted patience time is greater than~2, the
+maximal queue time is set to~2, and the dequeue type is set to~5.  If this
+maximal queue time is elapsed before a contact is served, the contact
+is disconnected, and is asked to leave a message.
+Otherwise, if the patience time is smaller than or equal to~2, the
+maximal queue
+time is the patience time and the
+dequeue type is~1.  In this case, an abandonment occurs if the maximal
+queue time is elapsed before service starts.
+
+As in previous examples, we use an exited-contact listener to count
+events.  However, when abandonment,
+disconnection, and message leaving are considered simultaneously,
+counting the dequeued contacts requires special care, because the
+\texttt{dequeued}
+method in \texttt{My\-Contact\-Measures} receives various kinds of
+events.  The effective dequeue type must therefore be used to
+differentiate the
+three types of removals.  Dequeue type~1 is used for abandonment,
+type~5 is used for message leaving while the router defines its own
+dequeue type for disconnection when there is no agent.
+The dequeue type~0 is reserved for dequeued contacts
+to be served; these contacts are not notified to the \texttt{dequeued}
+method of \texttt{My\-Contact\-Measures} since they have not left the contact
+center yet.
+
+Statistical collecting is performed the same way as in the
+previous examples:  during the simulation, values
+are counted and summed up.
+The waiting times of served contacts are also considered to get the average
+speed of answer.  Another similar measure which is computed by the example
+in section~\ref{sec:CallCC} but not
+by this
+program is the average waiting time
+which includes the served and abandoned contacts.  At the end of each
+replication, \texttt{add\-Obs} is used to add the observations to the
+appropriate statistical collectors.
+
+We can reduce the variance on the service level and the occupancy
+ratio by
+replacing the denominators with the true, known, expectations.  The
+expected daily number of donors is $4*50=200$, so $\E[A]=1000$ for the
+whole week, which excludes the weekend in this model.  Since $N_0(t)$
+is constant during all the opening hours,
+the integral of $N_0(t)$ is constant, because we never have ghost
+agents.
+
+However, to get an accurate estimator of the occupancy ratio, we
+should not count the integral of busy agents during periods where
+$N_0(t)=0$.  We could achieve this using ContactCenters (see
+section~\ref{sec:occcor}), but the
+resulting occupancy ratio would not correspond to the output given by
+Arena Contact Center Edition.
+
+Results of the simulation, presented on Listing~\ref{res:Telethon},
+seem different from Arena Contact
+Center Edition, because different random seeds are used in the
+ContactCenters simulator.  If the system is simulated with the same
+number of
+replications in both programs, the confidence intervals intersects, partly
+showing that the results are not significantly different.
+The simplification of the model to avoid a custom router does not seem
+to bias the estimators significantly.
+
+\lstinputlisting[caption={Results of the program \texttt{Telethon}},%
+label=res:Telethon,language={}
+]{Telethon.res}
+
+\subsection{Modeling the message delay}
+
+After a contact waits for
+two minutes in the model of Arena Contact Center Edition, it leaves a
+message for a duration of 30~seconds before the phone line is released.
+This delay cannot be modeled by
+adding $0.5$ minutes
+to the maximal queue time since an agent must not be able to pick a
+contact having waited more than two minutes while he is leaving its
+message.
+This aspect cannot be simulated unless the
+router is customized such as in Listing~\ref{lst:TelethonMsg}.
+
+The
+\texttt{Queue\-Priority\-Router} must be extended
+to override its \texttt{dequeued} method being called
+every time a contact is removed from a waiting queue connected to the
+router.  If the effective dequeue type is~0,
+the event must be ignored since the contact is about to be served.
+Otherwise, if the dequeue type is~5,
+an event is scheduled to happen
+after 30~seconds ($0.5$~minutes).  This exiting event must be defined
+as an inner class in the custom router to call the protected
+\texttt{exit\-Dequeued} method which releases the phone line and
+broadcasts the exited contact.
+If the dequeue type is~1, the \texttt{exit\-Dequeued} method must be
+used for the phone line to be released at the time of abandonment.
+Note that this technique could also be used to model more realistic
+random message delays.
+
+In this model, the delay is too short to have
+any impact on the results over all time.  We may observe an effect on
+some individual periods, or if the arrival rates were higher.
+
+\lstinputlisting[
+caption={Extension of \texttt{Telethon} for the 30 second delay},%
+emph={main,MyRouter},label=lst:TelethonMsg
+]
+{TelethonMsg.java}
+
+\subsection{Correcting the estimator for occupancy ratio}
+\label{sec:occcor}
+
+The
+integral for $\Nb[0](t)$ needs to be computed for the opening hours
+only to get an unbiased estimator for the agents' occupancy ratio.
+The statistical collecting in \texttt{vstat}
+must be disabled when $N_0(t)=0$ in order to achieve this.
+
+In Listing~\ref{lst:TelethonOcc}, we define a new statistical
+collector for the corrected estimator as well as a new group-volume
+statistical counter.
+In the constructor, we call the superclass' constructor and connect a
+custom listener to the agent group before we create our new group
+volume statistical collector.
+
+The custom listener, implemented in
+\texttt{My\-Agent\-Group\-Listener}, reacts when the agent group is
+initialized, and the number of
+volunteers changes, i.e., goes from~0 to~12 or from~12 to~0.
+Setting the agent group of a group volume statistical counter
+modifies the list of listeners of the agent group.
+However, modifications to the list of listeners during the broadcast
+of an event can lead to unpredictable results.  As a result,
+the program needs to create a support event that configures the
+group volume statistical collector.
+Moreover, to
+prevent inconsistencies, the group volume statistical collector needs
+to be initialized after the simulation clock is reset, which cannot be
+done without rewriting \texttt{simulate\-One\-Day} or modifying the
+base class \texttt{Telethon}.  Fortunately, when an agent group is
+initialized, it notifies every registered listener.  We therefore
+react to this event by initializing the new group volume statistical
+counter.
+
+When the number of agents goes from~12 to~0 at the end of the day,
+statistical collecting for \texttt{vstat\-Corr} needs to be disabled.
+This can be achieved by breaking the association between the agent
+group and the statistical counter.  The internal counters then reset
+to~0 until the association is restored, at the beginning of the next
+day.
+
+\lstinputlisting[
+caption={Extension of \texttt{Telethon} for corrected occupancy ratio estimator},%
+emph={main,MyAgentGroupListener},label=lst:TelethonOcc
+]
+{TelethonOcc.java}
+
+Listing~\ref{res:TelethonOcc} presents the output of the modified
+program.  We see that the corrected occupancy ratio is significantly
+different from the ratio obtained using Arena Contact Center Edition.
+
+\lstinputlisting[caption={Results of the program \texttt{TelethonOcc}},%
+label=res:TelethonOcc,language={}
+]{TelethonOcc.res}

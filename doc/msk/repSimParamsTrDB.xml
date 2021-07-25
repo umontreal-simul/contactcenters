@@ -1,0 +1,8 @@
+<ccapp:repSimParams normalizeToDefaultUnit="false" minReplications="3"
+     xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <callTrace  tableName="[CallTrace$]">
+      <database jdbcDriverClass="sun.jdbc.odbc.JdbcOdbcDriver"
+                    jdbcURI="jdbc:odbc:datasource"/>
+   </callTrace>
+   <report confidenceLevel="0.95"/>
+</ccapp:repSimParams>

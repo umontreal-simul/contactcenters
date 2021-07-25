@@ -1,0 +1,115 @@
+package umontreal.iro.lecuyer.contactcenters.msk.stat;
+
+import umontreal.iro.lecuyer.contactcenters.app.PerformanceMeasureType;
+
+import cern.colt.matrix.DoubleMatrix2D;
+
+/**
+ * Represents call center measures (or counters)
+ * regrouped into matrices.
+ * This interface provides methods to obtain
+ * the supported types of measures and, for each
+ * measure, construct a matrix of the actual
+ * values of counters.
+ */
+public interface CallCenterMeasures {
+   /**
+    * Returns the number of periods in matrices of statistical
+    * probes used to collect
+    * statistics about the simulation.
+    * This usually returns $P'$, the number of segments
+    * regrouping main periods.
+    * However, for steady-state simulations, this returns 1.
+    * 
+    * @return the number of periods for statistics.
+    */
+   public int getNumPeriodsForStatProbes ();
+   
+   /**
+    * Returns \texttt{true} if this group of call center measures
+    * contains matrices whose rows correspond
+    * to counters concerning (contact type,
+    * agent group) pairs.
+    * If no matrix with rows of type
+    * (contact type, agent group) is present,
+    * this returns \texttt{false}. 
+    */
+   public boolean isContactTypeAgentGroup();
+   
+   /**
+    * Returns an array containing the supported
+    * types of measures.
+    */
+   public MeasureType[] getMeasures();
+   
+   /**
+    * Returns \texttt{true} if and only if
+    * this group of call center measures has
+    * a matrix of measures of type \texttt{mt}.
+    * @param mt the type of measure.
+    * @return the success indicator of the test.
+    */
+   public boolean hasMeasureMatrix (MeasureType mt);
+   
+   /**
+    * Determines if this simulator computes the measure matrices required to
+    * estimate performance measures of type \texttt{pm}.
+    * 
+    * @param pm
+    *           the tested type of performance measures.
+    * @return \texttt{true} of the measures can be estimated, \texttt{false}
+    *         otherwise.
+    */
+   public boolean hasMeasureMatricesFor (PerformanceMeasureType pm);
+   
+   
+   /**
+    * Initializes the associated matrices of counters.
+    */
+   public void initMeasureMatrices();
+
+   /**
+    * Converts a matrix of counters constructed
+    * during the simulation to a matrix of double-precision observations
+    * to be added to a 
+    * matching matrix of tallies. The format of raw measures stored into
+    * the matrix of counters is specific to the simulation type. This method formats
+    * these measures into a matrix with one row for each measure type, and one
+    * column for each 
+    * segment of main periods.
+    * 
+    * If \texttt{norm} is \texttt{true},
+    * the measures are normalized to the default time unit if they correspond to
+    * durations. This normalization is performed by calling
+    * {@link #timeNormalize(MeasureType, DoubleMatrix2D)}. Otherwise, time durations are relative to the
+    * length of the corresponding period.
+    * 
+    * Matrices of counters have a number of periods depending on the type of
+    * measures collected.
+    * The output matrix of observations has {@link #getNumPeriodsForStatProbes()}
+    * columns. See the documentation of {@link MeasureType} for more
+    * information about measure types.
+    * 
+    * @param mt
+    *           the measure type queried.
+    * @param norm
+    *           determines if normalization to default time unit is done.
+    * @return the matrix of values.
+    */
+   public DoubleMatrix2D getValues (MeasureType mt, boolean norm);
+
+   /**
+    * Normalizes the measures in \texttt{m} using simulation time. This method
+    * must normalize time durations to the default simulation time unit by
+    * dividing every value by the correct period duration.
+    * The given matrix should have {@link #getNumPeriodsForStatProbes()}
+    * columns.
+    * 
+    * @param mt
+    *           the type of measure being processed.
+    * @param m
+    *           the matrix of values, obtained by
+    *           {@link #getValues(MeasureType,boolean)}.
+    */
+   public void timeNormalize (MeasureType mt, DoubleMatrix2D m);
+}

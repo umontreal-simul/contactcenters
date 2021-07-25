@@ -1,0 +1,252 @@
+<body>
+Provides some facilities to extract and verify parameters read from
+data files in XML format.
+Parameter reading is often tedious and clutters the application code with
+repetitive statements.  Read parameters must be converted
+from string to useful types, checked for validity and processed
+in many ways before they can be used by an application
+program.
+By using XML \cite{iYER04a}, one can take advantage of a standardized
+file format syntax and already implemented and robust
+parsers providing error checking.  However, even when
+a validating parser, which is able to ensure that an XML file satisfy
+predefined structural constraints, is used,
+the parameters must be extracted from a parse tree and converted
+from string.
+
+This package provides facilities to extract and convert values
+from a Document Object Model (DOM) document constructed using
+the Java API for XML (JAXP) or any other API implementing
+DOM Level 2 \cite{iHOR00a}
+or above.  It uses a design-patterns oriented
+technique strongly inspired from Apache Ant \cite{iBAI04} task building but
+extended to be used in a more general context.
+
+\subsubsection*{Format of parameter files}
+
+This section briefly introduces the XML format as used by the
+parameter files.  See \cite{iYER04a} for the full XML specification.
+The first line of an XML file is optional and contains an header
+specifying the version of the format and the encoding.  This line is
+like the following one:
+\begin{verbatim}
+<?xml version="1.0" encoding="iso-8859-1"?>
+\end{verbatim}
+If this line is not given, the UTF-8 character encoding is assumed.
+Specifying the encoding can be useful to allow accented characters to
+appear in the input when the used editor does not support UTF-8.
+
+In an XML file, an \emph{element} is a container with a name
+and possibly some attributes.  It is represented by a starting marker
+and an ending marker.  The text between these markers is called the
+\emph{contents} of the element.  For example,
+\verb!<element>contents</element>! declares an element with name
+\texttt{element} and contents \texttt{contents}.  An element with no
+contents can be formatted as \verb!<element/>!.  This is called a
+\emph{self-closing element}.  The whole XML document is contained into
+a special element called the \emph{root element}.
+
+An \emph{attribute} is a key-value pair associated with an element.
+An element can have zero or more attributes.  For example,
+\verb!<element attribute="value"/>! declares a self-closing element
+\texttt{element} with attribute \texttt{attribute} having value
+\texttt{value}.  The order of an element's attributes is not important
+in any XML document.
+
+The nested contents can be simple or complex.  \emph{Simple contents} is
+composed of only \emph{character data}, i.e., text with no XML
+markers.  If such characters are required for some reasons, they must
+be escaped by using \emph{entities}.  Entities are sequences of
+characters automatically substituted with character data
+by an XML parser.  For the user, they act similarly to macros.
+Table~\ref{tab:entities} shows the entities
+used to escape reserved characters.
+
+\begin{table}[htb]
+\caption{XML entities used to escape reserved characters}
+\label{tab:entities}
+  \centering
+  \begin{tabular}{|lr|}
+    \hline
+    Entity\html{$\mbox{}$}&Escaped character\\\hline
+    \texttt{\&lt;}&\verb!<!\\
+    \texttt{\&gt;}&\verb!>!\\
+    \texttt{\&quot;}&\texttt{"}\\
+%"  For GNU Emacs to be happy
+    \texttt{\&amp;}&\texttt{\&}\\\hline
+  \end{tabular}
+\end{table}
+
+\emph{Complex contents} is composed of character data and
+other elements.  Some XML document types specify an order in which the
+elements need to be presented.  For the parameter reader, the order of
+elements is not important.
+
+At any point in the XML file, \emph{comments} of the form
+\verb?<!-- comment -->? can be added.  These comments are ignored by
+the parameter reader and can be used to document the parameter files.
+
+\emph{Processing instructions} can be used to communicate with
+specific XML processors.  The parameter reading facility implemented
+in this package supports the \texttt{import} processing instruction
+which can be used to import packages when referring to class names in
+parameter files.  The \texttt{import} processing instruction works the
+same way as the Java \texttt{import} statement.  For example,
+\verb!<?import java.util.*?>! imports all classes in the
+{@link java.util} package.
+
+\subsubsection*{Extracting parameters}
+
+For an XML document to be converted into a parameter object,
+an instance of {@link umontreal.iro.lecuyer.xmlconfig.ParamReader}
+is needed.  The root element name must be bound to a parameter object class,
+by modifying the \texttt{elements} map.  For example, the following code
+associates the
+\texttt{myparams} root element with the class \texttt{MyParams}.
+
+\begin{verbatim}
+
+   ParamReader reader = new ParamReader();
+   reader.elements.put ("myparams", MyParams.class);
+\end{verbatim}
+
+After the binding is done, the reading method can be invoked.
+The \texttt{read} method accepts a {@link org.w3c.dom.Document}
+implementation or an XML file name and turns it into
+a parameter object.  In the preceding example, the general format
+of the XML file would be
+
+\begin{verbatim}
+
+   <myparams>
+      ...
+   </myparams>
+\end{verbatim}
+
+The following call would read the XML file and creates a \texttt{MyParams} instance.
+
+\begin{verbatim}
+
+   MyParams par = (MyParams)reader.read ("file.xml");
+\end{verbatim}
+
+\subsubsection*{Converting back to XML}
+
+To be converted back to XML, a parameter object needs to provide a
+write method specified in the {@link
+umontreal.iro.lecuyer.xmlconfig.StorableParam} interface.  This method
+turns the parameter object into a DOM document.  The DOM document can
+then be converted to an XML file.  The {@link
+umontreal.iro.lecuyer.xmlconfig.AbstractParam} class provides a
+\texttt{write} method capable of converting the storable parameter
+object to an XML file.
+
+For example, if \texttt{MyParams} implements
+{@link umontreal.iro.lecuyer.xmlconfig.StorableParam},
+the following code can write the parameter object \texttt{par} to an XML file.
+
+\begin{verbatim}
+
+   AbstractParam.write (new ClassFinder(), "file.xml",
+                        par, "myparams", 3);
+\end{verbatim}
+
+The class finder is used to convert {@link java.lang.Class} objects to simple
+class names, taking the import declarations into account.  The name of
+the root element, \texttt{myparams}, must be given, as well as the
+number of spaces for each indentation level.
+
+\subsubsection*{Creating new parameter object classes}
+
+A parameter object can come from any class implementing
+the {@link umontreal.iro.lecuyer.xmlconfig.Param} interface, providing
+a no-argument constructor, and supplying setter, adder, or creater methods
+that will be mapped to XML attributes and nested elements.
+\emph{Setter} methods are used to notify the parameter object
+about the value of attributes whereas \emph{adder} and \emph{creater} methods
+are used to notify nested elements.
+
+For attribute \emph{attr}, the setter method \texttt{set}\emph{Attr}
+is called and the string contents of the attribute is converted to the
+target class by {@link umontreal.iro.lecuyer.util.StringConvert}.
+The \texttt{id} attribute has a special meaning for the
+parameter reader; it assigns a name to an element.
+When the \texttt{xref} attribute is associated with an element, the
+element's contents is expected to be empty and the only allowed
+attribute is \texttt{xref}.  The parameter reader replaces such a
+reference element's attributes and contents with the element having
+the matching \texttt{id} attribute.
+
+Nested XML elements are
+recursively turned into parameter objects by adder and creater methods.
+An adder method has the form \texttt{add}\emph{Element} whereas a
+creater method has the form \texttt{create}\emph{Element}.
+For simple contents, the adder method can accept a class that can be
+converted by {@link umontreal.iro.lecuyer.util.StringConvert}.
+For complex contents to be represented, another parameter object must
+be used.
+
+For a parameter object to become storable, it must implement the
+{@link umontreal.iro.lecuyer.xmlconfig.StorableParam} subinterface of
+{@link umontreal.iro.lecuyer.xmlconfig.Param}.  This interface
+specifies a writing method responsible for the conversion.  The {@link
+umontreal.iro.lecuyer.xmlconfig.DOMUtils} class contains helper
+methods that can be used during the conversion of any parameter object
+to a DOM tree.
+
+\paragraph{Example of a parameter file.} The following
+example shows how the parameters from a sample
+file are handled and converted.
+
+\begin{verbatim}
+
+<?xml version="1.0"?>
+
+<myparams id="test">
+   <numtypes>3</numtypes>
+   <numgroups>2</numgroups>
+   <arrivalrates>2, 4, 2</arrivalrates>
+</myparams>
+\end{verbatim}
+
+We define a class \texttt{MyParams} implementing
+{@link umontreal.iro.lecuyer.xmlconfig.Param} and
+providing a no-argument
+constructor and the following methods.
+The methods do not need to be public.
+
+\begin{verbatim}
+
+   class MyParams implements Param {
+      void setId (String id) { ... }
+      void addNumtypes (int n) { ... }
+      void addNumgroups (int n) { ... }
+      ArrayParam createArrivalrates() {
+         return new ArrayParam (double.class);
+      }
+      addArrivalrates (ArrayParam rates) { r = rates.getDoubleValues(); }
+   }
+\end{verbatim}
+
+After the parameter object is constructed, the parameter reader
+calls \texttt{setId} with the string \texttt{test}.
+All other attributes are mapped to a corresponding setter method.
+
+The parameter reader then calls \texttt{addNumtypes} with integer
+\texttt{3}.
+The same process happens for the \texttt{numgroups} nested
+element.
+
+When the \texttt{arrivalrates} element is found, the
+\texttt{createArrivalrates} method is called to create a parameter
+object.  This creater method is necessary because the {@link
+umontreal.iro.lecuyer.xmlconfig.ArrayParam} class does not provide a
+no-argument constructor since the user needs to specify the component
+class for
+the array.  The parameter reader constructs the array parameter object
+and pass it back to \texttt{addArrivalrates} when the configuration is
+done.  The \texttt{getDoubleValues} method can be used to get an array
+of double-precision elements when the array component class is
+numeric.  Note that there is a similar class for 2D arrays called
+{@link umontreal.iro.lecuyer.xmlconfig.ArrayParam2D}.
+</body>

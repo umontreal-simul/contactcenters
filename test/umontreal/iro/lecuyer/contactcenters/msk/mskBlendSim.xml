@@ -1,0 +1,55 @@
+<ccmsk:MSKCCParams defaultUnit="HOUR" periodDuration="PT2H"
+                   numPeriods="3"     startingTime="PT8H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <inboundType name="Inbound">
+      <probAbandon>0.0050 0.0050 0.0050</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="SECOND">
+         <periodGen repeat="3">0.002</periodGen>
+      </patienceTime>
+      <serviceTime distributionClass="GammaDist" generatorClass="GammaAcceptanceRejectionGen" unit="SECOND">
+         <periodGen repeat="3">0.755 0.0013266118333775537</periodGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON">
+         <sourceToggleTime startingTime="PT7H55M" endingTime="PT14H"/>
+         <arrivals>136.9 145.86 143.84</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <outboundType name="Outbound">
+      <probAbandon>1</probAbandon>
+      <serviceTime distributionClass="ExponentialDist" unit="SECOND">
+         <defaultGen>0.002271694684234439</defaultGen>
+      </serviceTime>
+      <probReach>0.28 0.29 0.29</probReach>
+      <dialer dialerPolicy="DIALXFREE" dropMismatches="false" kappa="2.0" c="0">
+         <sourceToggleTime startingTime="PT11H" endingTime="PT13H55M"/>
+         <minFreeAgentsTest>4 4 4</minFreeAgentsTest>
+      </dialer>
+   </outboundType>
+
+   <agentGroup efficiency="0.9" name="Inbound-only">
+      <staffing>23 23 21</staffing>
+   </agentGroup>
+   <agentGroup efficiency="0.85" name="Blend">
+      <staffing>16 18 16</staffing>
+   </agentGroup>
+
+   <router routerPolicy="QUEUEPRIORITY">
+      <typeToGroupMap>
+         <row>0 1</row>
+         <row>1</row>
+      </typeToGroupMap>
+      <groupToTypeMap>
+         <row>0</row>
+         <row>1 0</row>
+      </groupToTypeMap>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT20S PT20S PT20S PT20S</row>
+      </awt>
+      <target>
+         <row>0 0 0 0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

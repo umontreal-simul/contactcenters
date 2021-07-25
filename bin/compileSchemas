@@ -1,0 +1,8 @@
+#!/bin/sh
+
+PCC=source/umontreal/iro/lecuyer
+rm -rf $PCC/xmlbind/params/*.java $PCC/contactcenters/params/*.java
+rm  $PCC/contactcenters/app/params/*.java $PCC/contactcenters/msk/params/*.java
+xjc -d source $PCC/schemas/ccmsk.xsd || exit 1
+bin/addbody $PCC/xmlbind/params/package.html $PCC/contactcenters/params/package.html
+bin/addbody $PCC/contactcenters/app/params/package.html $PCC/contactcenters/msk/params/package.html

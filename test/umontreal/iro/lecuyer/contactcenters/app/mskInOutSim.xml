@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?import umontreal.iro.lecuyer.probdist.*?>
+<?import umontreal.iro.lecuyer.randvar.*?>
+<mskccparams defaultUnit="HOUR"                   queueCapacity="infinity"
+             periodDuration="1.0h"                numPeriods="5"
+             startTime="9h">
+   <!-- Call type 0 -->
+   <inboundType name="First Inbound Type">
+      <sourceToggleTimes>9h, 14h</sourceToggleTimes>
+      <probAbandon>0.08, 0.01, 0.1, 0.09, 0.07</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            12.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="0" unit="HOUR">
+            60.0</serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="2" unit="HOUR">
+            35.0</serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>60.0, 50.0, 40.0, 45.0, 49.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 1 -->
+   <inboundType name="Second Inbound Type">
+      <sourceToggleTimes>9h, 10.2h,
+                         10.8h, 14h</sourceToggleTimes>
+      <probAbandon>0.06, 0.12, 0.23, 0.18, 0.15</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+            6.0</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="0" unit="HOUR">
+            50.0</serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="3" unit="HOUR">
+            29.0</serviceTime>
+      <arrivalProcess type="POISSONGAMMA" normalize="true">
+         <poissonGammaParams>
+             <row repeat="5">25.2,  0.975</row>
+         </poissonGammaParams>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 2 -->
+   <outboundType name="First Outbound Type">
+      <probAbandon>
+         <row repeat="5">0.95</row>
+      </probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="SECOND">
+            0.33333</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="1" unit="HOUR">
+            8.178</serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="2" unit="HOUR">
+            4.5</serviceTime>
+      <sourceToggleTimes>
+         <row>12.0h</row>
+         <row>14.0h</row>
+      </sourceToggleTimes>
+      <dialer dialerPolicy="DIALXFREE"  dropMismatches="false"
+              kappa="2.0"                   c="0">
+         <minFreeAgentsTest>
+            <row repeat="5">4</row>
+         </minFreeAgentsTest>
+         <probReach>
+            <row repeat="2">0.27</row>
+            <row>0.28</row>
+            <row repeat="2">0.29</row>
+          </probReach>
+      </dialer>
+   </outboundType>
+   <!-- Call type 3 -->
+   <outboundType name="Second Outbound Type">
+      <probAbandon>
+         <row repeat="5">0.98</row>
+      </probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="SECOND">
+            0.2</patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="1" unit="HOUR">
+            9.2</serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="3" unit="HOUR">
+            8.2</serviceTime>
+      <sourceToggleTimes>
+         <row>11.5h</row>
+         <row>13.5h</row>
+      </sourceToggleTimes>
+      <dialer dialerPolicy="DIALXFREE" dropMismatches="false"
+              kappa="2.5"            c="1">
+         <minFreeAgentsTest>
+            <row repeat="5">3</row>
+         </minFreeAgentsTest>
+         <probReach>
+            <row>0.3</row>
+            <row>0.33</row>
+            <row>0.37</row>
+            <row>0.4</row>
+            <row>0.38</row>
+         </probReach>
+      </dialer>
+   </outboundType>
+
+   <!-- Agent group 0 -->
+   <agentGroup name="Inbound-only agents">
+      <staffing>1, 5, 6, 9, 3</staffing>
+   </agentGroup>
+   <!-- Agent group 1 -->
+   <agentGroup name="Outbound-only agents">
+      <staffing>2, 7, 6, 3, 9</staffing>
+   </agentGroup>
+   <!-- Agent group 2 -->
+   <agentGroup name="Blend agents 1">
+      <staffing>3, 5, 5, 4, 4</staffing>
+   </agentGroup>
+   <!-- Agent group 3 -->
+   <agentGroup name="Blend agents 2">
+      <staffing>2, 4, 6, 4, 5</staffing>
+   </agentGroup>
+
+    <router routerPolicy="AGENTSPREF">
+      <ranksGT>
+         <row>       1,        1, infinity, infinity</row>
+         <row>infinity, infinity,        1,        1</row>
+         <row>       3, infinity,        2, infinity</row>
+         <row>infinity,        3, infinity,        2</row>
+      </ranksGT>
+   </router>
+   <serviceLevel>
+      <awt value="20s"/>
+      <awt value="25s" k="0"/>
+      <awt value="30s" k="1"/>
+      <target value="0.8"/>
+   </serviceLevel>
+</mskccparams>

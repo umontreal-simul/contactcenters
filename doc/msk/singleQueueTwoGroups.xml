@@ -1,0 +1,39 @@
+<ccmsk:MSKCCParams   defaultUnit="SECOND" periodDuration="PT1H"
+     numPeriods="13" startingTime="PT8H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <inboundType name="Inbound Type">
+      <probAbandon>0.1</probAbandon>
+      <patienceTime distributionClass="ExponentialDistFromMean" unit="SECOND">
+         <defaultGen>1000</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDistFromMean"  unit="SECOND">
+         <defaultGen>100</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>100 150 150 180 200 150 150 150 120 100 80 70 60</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <agentGroup name="Inbound-only agents 1">
+      <staffing>1 4 4 3 2 4 5 6 5 5 2 3 3</staffing>
+   </agentGroup>
+   <agentGroup name="Inbound-only agents 2">
+      <staffing>3 2 4 5 6 3 3 2 1 1 2 1 1</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREF">
+     <ranksTG>
+       <row>1 2</row>
+     </ranksTG>
+     <routingTableSources ranksGT="ranksTG"/>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

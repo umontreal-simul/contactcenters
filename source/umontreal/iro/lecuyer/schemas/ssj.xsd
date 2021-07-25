@@ -1,0 +1,1510 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+   xmlns:ssj="http://www.iro.umontreal.ca/lecuyer/ssj"
+   xmlns="http://www.w3.org/1999/xhtml"
+   targetNamespace="http://www.iro.umontreal.ca/lecuyer/ssj"
+   elementFormDefault="unqualified" jxb:version="2.0">
+   <!-- Bugs: xsddoc surrounds the descriptions of any component with <pre> tags if this
+      description does not contain some XML markup. Workaround: add HTML markup to
+      descriptions. But XJC escapes this markup so we need to provide a javadoc description
+      for XJC. -->
+   <xsd:annotation>
+      <xsd:documentation>
+         Defines some basic types usable by simulation applications.
+         This schema defines convenience simple types for non-negative
+         and positive numbers. It also provides a complex type
+         <tt>PropertiesParams</tt>
+         representing properties,
+         <tt>DoubleArray,</tt>
+         <tt>IntArray,</tt>
+         etc. representing 2D arrays,
+         <tt>DBConnectionParams</tt>
+         for parameters of connections to databases, and
+         <tt>RandomVariateGenParams</tt>
+         for parameters of random variate generators.
+         <p>
+            The
+            <tt>umontreal.iro.lecuyer.xmlbind</tt>
+            Java package provides classes with helper methods for
+            manipulating some types defined by this schema. See the API
+            documentation of ContactCenters for more information about
+            this package.
+         </p>
+      </xsd:documentation>
+      <xsd:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="umontreal.iro.lecuyer.xmlbind.params">
+               <jxb:javadoc>
+                  <![CDATA[Defines some basic types usable by
+          simulation applications.
+         This package contains JAXB-derived classes for
+         XML namespace
+         <tt>http://www.iro.umontreal.ca/lecuyer/ssj</tt>.]]>
+               </jxb:javadoc>
+            </jxb:package>
+         </jxb:schemaBindings>
+      </xsd:appinfo>
+   </xsd:annotation>
+
+   <!-- Base types -->
+   <xsd:simpleType name="nonNegativeByte">
+      <xsd:restriction base="xsd:byte">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeShort">
+      <xsd:restriction base="xsd:short">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeInt">
+      <xsd:restriction base="xsd:int">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeLong">
+      <xsd:restriction base="xsd:long">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeFloat">
+      <xsd:restriction base="xsd:float">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeDouble">
+      <xsd:restriction base="xsd:double">
+         <xsd:minInclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeDuration">
+      <xsd:restriction base="xsd:duration">
+         <xsd:minInclusive value="PT0S" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveDuration">
+      <xsd:restriction base="xsd:duration">
+         <xsd:minExclusive value="PT0S" />
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="positiveByte">
+      <xsd:restriction base="xsd:byte">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveShort">
+      <xsd:restriction base="xsd:short">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveInt">
+      <xsd:restriction base="xsd:int">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveLong">
+      <xsd:restriction base="xsd:long">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveFloat">
+      <xsd:restriction base="xsd:float">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveDouble">
+      <xsd:restriction base="xsd:double">
+         <xsd:minExclusive value="0" />
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="double01">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a double-precision value restricted to the
+            <tt>]0, 1[</tt>
+            interval.
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:double">
+         <xsd:minExclusive value="0" />
+         <xsd:maxExclusive value="1" />
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="double01i">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a double-precision value restricted to the
+            <tt>[0, 1]</tt>
+            interval.
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:double">
+         <xsd:minInclusive value="0" />
+         <xsd:maxInclusive value="1" />
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="byteList">
+      <xsd:list itemType="xsd:byte" />
+   </xsd:simpleType>
+   <xsd:simpleType name="shortList">
+      <xsd:list itemType="xsd:short" />
+   </xsd:simpleType>
+   <xsd:simpleType name="stringList">
+      <xsd:list itemType="xsd:string" />
+   </xsd:simpleType>
+   <xsd:simpleType name="booleanList">
+      <xsd:list itemType="xsd:boolean" />
+   </xsd:simpleType>
+   <xsd:simpleType name="intList">
+      <xsd:list itemType="xsd:int" />
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeIntList">
+      <xsd:list itemType="ssj:nonNegativeInt" />
+   </xsd:simpleType>
+   <xsd:simpleType name="longList">
+      <xsd:list itemType="xsd:long" />
+   </xsd:simpleType>
+   <xsd:simpleType name="floatList">
+      <xsd:list itemType="xsd:float" />
+   </xsd:simpleType>
+   <xsd:simpleType name="doubleList">
+      <xsd:list itemType="xsd:double" />
+   </xsd:simpleType>
+   <xsd:simpleType name="positiveDoubleList">
+      <xsd:list itemType="ssj:positiveDouble" />
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeDoubleList">
+      <xsd:list itemType="ssj:nonNegativeDouble" />
+   </xsd:simpleType>
+   <xsd:simpleType name="double01iList">
+      <xsd:list itemType="ssj:double01i" />
+   </xsd:simpleType>
+   <xsd:simpleType name="durationList">
+      <xsd:list itemType="xsd:duration" />
+   </xsd:simpleType>
+   <xsd:simpleType name="nonNegativeDurationList">
+      <xsd:list itemType="ssj:nonNegativeDuration" />
+   </xsd:simpleType>
+   <xsd:simpleType name="timeList">
+      <xsd:list itemType="xsd:time" />
+   </xsd:simpleType>
+
+   <xsd:simpleType name="TimeUnitParam">
+      <xsd:annotation>
+         <xsd:documentation>Represents a time unit.</xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:string">
+         <xsd:enumeration value="NANOSECOND" />
+         <xsd:enumeration value="MICROSECOND" />
+         <xsd:enumeration value="MILLISECOND" />
+         <xsd:enumeration value="SECOND" />
+         <xsd:enumeration value="MINUTE" />
+         <xsd:enumeration value="HOUR" />
+         <xsd:enumeration value="DAY" />
+         <xsd:enumeration value="WEEK" />
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:complexType name="AbstractProperty" abstract="true">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property, i.e., a name-value pair. This
+            abstract type only defines the
+            <tt>name</tt>
+            attribute which is intended to give a name to a property.
+            Concrete sub-types define
+            <tt>value</tt>
+            attributes or elements of specific types.
+            <p>
+               The permitted content of the
+               <tt>value</tt>
+               attribute or element depends on the type of the property,
+               and its parent element. Some properties might allow the
+               value attribute to be omitted while others may require
+               it.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property, i.e., a name-value pair.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:attribute name="name" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the property. The authorized names
+               depend on the parent element of the property, but
+               usually, any string authorized as an XML attribute value
+               is allowed here.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="BooleanProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property, i.e., a name-value pair, whose value
+            is of boolean type.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>Represents a boolean property.</jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:boolean">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the value of the boolean property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="BooleanListProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a list of booleans.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a list of
+                  booleans.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:booleanList"
+                  minOccurs="0">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the list of booleans representing the
+                        value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="BooleanArrayProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a 2D array of booleans.
+            It does not require to be a
+            matrix (same number of columns for each row).
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a 2D array of booleans.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:BooleanArray"
+                  minOccurs="0">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the 2D array of booleans representing the
+                        value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="StringProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a string.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a string.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:string">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the string representing the value of the
+                     property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="StringListProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a list of strings.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a list of
+                  strings.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:stringList">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the list of strings representing the
+                        value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="IntegerProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a 32-bits signed
+            integer.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a 32-bits signed
+                  integer.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:int">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the integer representing the value of
+                     the property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="IntegerListProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a list of 32-bits
+            signed integers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a list of 32-bits
+                  signed integers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:intList">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the list of integers corresponding to
+                        the value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="IntegerArrayProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a 2D array of 32-bits
+            signed integers. It does not require to be a
+            matrix (same number of columns for each row).
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a 2D array of 32-bits
+                  signed integers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:IntArray">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the 2D array of integers corresponding to
+                        the value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="NumberProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a double-precision
+            number.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a
+                  double-precision number.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:double">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the number corresponding to the value of
+                     the property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="NumberListProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a list of
+            double-precision numbers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a list of
+                  double-precision numbers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:doubleList">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the list of numbers representing the
+                        value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="NumberArrayProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a 2D array of
+            double-precision numbers. It does not require to be a
+            matrix (same number of columns for each row).
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a 2D array of
+                  double-precision numbers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:DoubleArray">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the 2D array of numbers representing the
+                        value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="DurationProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a time duration.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a time duration.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:duration">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the time duration representing the value
+                     of the property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="DurationListProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a list of time
+            durations.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a list of time
+                  durations.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:sequence>
+               <xsd:element name="value" type="ssj:durationList">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed" />
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Determines the list of time durations
+                        representing the value of the property.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="DateTimeProperty">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a property whose value is a date/time.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a property whose value is a date/time.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:AbstractProperty">
+            <xsd:attribute name="value" type="xsd:dateTime">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the date and time representing the value
+                     of the property.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="PropertiesParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a set of properties associated with some entity.
+            Each property is represented by a child element with a
+            <tt>name</tt>
+            attribute giving its name, and a
+            <tt>value</tt>
+            attribute or element setting its value. The name of the
+            child element describing the property gives information
+            about the type of the value, which can be a string, a
+            number, etc. An element of type
+            <tt>PropertiesParams</tt>
+            can have an arbitrary number of properties. The exact
+            meaning of the properties depends on the entity having these
+            properties.
+            <p>
+               The following code fragment gives an example of
+               properties.
+            </p>
+            <pre><![CDATA[<properties>
+   <string name="Title" value="This is a title"/>
+   <integer name="number" value="22"/>
+   <durationList name="list">
+     <value>PT2S PT5S</value>
+   </durationList>
+</properties>]]>
+            </pre>
+            <p>
+               The
+               <tt>ParamReadHelper</tt>
+               class provides the
+               <tt>unmarshalProperties</tt>
+               method which allows to convert an instance of the class
+               derived by JAXB from this complex type to a more
+               convenient Java
+               <tt>Map</tt>
+               instance. The reverse transformation can be accomplished
+               using the
+               <tt>marshalProperties</tt>
+               method.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a set of properties associated with some
+                  entity.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:annotation>
+            <xsd:appinfo>
+               <jxb:property name="propertyList" />
+            </xsd:appinfo>
+         </xsd:annotation>
+         <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="boolean" type="ssj:BooleanProperty" />
+            <xsd:element name="string" type="ssj:StringProperty" />
+            <xsd:element name="integer" type="ssj:IntegerProperty" />
+            <xsd:element name="number" type="ssj:NumberProperty" />
+            <xsd:element name="duration" type="ssj:DurationProperty" />
+            <xsd:element name="dateTime" type="ssj:DateTimeProperty" />
+            <xsd:element name="booleanList"
+               type="ssj:BooleanListProperty" />
+            <xsd:element name="booleanArray"
+               type="ssj:BooleanArrayProperty" />
+            <xsd:element name="stringList"
+               type="ssj:StringListProperty" />
+            <xsd:element name="integerList"
+               type="ssj:IntegerListProperty" />
+            <xsd:element name="integerArray"
+               type="ssj:IntegerArrayProperty" />
+            <xsd:element name="numberList"
+               type="ssj:NumberListProperty" />
+            <xsd:element name="numberArray"
+               type="ssj:NumberArrayProperty" />
+            <xsd:element name="durationList"
+               type="ssj:DurationListProperty" />
+         </xsd:choice>
+      </xsd:sequence>
+   </xsd:complexType>
+
+   <xsd:complexType name="Named">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents an entity with a name and zero or several
+            properties. The name is encoded into a
+            <tt>name</tt>
+            attribute, while the properties, if needed, are given in a
+            <tt>properties</tt>
+            element. Sub-types can define additional attribute and child
+            elements.
+            <p>
+               The
+               <tt>Named</tt>
+               class can be used to access the name and properties
+               conveniently in Java programs.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents an entity with a name and zero or several
+                  properties.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="properties" type="ssj:PropertiesParams"
+            minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Gives the properties associated with this named
+                  component.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="NamedUniquePropertyName">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Enforces that the property names are unique in a
+                     given named entity.
+                  </xsd:documentation>
+               </xsd:annotation>
+               <xsd:selector xpath="*" />
+               <xsd:field xpath="@name" />
+            </xsd:key>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="name" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the name of the entity. If the name is omitted, a
+               default name depending on the type of entity is generated
+               by the application.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+
+   <!-- Extended arrays -->
+   <xsd:complexType name="IntArray">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a 2D array of integers. A 2D array is composed of
+            an array of 1D arrays, each 1D array being represented by a
+            <tt>row</tt>
+            child element. Each row contains a list of zero or more
+            values, and might be repeated one or more times by using the
+            <tt>repeat</tt>
+            attribute.
+            <p>
+               In the following sample fragment,
+               <tt>array</tt>
+               is an element of this type.
+            </p>
+            <pre><![CDATA[<array>
+   <row>1 2 3</row>
+   <row repeat="2">4 5</row>
+</array>]]>
+            </pre>
+            <p>
+               This represents an array of three arrays containing
+               respectively
+               <tt>{1, 2, 3},</tt>
+               <tt>{4, 5},</tt>
+               and
+               <tt>{4, 5}.</tt>
+            </p>
+            <p>
+               The
+               <tt>ArrayConverter</tt>
+               class provides convenience methods for conversion between
+               instances of the JAXB-derived class representing this
+               complex type to a 2D Java array. It also contains methods
+               for other types of 2D arrays.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a 2D array of integers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Represents a child 1D array of a 2D array.
+               </xsd:documentation>
+               <xsd:appinfo>
+                  <jxb:property name="rows" />
+               </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:intList">
+                     <xsd:attribute name="repeat"
+                        type="ssj:nonNegativeInt" default="1">
+                        <xsd:annotation>
+                           <xsd:documentation>
+                              Gives the number of times this 1D child
+                              array is repeated in the 2D array.
+                           </xsd:documentation>
+                        </xsd:annotation>
+                     </xsd:attribute>
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="DoubleArray">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a 2D array of double-precision values. This type
+            is similar to
+            <tt>IntArray</tt>
+            with double-precision values instead of integers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a 2D array of double-precision numbers.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="rows" />
+               </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:doubleList">
+                     <xsd:attribute name="repeat"
+                        type="ssj:nonNegativeInt" default="1" />
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="DurationArray">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a 2D array of time durations. This type is
+            similar to
+            <tt>IntArray</tt>
+            with time durations instead of integers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a 2D array of time durations.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="rows" />
+               </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:durationList">
+                     <xsd:attribute name="repeat"
+                        type="ssj:nonNegativeInt" default="1" />
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="NonNegativeDurationArray">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a 2D array of non-negative time durations. This
+            type is similar to
+            <tt>IntArray</tt>
+            with time durations instead of integers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a 2D array of non-negative time durations.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="rows" />
+               </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:nonNegativeDurationList">
+                     <xsd:attribute name="repeat"
+                        type="ssj:nonNegativeInt" default="1" />
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="BooleanArray">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a 2D array of booleans. This type is similar to
+            <tt>IntArray</tt>
+            with booleans instead of integers.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a 2D array of booleans.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="rows" />
+               </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:booleanList">
+                     <xsd:attribute name="repeat"
+                        type="ssj:nonNegativeInt" default="1" />
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+   </xsd:complexType>
+
+   <!-- Complex types -->
+   <xsd:complexType name="DBConnectionParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents the parameters for a database connection
+            established using JDBC. A connection can be established
+            using a JDBC URI intended for the
+            <tt>DriverManager</tt>
+            or using a JNDI name corresponding to a
+            <tt>DataSource.</tt>
+            Connection information is given using attributes, and
+            possibly properties.
+            <p>
+               Interacting with a database using Java requires a JDBC
+               driver in addition to the database management system
+               (DBMS). Major database vendors provide or are working on
+               such a JDBC driver. For example, MySQL requires MySQL
+               Connector/J while Oracle provides its own JDBC driver.
+            </p>
+            <p>
+               After the DBMS and the JDBC driver are determined, one
+               can set up the parameters for the JDBC connection. This
+               can be done two ways: using a JDBC URI, or a
+               <i>Java Naming and Directory Interface</i>
+               (JNDI) server.
+            </p>
+            <p>
+               All JDBC URIs start with
+               <tt>jdbc:</tt>
+               and depend on the JDBC driver used. Additionally, a
+               driver class has to be loaded, and additional properties,
+               e.g., user name and password, usually need to be
+               specified. For example, the URI
+               <tt>jdbc:mysql://mysql.iro.umontreal.ca/database</tt>
+               can be used to establish a connection on the MySQL
+               database named
+               <tt>database</tt>
+               and hosted by
+               <tt>mysql.iro.umontreal.ca.</tt>
+               The corresponding name for the driver class is
+               <tt>com.mysql.jdbc.Driver.</tt>
+            </p>
+            <p>
+               The URI
+               <tt>jdbc:odbc:datasource</tt>
+               represents a connection to the ODBC data source named
+               <tt>datasource</tt>
+               and the corresponding driver is
+               <tt>sun.jdbc.odbc.JdbcOdbcDriver.</tt>
+            </p>
+            <p>
+               The
+               <tt>jdbcURI</tt>
+               attribute gives the JDBC URI being used while the fully
+               qualified name of the driver class to be loaded is given
+               by the
+               <tt>jdbcDriverClass</tt>
+               attribute. Moreover, one can use the
+               <tt>properties</tt>
+               element to specify properties, e.g., a user name and a
+               password, for the connection. The given properties are
+               passed to JDBC so the supported properties also depend on
+               the JDBC driver used.
+            </p>
+            <p>
+               The following example describes a connection to a MySQL
+               database, and requires the MySQL JDBC Connector.
+            </p>
+            <pre><![CDATA[<database jdbcDriverClass="com.mysql.jdbc.Driver"
+   jdbcURI="jdbc:mysql://mysql.iro.umontreal.ca/database">
+   <properties>
+      <string name="user" value="foo"/>
+      <string name="password" value="bar"/>
+    </properties>
+ </database>]]>
+            </pre>
+            <p>
+               Alternatively, one can use JNDI to establish the
+               connection to a database. A JNDI server, which maps names
+               to Java objects, is usually embedded into an application
+               server such as JBoss Application Server. When using JNDI,
+               one at least needs to set the
+               <tt>jndiDataSourceName</tt>
+               attribute to a name the JNDI server in use can map to an
+               object implementing
+               <tt>java.sql.DataSource.</tt>
+               This data source is used to retrieve a connection to the
+               database when parameters are read. The JNDI-specific
+               parameters, e.g., the address of the name server, can be
+               encoded into the
+               <tt>properties</tt>
+               nested element. If no property is specified in the
+               database parameters, JNDI looks for the properties in a
+               file named
+               <tt>jndi.properties.</tt>
+               See the documentation of JNDI for more information on how
+               to set up and use JNDI.
+            </p>
+            <p>
+               The method
+               <tt>createConnection</tt>
+               in class
+               <tt>ParamReadHelper</tt>
+               can be used to turn an instance of the class derived from
+               this complex type by JAXB into a
+               <tt>Connection</tt>
+               object representing the JDBC connection.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents the parameters for a database connection
+                  established using JDBC.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="properties" type="ssj:PropertiesParams"
+            minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Represents properties for the database connection. If
+                  the connection is established using a JDBC driver,
+                  these properties are given to the driver manager, and
+                  complements the given JDBC URI. If the connection is
+                  established using JNDI, these properties become the
+                  environment used for constructing the initial JNDI
+                  context.
+                  <p>
+                     Note that the values of the given properties are
+                     converted to strings before they are given to JDBC
+                     or JNDI.
+                  </p>
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="DBUniquePropertyName">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Ensures that the property names are unique for a
+                     given database connection element.
+                  </xsd:documentation>
+               </xsd:annotation>
+               <xsd:selector xpath="*" />
+               <xsd:field xpath="@name" />
+            </xsd:key>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="jndiDataSourceName" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the JNDI name of the data source that will be used
+               to obtain the connection.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="jdbcDriverClass" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the fully qualified name of the JDBC driver class
+               to load before attempting to establish a connection using
+               a JDBC URI. This attribute might not be needed with
+               recent Java versions and JDBC drivers.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="jdbcURI" type="xsd:anyURI">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the URI used to establish a connection with the
+               JDBC driver manager.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+
+   <xsd:complexType name="RandomVariateGenParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Gives parameters for a probability distribution and a random
+            number generator constructed using SSJ. The probability
+            distribution is defined by a distribution class, and an
+            array of numerical parameters called the data array while
+            the random variate generator is defined by a distribution,
+            and a generator class. The type of random stream used to
+            generate the uniforms from which variates are obtained is
+            supplied by the application, and can be configured through
+            simulation parameters. Generated values may also be
+            truncated on a given interval, and shifted by a certain
+            amount, by using the appropriate attributes. Most parameters
+            are given through attributes, except the data array which is
+            given as nested text.
+            <p>
+               More specifically, when constructing an object
+               representing a distribution, the application first finds
+               a Java class corresponding to the name given by the
+               <tt>distributionClass</tt>
+               attribute. The found distribution class is then scanned
+               as follows in order to look for a suitable constructor
+               accepting the data array. If the
+               <tt>estimateParameters</tt>
+               attribute is
+               <tt>false</tt>
+               or unset, the application examines the distribution class
+               to find a constructor taking an array of double-precision
+               values, and calls this constructor with the data array.
+               If no such constructor exists, the application looks for
+               a constructor taking the same number of numerical
+               parameters than the length of the data array, and tries
+               to call it. The input double-precision values are
+               converted to the appropriate types for calling the
+               constructor. If a conversion to integer is needed, the
+               decimals in the concerned input value are truncated.
+            </p>
+            <p>
+               On the other hand, if
+               <tt>estimateParameters</tt>
+               is set to
+               <tt>true,</tt>
+               the input array is treated as an array of observations
+               used for parameter estimation. For this, a static method
+               named
+               <tt>getInstanceFromMLE</tt>
+               is looked for and called in the distribution class. The
+               exact scheme for parameter estimation depends on the
+               distribution class used.
+            </p>
+            <p>
+               After the distribution is constructed, the application
+               may also create a random variate generator. By default,
+               generators use inversion, but this can be overridden by
+               setting an alternate generator class through the
+               <tt>generatorClass</tt>
+               attribute. The
+               <tt>lowerBound</tt>
+               and
+               <tt>upperBound</tt>
+               attributes may also be use to set truncation parameters
+               while the
+               <tt>shift</tt>
+               attribute is used to set the shift subtracted to each
+               generated value. Note that one must use inversion for a
+               truncated distribution.
+            </p>
+            <p>
+               See the documentation of SSJ's
+               <tt>umontreal.iro.lecuyer.probdist</tt>
+               package for the available distributions, and their
+               parameters. See also
+               <tt>umontreal.iro.lecuyer.randvar</tt>
+               for the available generators.
+            </p>
+            <p>
+               An instance of the class derived by JAXB from this
+               complex type can be converted into SSJ objects using
+               methods in the
+               <tt>ParamReadHelper</tt>
+               class. More specifically, the
+               <tt>createBasicDistribution</tt>
+               method creates a
+               <tt>Distribution</tt>
+               object without considering shifting and truncation. The
+               <tt>createTruncatedDist</tt>
+               method creates the truncated distribution from the basic
+               distribution. The
+               <tt>createGenerator</tt>
+               method creates random variate generators from parameters,
+               and possibly the distribution object.
+            </p>
+
+            <p>
+               For example, let
+               <tt>rvg</tt>
+               be an element representing a probability distribution.
+               For an exponential distribution with mean 1/10, one uses
+            </p>
+            <pre><![CDATA[<rvg distributionClass="ExponentialDist">
+   10</rvg>]]>
+            </pre>
+            <p>
+               When creating the distribution, an application finds the
+               distribution class
+               <tt>ExponentialDist</tt>
+               in package
+               <tt>umontreal.iro.lecuyer.probdist.</tt>
+               According to the documentation of SSJ, this class does
+               not provide a constructor taking an array of
+               double-precision values. However, it has a constructor
+               taking one argument corresponding to the inverse of the
+               mean. As a result, the nested text of
+               <tt>rvg</tt>
+               contains the desired rate, 10, for a mean of 1/10.
+            </p>
+
+            <p>
+               For a gamma distribution with shape parameter 20, scale
+               parameter 2, and mean 10, one has to use the
+               <tt>GammaDist</tt>
+               class instead of
+               <tt>ExponentialDist.</tt>
+               The documentation of this class indicates that it defines
+               a constructor taking the shape and scale parameters, so
+               the array of data will contain the parameters. This
+               results in the following XML code.
+            </p>
+            <pre>
+               &lt;rvg distributionClass="GammaDist"&gt;20 2&lt;/rvg&gt;
+            </pre>
+            <p>
+               However, generating gamma variates using inversion is
+               slow. One can alternatively use acceptance-rejection by
+               adding the attribute
+               <tt>generatorClass="GammaAcceptanceRejectionGen"</tt>
+               to
+               <tt>rvg.</tt>
+            </p>
+
+            <p>
+               Suppose now that we wish to have random variates
+               following a normal distribution truncated to positive
+               numbers. The corresponding
+               <tt>rvg</tt>
+               looks as follows.
+            </p>
+            <pre>
+               &lt;rvg distributionClass="NormalDist"
+               lowerBound="0"&gt;10 5&lt;/rvg&gt;
+            </pre>
+            <p>
+               In this example, we select the
+               <tt>NormalDist</tt>
+               distribution which has a constructor taking the mean and
+               the variance. Using the input array, we then specify a
+               mean of 10, and a variance of 5. Using the
+               <tt>lowerBound</tt>
+               attribute, we then restrict our normal distribution to
+               positive numbers.
+            </p>
+
+            <p>
+               Suppose now that we have 100 observations and we suspect
+               their distribution to be gamma. We can then use the
+               <tt>estimateParameters</tt>
+               attribute as follows for parameters to be estimated via
+               maximum likelihood.
+            </p>
+            <pre>
+               &lt;rvg distributionClass="GammaDist"
+               generatorClass="GammaAcceptanceRejectionGen"
+               estimateParameters="true"&gt; 13.583 38.350 36.988
+               174.782 25.055 76.227 65.542 43.937 14.617 140.998 85.697
+               52.774 39.501 27.493 94.177 234.529 35.521 3.475 339.398
+               15.490 140.056 20.032 8.392 24.555 113.580 21.363 74.357
+               23.090 97.026 146.662 219.492 211.232 185.475 129.586
+               70.093 8.275 4.256 270.992 380.576 65.159 88.477 111.913
+               0.202 284.074 49.649 80.090 128.229 109.601 14.614 77.179
+               8.003 156.671 29.713 17.353 62.487 9.279 18.595 111.629
+               147.295 100.060 55.822 217.506 10.113 315.508 45.521
+               150.381 140.569 29.204 187.779 121.608 95.364 117.455
+               255.000 159.561 130.894 100.282 97.153 60.966 72.697
+               218.799 177.292 70.690 72.737 37.344 106.093 20.325
+               90.501 117.777 201.008 13.961 14.421 238.566 16.629
+               27.469 186.505 154.357 281.944 4.212 36.368
+               142.395&lt;/rvg&gt;
+            </pre>
+            <p>
+               These values were obtained by generating 100 i.i.d.
+               exponentials with 100. This corresponds to the gamma
+               distribution with shape parameter 1 and scale parameter
+               1/100.
+            </p>
+
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Gives parameters for a probability distribution and a
+                  random number generator constructed using SSJ.
+               </jxb:javadoc>
+            </jxb:class>
+            <jxb:property collectionType="indexed" name="params" />
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:simpleContent>
+         <xsd:extension base="ssj:doubleList">
+            <xsd:attribute name="distributionClass" type="xsd:string">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the class name of the selected probability
+                     distribution. The given class must be an
+                     implementation of the
+                     <tt>
+                        umontreal.iro.lecuyer.probdist.Distribution
+                     </tt>
+                     interface, and determines the number and use of
+                     parameters. If the given class name is not fully
+                     qualified, a search for the distribution class is
+                     made in the
+                     <tt>umontreal.iro.lecuyer.probdist</tt>
+                     package. For example, setting this attribute to
+                     <tt>ExponentialDist,</tt>
+                     or
+                     <tt>
+                        umontreal.iro.lecuyer.probdist.ExponentialDist
+                     </tt>
+                     is equivalent.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="generatorClass" type="xsd:string">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the class name of the random variate
+                     generator. The given class must be an
+                     implementation of the
+                     <tt>
+                        umontreal.iro.lecuyer.randvar.RandomVariateGen
+                     </tt>
+                     class, and determines the method used to generate
+                     variates. If the given class name is not fully
+                     qualified, a search for the generator class is made
+                     in the
+                     <tt>umontreal.iro.lecuyer.randvar</tt>
+                     package. For example, setting this attribute to
+                     <tt>GammaAcceptanceRejectionGen,</tt>
+                     or
+                     <tt>
+                        umontreal.iro.lecuyer.randvar.GammaAcceptanceRejectionGen
+                     </tt>
+                     is equivalent. By default, the basic
+                     <tt>RandomVariateGen</tt>
+                     class is used for all distributions, except
+                     discrete distributions over the integers. In the
+                     latter case,
+                     <tt>RandomVariateGenInt</tt>
+                     is used.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="shift" type="xsd:double">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the shift which is subtracted to any value
+                     generated by the random variate generator. The
+                     shift is also added to all observations when
+                     performing parameter estimation.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="lowerBound" type="xsd:double">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the lower bound of the distribution, i.e.,
+                     the lowest value that can be generated from it. If
+                     this attribute is given without the complementary
+                     <tt>upperBound</tt>
+                     attribute, the upper bound is assumed to be
+                     infinite. If both attributes are omitted, the
+                     distribution is not truncated.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="upperBound" type="xsd:double">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the upper bound of the distribution, i.e.,
+                     the highest value that can be generated from it.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="estimateParameters" type="xsd:boolean"
+               default="false">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines if parameter estimation needs to be
+                     performed.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:simpleContent>
+   </xsd:complexType>
+</xsd:schema>

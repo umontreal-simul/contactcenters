@@ -1,0 +1,12 @@
+<body>
+Provides facilities to predict the waiting time of contacts.
+This package defines an interface,
+{@link
+umontreal.iro.lecuyer.contactcenters.expdelay.WaitingTimePredictor},
+representing a waiting-time predictor.
+Before a predictor can be used, it must be registered with a router.
+This registration allows the predictor to register any observer
+necessary to track system's state.
+A prediction can be obtained for any contact, whether it is
+newly-arrived, or is already waiting in a queue.
+</body>

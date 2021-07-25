@@ -1,0 +1,11 @@
+\begin{tikzpicture}[>=stealth]
+\draw [fill=blue!20] (0,0) rectangle (2,1);
+\draw [fill=blue!20] (6,0) rectangle (8,1);
+\draw (0,0) rectangle (8,1);
+\foreach \x/\xtext in {0, 2/$t_0$, 3/$t_1$, 4/$t_2$, 6/$t_P$, 8/$T$}
+    \draw (\x,1) -- ++(0,-1) node [below] {\xtext};
+\node at (1,0.5) {{\small Preliminary}};
+\node at (5,0.5) {$\ldots$};
+\node at (7,0.5) {{\small Wrap-up}};
+\node at (4, 1) [above] {{\small Main periods}};
+\end{tikzpicture}

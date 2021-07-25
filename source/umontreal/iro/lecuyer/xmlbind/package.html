@@ -1,0 +1,36 @@
+<body>
+Extends the JAXB framework with new classes to simplify
+the process of marshalling and unmarshalling objects with
+validation using XML Schema.
+The JAXB framework, implemented
+in package
+{@link javax.xml.bind}, can be used to map elements of
+an XML document to Java objects.
+The binding compiler \texttt{xjc}
+is used to derive Java classes from a XML Schema,
+and the JAXB runtime to unmarshal XML contents into Java objects,
+or marshal objects back to XML.
+
+JAXB-derived classes do not contain any behavior; these are simple
+data classes.
+As a result, work is often required to transform objects from these
+derived classes into other more useful objects.
+For example, an helper method is necessary to turn objects containing
+parameters for a random variate generator into a true generator
+with an associated implementation generating numbers.
+This package defines classes containing such helper methods.
+The class {@link umontreal.iro.lecuyer.xmlbind.ParamReadHelper}
+provides methods for maps of properties,
+random variate generators, and
+database connections.
+The class {@link umontreal.iro.lecuyer.xmlbind.ArrayConverter}
+provides helper methods for 2D arrays of various common types.
+It also defines an abstract converter class,
+{@link umontreal.iro.lecuyer.xmlbind.JAXBParamsConverter},
+which encapsulates a JAXB context
+and mechanisms to read and write XML files with validation
+using a Schema.
+See the documentation of package {@link javax.xml.bind},
+in the Java API specification, for more information
+about JAXB.
+</body>

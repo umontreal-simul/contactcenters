@@ -1,0 +1,55 @@
+\part{Reference documentation}
+\section{Overview}
+\label{sec:mskref}
+
+This part contains the reference documentation for how parameters
+need to be formatted as well as the output of the
+simulator.  It
+does not explain how to access the simulator from Java code.  One
+needs to refer to Section~\ref{sec:mskusejava}, and
+the ContactCenters API documentation for this.
+
+Section~\ref{sec:mskxml} describes how XML is used by the simulator.
+It provides a brief overview of XML as well as the main data
+structures specific to our paramater file format.
+We also give examples on how the HTML documentation for specific
+parameters of the simulator can be retrieved.
+The following subsections
+give the available performance measures,
+arrival processes, routing and dialing policies,
+which are not listed in the HTML documentation for parameters.
+
+% Types of performance measures, arrival processes,
+% dialer's, and router's policies are represented as strings in the XML
+% documents.
+% These strings are not constrained by the XML
+% schema representing parameter files, because plug-ins may
+% eventually provide additional strings.
+% As a result, the authorized values of these strings are not given in
+% the HTML documentation of the schemas.
+% The following sections therefore give the builtin
+% types of performance measures,
+% arrival processes,
+% dialer's, and router's policies.
+
+%Section~\ref{sec:mskccparams} details the elements and attributes used
+%to describe a call center to be simulated.
+%Section~\ref{sec:msksimparams} provides a detailed description of the
+%parameters used to perform experiments.
+%For each XML element described in these two sections, the
+%its name,
+%acceptable attributes, and allowed
+%nested contents are specified and defined.  Required elements and
+%attributes are identified.  If an element or attribute is not
+%explicitly marked as required, it is optional and a default value or
+%behavior is specified in the documentation.
+
+Section~\ref{sec:mskexp} explains in more details the two supported
+methods of experiment. In particular, it contains information on how
+sequential sampling and batch means work in the simulator.
+
+Section~\ref{sec:mskoutput} describes the output produced by the
+simulator.  It describes the contents and format of any report
+produced by the simulator, and how performance measures are regrouped
+into matrices.  Every supported type of performance measure is also
+presented in detail.

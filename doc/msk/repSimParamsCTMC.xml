@@ -1,0 +1,5 @@
+<ccapp:ctmcrepSimParams minReplications="1000" timeHorizon="PT46800S"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95"/>
+   <randomStreams streamClass="LFSR113"/>
+</ccapp:ctmcrepSimParams>

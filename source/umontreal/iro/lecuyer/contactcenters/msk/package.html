@@ -1,0 +1,123 @@
+<body>
+Provides a generic simulator for multi-skill and blend call centers.
+ContactCenters can be used directly to construct simulators for
+arbitrarily complex contact centers.  See the \texttt{examples.pdf}
+document for examples of this.  However, this requires programming
+and the resulting programs can become complex.
+This package provides a generic simulator adapted for call centers
+with multiple call types and agent groups, and using XML configuration files.
+It can be
+used for many simulation scenarios, and estimates a large set of
+performance measures.
+
+This reference documentation covers all classes and methods in the simulator.
+It is targeted at developers who are using the tool in a program,
+or extending it.
+See the \texttt{guidemsk.pdf} document for a description of the model
+implemented by this simulator, and examples showing how
+to configure and use the tool from a user perspective.
+
+The simulator
+implemented in this package is split into several components representing the model, the
+simulation logic, and the system managing statistics.  The model
+regroups every entity of the call center, e.g., calls, agent groups,
+waiting queues, routers, etc.  
+It also specifies how random numbers are generated throughout the simulation.
+
+The simulation logic contains the necessary instructions to run the
+model in order to generate results.
+It defines the concept of a \emph{step} and assigns
+\emph{statistical periods} to calls.
+For a simulation with independent replications, each
+step corresponds to a replication while the statistical period
+is usually the period of arrival.
+For a simulation of a single period as it was infinite in the model,
+steps correspond to time intervals of a single long replication,
+and the statistical period is always 0.
+
+The system managing statistics, on the other hand, is made of observers, and matrices of counters.
+Observers are registered to collect information about every call
+leaving the system, and the evolution of
+agent groups and waiting queues.
+All this information is used to update matrices of counters whose
+rows usually correspond to call types
+or agent groups, and columns, to periods.
+At the end of each simulation step, the values of the counters are
+added to matching matrices of statistical collectors.
+After the simulation is done, matrices of averages, sample variances, and other statistics
+can be obtained.
+
+Figure~\ref{fig:umlgensim}
+shows a UML diagram of the simulator's main classes.
+The model is implemented by classes in package
+{@link umontreal.iro.lecuyer.contactcenters.msk.model},
+\texttt{CallCenter} being the main class.
+The simulation logics are implemented in package
+{@link umontreal.iro.lecuyer.contactcenters.msk.simlogic}
+with the \texttt{SimLogic} interface representing any simulation logic.
+The management of statistics is in package
+{@link umontreal.iro.lecuyer.contactcenters.msk.stat}.
+Matrices of counters are encapsulated in an object of
+\texttt{Call\-Center\-Measure\-Manager}, while
+matrices of statistical probes are stored in  an instance of
+a class implementing the \texttt{Call\-Center\-Stat\-Probes}.
+See the documentation of these packages for more information about
+these components and the classes.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[shape=rectangle,fill=gray!20,>=stealth]
+\node (CallCenterSim) [draw,fill] {\texttt{CallCenterSim}};
+\node (CallCenter) [draw,fill,below left of=CallCenterSim, node distance=4cm]
+{\texttt{CallCenter}};
+\node (SimLogic) [draw,fill,below of=CallCenterSim, node distance=4cm]
+{\texttt{SimLogic}};
+\node (CallCenterMeasureManager) [draw,fill,below right of=CallCenterSim, node distance=4cm]
+{\texttt{CallCenterMeasureManager}};
+\node (CallCenterStatProbes) [draw,fill,right of=CallCenterMeasureManager, node distance=6cm]
+{\texttt{CallCenterStatProbes}};
+\node (RepLogic) [draw,fill,below left of=SimLogic, node distance=3cm] 
+{\texttt{RepLogic}};
+\node (BatchMeansLogic) [draw,fill,below right of=SimLogic, node distance=3cm] 
+{\texttt{BatchMeansLogic}};
+
+\draw[<-,>=open diamond] (CallCenterSim) -- (CallCenter);
+\draw[<-,>=open diamond] (CallCenterSim) -- (SimLogic);
+\draw[<-,>=open diamond] (SimLogic) -- (CallCenterMeasureManager);
+\draw[<-,>=open diamond] (SimLogic) -- (CallCenterStatProbes);
+\draw[->,>=open triangle 60,dotted] (RepLogic) -- (SimLogic);
+\draw[->,>=open triangle 60,dotted] (BatchMeansLogic) -- (SimLogic);
+\end{tikzpicture}
+\end{center}
+
+\caption{UML diagram of the generic blend/multi-skill simulator}
+\label{fig:umlgensim}
+\end{figure}
+
+The simulator provides three packages in addition to the packages
+providing the implementation for the main components.
+The package
+{@link umontreal.iro.lecuyer.contactcenters.msk.cv}
+provides an implementation of control variates to reduce the variance
+in simulations.
+The package
+{@link umontreal.iro.lecuyer.contactcenters.msk.spi}
+provides interfaces used when integrating a custom arrival
+process, routing or dialing policy into the simulator.
+The package
+{@link umontreal.iro.lecuyer.contactcenters.msk.conditions}
+implement conditions that can be used by some
+routing and dialing policies.
+
+The class {@link
+umontreal.iro.lecuyer.contactcenters.msk.CallCenterSim}
+represents the simulator as a whole, and implements the interface
+{@link umontreal.iro.lecuyer.contactcenters.app.ContactCenterSim}, which
+provides methods to perform simulations and obtain statistics in a standardized way.
+It provides a main method that can be used to call the simulator from the command
+line. The simulator can also be called from Java code.
+% In the future, some other simulators will be provided
+% or the current simulators will be extended
+% for contacts other than calls, e.g., fax and e-mail which
+% require preemption.
+</body>

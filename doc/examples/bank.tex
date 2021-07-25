@@ -1,0 +1,240 @@
+\section{Bank model}
+\label{sec:Bank}
+
+This example represents a bank model where each agent can process all
+contact
+types, but agents serve their specialty more efficiently.  The bank
+can receive contacts for Savings, Checking, and Account Balance,
+and employs 4 Checking specialists and
+3 Savings specialists.  The Checking and Savings contacts are
+preferred to be handled by specialists when possible, because service
+times are multiplied by a $0.75$ reward factor.  For the Account
+Balance contacts, the system must use the two agent groups in a
+balanced way, so agent selection is random and uniform among free
+agents.  For this model, patience times are uniform and
+service times are exponential.  Arrivals follow a
+non-homogeneous Poisson process whose rate depends on the period of the
+day and the contact type.
+Table~\ref{tab:Bank} presents the rest of the
+input data for this model.
+
+\begin{table}[htb]
+  \caption{Input data for the Bank contact center}
+  \label{tab:Bank}
+  \centering
+  \begin{tabular}{|l|rrr|}\hline
+    &Savings&Checking&Account balance\\\hline
+    Patience&$U(3\mathrm{min},5\mathrm{min})$&$U(3\mathrm{min},5\mathrm{min})$&$U(2.5\mathrm{min},3.5\mathrm{min})$\\
+    Service&Exp($5\mathrm{min}$)&Exp($5\mathrm{min}$)&Exp($1\mathrm{min}$)\\
+    Awt&$60$s&$90$s&$30$s\\
+    Arrivals from 8AM to 9AM&$4/$h&$40/$h&$100/$h\\
+    Hourly arrivals from 9AM to 5PM&$2/$h&$20/$h&$50/$h\\\hline
+  \end{tabular}
+\end{table}
+
+The program estimates the service level as
+well as the occupancy ratio, defined by~(\ref{eq:slarenak})
+and~(\ref{eq:occi}), respectively.
+The program also estimates per-contact type occupancy ratio defined by
+\begin{equation}
+o_{i,k}=\frac{E\left[\int_0^T \Nb[i, k](t)\
+    dt\right]}{E\left[\int_0^T (N_i(t) + \Ng[i](t)) dt\right]}
+\end{equation}
+for $i=0,\ldots,I-1$,
+and the global contact-type specific occupancy ratio
+\[o_{I,k}=\frac{E\left[\int_0^T \sum_{i=0}^{I-1}\Nb[i, k](t)\
+    dt\right]}{E\left[\int_0^T \sum_{i=1}^{I-1}(N_i(t) + \Ng[i](t)) dt\right]}.\]
+which is
+not estimated by Arena Contact Center Edition.
+
+In the Arena Contact Center Edition model, idle and busy costs are
+assigned to the two
+agent groups.  The expected busy cost of agents in group~$i$
+$C_{\mathrm{b},i}$ is defined by
+\[C_{\mathrm{b},i}=c_{\mathrm{b},i}E\left[\int_0^T \Nb[i](t)\ dt\right],\]
+where $c_{\mathrm{b},i}$ is the cost of one busy agent in group~$i$
+per simulation time unit.
+Similarly, the idle cost of agents in group~$i$
+is defined by
+\[C_{\mathrm{i},i}=c_{\mathrm{i}, i}E\left[\int_0^T \Ni[i](t)\
+  dt\right].\]
+The cost of Savings specialists is 12\$/hour while the cost of
+Checking specialists is 7.50\$/hour, whether the agents are idle or
+busy.
+Of course, more general costing models could be implemented by a
+ContactCenters model, e.g., time-varying idle and busy costs.
+
+Listing~\ref{lst:Bank} gives the implementation of the above model to
+estimate various performance measures for each contact type as well as
+aggregate measures for all types.
+
+\lstinputlisting[
+caption={A simulation program for a bank model},%
+emph={main,MyRouter},label=lst:Bank
+]
+{Bank.java}
+
+The \texttt{Bank} class representing the simulator uses the
+\texttt{Contact\-Center} utility class as in the previous example.
+Names are also associated with each contact type, agent group,
+period, and (contact type, agent group) pair,
+for clearer statistical reports.
+
+This example demonstrates an alternative way for performing
+statistical collecting.
+Instead of built-in types or arrays for counting events, we
+use special \emph{measure matrices} adapted for storing observations
+for multiple
+performance measures and periods.  For example, \texttt{num\-Arriv} is
+a $(K+1)\times (P+2)$ matrix whose rows correspond to contact types and
+columns correspond to periods.  The used contact sum matrix must be
+constructed with the number of contact types and periods, and provides
+an \texttt{add} method accepting an observation for contact type~$k$
+during period~$p$.  If $K=1$, the matrix contains a single row.
+Otherwise, each addition to element $(k, p)$ is automatically repeated
+in the last row, at element $(K, p)$, to update the sum over all
+contact types.
+In this model, since the lengths of the preliminary and wrap-up
+periods are 0, the columns~0 and~$P+1$ of the matrix will always
+contain 0's.  However, in general, these columns could contain
+non-zero values.  Similar matrices are constructed for other
+statistics such as the number of blocked, abandoned, and served
+contacts.
+
+For the occupancy ratio, as in the previous example, a statistical
+collector is constructed for each agent group. An agent group
+volume statistical collector is also
+a measure matrix, with rows for the number of busy agents, the
+number of working agents, etc.
+Since it contains a single column for the integrals over all
+simulation time, each matrix of agent group measures
+is wrapped into an integral measure matrix to get the integrals
+for multiple periods, by recording the values of integrals each time a
+period ends.
+For $\Nb[i](t)$ and $N_i(t)+\Ng[i](t)$, \emph{measure sets} regrouping
+the values for each agent group during each period are constructed.
+A measure set is a matrix of measures whose rows are copied from other
+matrices.
+For example, \texttt{svm} is a measure set containing
+the service volumes: for $i=0,\ldots,I-1$ and $p=1,\ldots,P$,
+element $(i, p)$ corresponds to $\int_{t_{p-1}}^{t_p} \Nb[i](t)\ dt$,
+and element $(I, p)$ contains $\int_{t_{p-1}}^{t_p} \Nb(t)\ dt$.
+Additionally, the program can compute
+$\int_{t_{p-1}}^{t_p}\Nb[i, k](t)\ dt$, the
+number of busy agents in group~$i$ serving contacts of type~$k$,
+because the \texttt{vstat} instances were constructed with $K$.  To
+regroup the values, in
+\texttt{dsvm}, each row~$j=Ki+k$, for $i=0,\ldots,I-1$ and
+$k=0,\ldots,K-1$, contains integrals for $\Nb[i, k](t)$.  For $i=I$,
+$KI+k$ contains the integrals for $\Nb[i](t)$.
+\texttt{dtvm} is similar to \texttt{tvm}, except that each row is
+duplicated $K$ times to get the same number of rows as \texttt{dsvm}.
+
+For each matrix of measures, a matrix of collectors is declared.  Each
+matrix of collectors contains the same number of rows than its
+corresponding matrix of measures, and $P+1$ columns.  The first $P$
+columns correspond to main periods while the last column contains
+time-aggregate values for all periods.  Optionally, these
+aggregate values may include the preliminary and wrap-up periods, but
+this is not used in this example.
+Each matrix of probes has a global name corresponding to a performance
+measure, row names corresponding to type or group names, and column
+names corresponding to period names.
+
+Matrices of measures and probes are created in the
+constructor to be added to lists.  This allows them to be
+automatically initialized by the \texttt{init\-Elements} method.
+
+The \texttt{simulate} method initializes all probes in the list
+\texttt{rep\-Probes} and calls \texttt{simulate\-One\-Day} $n$ times
+to perform the replications.  Each replication initializes the
+simulator, the contact center components, and the matrices of
+measures.  The arrival processes are turned on, and the simulation can
+start.
+
+The \texttt{add\-Obs} method uses a convenience method from
+\texttt{Contact\-Center} and \texttt{Rep\-Sim\-CC} (another utility
+class)
+to convert matrices of measures into Colt
+matrices.  Let $M$ be a $R\times (P+2)$ matrix of measures.
+For $r=0,\ldots,R-1$ and $p=1,\ldots,P$, element $m(r, p)$
+of the matrix of measures is copied into element $(r, p - 1)$ of the
+Colt matrix.  Element $(r, P)$ is obtained by
+\[\sum_{p=1}^P m(r, p),\]
+for each $r=0,\ldots,R-1$.
+For computing the costs, another convenience method in
+\texttt{Contact\-Center} is used.
+
+When a contact is served by a specialist, the service time is multiplied
+by $0.75$.  However, at the time its service time is generated, if the
+contact is not served immediately, we do not know the group of its
+serving agent.
+This problem is addressed by changing the
+agent groups' service time generator.  Similarly to waiting queues, a
+value generator is associated with an end-communication indicator.
+By default, service times are
+extracted from contacts and the end-communication type is~0.  This
+can be
+changed to any \texttt{Value\-Generator} implementation by calling the
+\texttt{set\-Contact\-Time\-Generator} method in
+\texttt{Agent\-Group}.
+The default contact time generator supports multipliers similar to the
+talk time multipliers of Arena Contact Center Edition.  To activate
+this feature, the program
+constructs a new \texttt{Contact\-Service\-Time\-Generator} and
+assigns it to the end-communication type~0.
+For example, the Savings specialists will
+have a $0.75$ service time multiplier for Savings contacts and $1.0$
+multipliers for other types.
+Note that this does not affect random number synchronization if it is
+used, since the random service times are generated at the contact's
+creation and multiplied by a constant afterward.
+
+The agents' proficiency rewards preferred contacts-to-agents
+associations, but it is the task of the router to enforce the
+preference.  The router is a modified
+\texttt{Single\-FIFO\-Queue\-Router} whose type-to-group map specifies
+that
+Savings contact types should be routed to Savings specialists first,
+then to Checking specialists if no Savings specialist is
+available.   For Checking contact type, this is the reversed order.
+For Account Balance, any order may be used.
+The inherited routing policy implements the expected selection rule
+for the two first types, but it enforces an unwanted priority for
+Account Balance.  We therefore need to override the
+\texttt{select\-Agent} method to redefine the scheme for this
+particular
+contact type.  The new method simply selects a Checking or
+Savings specialist randomly and uniformly among the available
+agents, or reverts to the superclass' selection rule if the contact
+type corresponds to Savings or Checking.
+
+The contact selection rule of the single FIFO queue router is not
+appropriate for our needs, because it enforces no priority at all on
+waiting queues.  We therefore need to override the
+\texttt{select\-Contact} method to add such priorities.
+The new method, which is called when an agent becomes free,
+first tries to pick a contact in the queue corresponding to the
+preferred type.  The \texttt{remove\-First} method removes the first
+contact in queue with dequeue type \texttt{DEQUEUETYPE\_BEGINSERVICE}
+(which corresponds to 0), and returns a dequeue event
+reference from which information can be
+extracted.  Note that the argument to \texttt{remove\-First} is the
+dequeue type, not the index of the contact in the queue to be removed.
+% Otherwise, the method would have been named \texttt{remove}.
+The
+removed contact is extracted from the event and handled to the
+\texttt{serve} method of the agent group having a free member.
+If the prioritized queue is empty, the method falls back to the
+superclass' implementation which takes the contact with the longest
+waiting time.
+
+Listing~\ref{res:Bank} gives the statistical results for the
+simulated Bank model.  We can notice that the agents mainly serve
+Checking contacts.  Also, if we sum up the per-contact type occupancy
+ratios for an agent group, we obtain its global occupancy ratio.
+
+\lstinputlisting[caption={Results of the program \texttt{Bank}},
+%basicstyle=\ttfamily\footnotesize,
+xleftmargin=-1.5cm,linewidth=18cm,breaklines,prebreak={\char92},
+label=res:Bank]{Bank.res}

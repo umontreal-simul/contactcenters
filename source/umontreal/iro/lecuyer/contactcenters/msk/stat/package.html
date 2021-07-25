@@ -1,0 +1,65 @@
+<body>
+Provides utility classes to manage statistics in the blend/multi-skill
+call center simulator.
+The system for managing statistics is split into two parts:
+counters updated throughout the simulation, and
+collectors updated only at the end of steps using the values of
+counters.
+Counters and collectors are regrouped into matrices whose rows
+correspond to call types, agent groups, or (call type, agent group)
+pairs, and
+columns represent time intervals.
+We now examine how counters and collectors are managed
+and interact
+in more details.
+
+The abstract class
+{@link umontreal.iro.lecuyer.contactcenters.msk.stat.CallCenterMeasureManager}
+represents the matrices of counters.  It can be used to list the supported types of measures, and
+return matrices of values for any supported type.
+Getting a matrix of values is done by reading the
+corresponding counters, and performing some
+computations such as regrouping periods or
+normalizing with respect to time.
+The exact computation depends on application and thus
+on the concrete subclass.
+Usually, the matrices of counters contain one column per period,
+and matrices of statistical collectors have one column per main period,
+plus an extra column representing the whole horizon.
+
+The measure manager also encapsulates
+some observers linked to the
+call center model in order to collect the appropriate
+statistics.
+These observers use an instance of
+{@link umontreal.iro.lecuyer.contactcenters.msk.stat.StatPeriod}
+to obtain the statistical period of any processed call.
+The call center measure manager also includes an
+instance of
+{@link umontreal.iro.lecuyer.contactcenters.msk.stat.CallByCallMeasureManager},
+which
+regroups every counter containing sums with one (possibly 0) term for each
+simulated call.
+
+On the other hand,
+the interface
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.stat.CallCenterStatProbes}
+represents a set of matrices of statistical collectors.
+The most common implementation of this interface is
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.stat.SimCallCenterStat}
+which provides a method \texttt{addObs} to add matrices of counters, obtained
+using an instance of
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.stat.CallCenterMeasureManager}, to
+the corresponding matrices of collectors.
+Other implementations of the interface can be used
+to collect statistics about statistics, e.g., averages of averages,
+variances, etc., combine the information given by two
+instances of
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.stat.SimCallCenterStat}, etc.
+This can be used to apply some variance reduction techniques
+such as stratification and randomized quasi-Monte Carlo methods. 
+</body>

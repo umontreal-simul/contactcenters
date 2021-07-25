@@ -1,0 +1,76 @@
+<ccmsk:MSKCCParams defaultUnit="HOUR"   periodDuration="PT1H"
+                    numPeriods="1"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk" >
+   <!-- Call type 0 -->
+   <inboundType>
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>12.0</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>60.0</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 1 -->
+   <inboundType>
+      <probAbandon>0.06</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>6.0</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>60.0</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>120.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <!-- Call type 2 -->
+   <inboundType>
+      <probAbandon>0.08</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>12.0</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>60.0</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSON">
+         <arrivals>60.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <!-- Agent group 0 -->
+   <agentGroup>
+      <staffing>1</staffing>
+   </agentGroup>
+   <!-- Agent group 1 -->
+   <agentGroup>
+      <staffing>2</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREF">
+     <ranksTG>
+          <row>  2  INF</row>
+          <row>  1    2</row>
+          <row>INF  3</row>
+     </ranksTG>
+     <routingTableSources ranksGT="ranksTG"/>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT20S</row>
+         <row>PT30S</row>
+         <row>PT15S</row>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.78</row>
+         <row>0.82</row>
+         <row>0.79</row>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

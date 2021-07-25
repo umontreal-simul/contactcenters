@@ -1,0 +1,2369 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" xmlns:ssj="http://www.iro.umontreal.ca/lecuyer/ssj" xmlns:cc="http://www.iro.umontreal.ca/lecuyer/contactcenters" xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app" xmlns="http://www.w3.org/1999/xhtml" targetNamespace="http://www.iro.umontreal.ca/lecuyer/contactcenters/app" elementFormDefault="unqualified" jxb:version="2.0">
+   <xsd:annotation>
+      <xsd:documentation>
+         Defines complex types representing parameters of experiments as
+         well as simulation results.
+         The main types for experiment parameters
+         defined in this schema are
+         <tt>RepSimParams</tt> for experiments
+         with independent replications, and
+         <tt>BatchSimParams</tt> for experiments
+         with batch means.
+         The complex type <tt>ContactCenterEvalResultsParams</tt>
+         can be used to store results obtained using an
+         evaluation system while <tt>ContactCenterSimResultsParams</tt>
+         is specialized for storing simulation results.
+         An element is defined in this schema for each
+         of these main complex types.
+      </xsd:documentation>
+      <xsd:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="umontreal.iro.lecuyer.contactcenters.app.params">
+               <jxb:javadoc><![CDATA[Defines types used for evaluation systems of
+          contact centers.
+This package contains JAXB-derived classes for
+XML namespace <tt>http://www.iro.umontreal.ca/lecuyer/contactcenters/app</tt>.]]></jxb:javadoc>
+            </jxb:package>
+         </jxb:schemaBindings>
+      </xsd:appinfo>
+   </xsd:annotation>
+   <xsd:import schemaLocation="cc.xsd" namespace="http://www.iro.umontreal.ca/lecuyer/contactcenters"/>
+   <xsd:import schemaLocation="ssj.xsd" namespace="http://www.iro.umontreal.ca/lecuyer/ssj"/>
+   <xsd:complexType name="ReportParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters for reports on simulation results.
+            Reporting parameters include the statistics to put in
+            the report, confidence level as well as general options.
+         </xsd:documentation>
+         <!-- <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Defines parameters for reporting simulation results.
+                  Reporting parameters include the statistics to include
+                  in the report, confidence level as well as general
+                  options.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>  -->
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="properties" type="ssj:PropertiesParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Represents properties associated with the report. This
+                  complex type defines some predefined attributes and
+                  elements for most common reporting options. Evaluation
+                  systems might however provide additional options which
+                  can be adjusted through custom properties. This
+                  element is therefore used to contain such custom
+                  properties. Evaluation systems identify properties
+                  using their names, and ignore any property with an
+                  unknown name.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="ReportUniquePropertyName">
+               <xsd:selector xpath="*"/>
+               <xsd:field xpath="@name"/>
+            </xsd:key>
+         </xsd:element>
+         <xsd:element name="printedStat" type="ccapp:PrintedStatParams" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="printedStats"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Determines a group of performance measures to be
+                  included in a report. Each occurrence of this element
+                  instructs the evaluation system to add statistics
+                  concerning a specific type of performance measure,
+                  while attributes of the element indicate which
+                  performance measure to include in the report.
+                  Attributes
+                  <tt>defaultDetailed,</tt>
+                  <tt>defaultPeriods,</tt>
+                  and
+                  <tt>defaultOnlyAverages</tt>
+                  can also affect which performance measures are
+                  included in the report. If no occurrence of this
+                  element is present in the reporting parameters, a
+                  report concerning all types of performance measures
+                  supported by the evaluation system used is produced.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="printedObs" type="ccapp:PerformanceMeasureParams" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Determines the list of performance measures for which
+                  a list of observations should be included in the
+                  statistical report. By default, no list of
+                  observations is included. Each occurrence of this
+                  element refers to a performance measure by a type, a
+                  row index, and a column index. If the histogram element
+                  exists, a histogram of the observations will be created
+                  for the corresponding performance measure.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="shownContactTypeProperty" type="ccapp:PropertyNameParam" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="shownContactTypeProperties"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name of a property, associated with a
+                  contact type, to be shown in the report in addition to
+                  the name of the contact type. Parameter files
+                  describing contact centers can affect a name as well
+                  as any user-defined properties to each contact type.
+                  By default, only the name is shown in the reports, but
+                  it is often useful to display the value of properties
+                  such as the caller's language, region, etc. Using
+                  elements of this type instructs the reporting system
+                  to display the value of the property with the
+                  corresponding name for any segment of contact types
+                  included in the report.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="shownAgentGroupProperty" type="ccapp:PropertyNameParam" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="shownAgentGroupProperties"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  This element is similar to
+                  <tt>shownContactTypeProperty</tt>
+                  but for agent groups.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="confidenceLevel" type="ssj:double01" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the level of confidence of any interval when
+               displaying statistical reports. This corresponds to the
+               desired probability for the true particular mean or ratio
+               of means to fall into a given confidence interval, for a
+               particular performance measure. Note that the probability
+               that several means or ratios of means estimated by an
+               evaluation system all fall into the computed confidence
+               intervals is smaller than the given confidence level.
+               Evaluation systems not using simulation might not use
+               this parameter.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="numDigits" type="ssj:positiveInt" default="3">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the number of significant digits for each
+               value formatted in statistical reports.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="maxColumns" type="ssj:positiveInt" default="15">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the maximal number of columns for the tables
+               formatted in reports. Reports are usually formatted using
+               a certain number of tables, where each row corresponds to
+               a category of performance measure (e.g., a contact type),
+               and each column corresponds to a statistic or a period.
+               Usually, a table with one row per category, and one
+               column per period is more readable than a table
+               containing rows of the form (category, period). However,
+               if the number of periods is too high, the number of
+               columns becomes too high for the tables to be viewed
+               on-screen or printed. This attribute can therefore be
+               used to limit the number of columns in a table. More
+               specifically, the reporting facility will format tables
+               with one row per category and one column per period if
+               this does not exceed the maximal number of columns, or
+               switch to (category, period) form of rows if the number
+               of columns with the first form is too high. Reporting
+               facilities will try to enforce this limit, but no data
+               must be discarded even if the limit is exceeded.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="summarySheetName" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the spreadsheet containing summary
+               information. This string is used only for
+               spreadsheet-based reports (e.g., report to Excel files),
+               and defaults to a locale-specific name. If the sheet name
+               specified by this attribute is empty, the sheet is
+               omitted in the report.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="detailedSheetNameWithoutPeriods" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the spreadsheet containing
+               detailed information without statistics for individual
+               periods. This string is used only for spreadsheet-based
+               reports (e.g., report to Excel files), and defaults to a
+               locale-specific name. If the sheet name specified by this
+               attribute is empty, the specified sheet is omitted in the
+               report.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="detailedSheetNameWithPeriods" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the spreadsheet containing
+               detailed information with statistics for individual
+               periods. This string is used only for spreadsheet-based
+               reports (e.g., report to Excel files), and defaults to a
+               locale-specific name. If the sheet name specified by this
+               attribute is empty, the specified sheet is omitted in the
+               report.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="obsSheetName" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the spreadsheet containing lists
+               of observations for selected performance measures. This
+               string is used only for spreadsheet-based reports (e.g.,
+               report to Excel files), and defaults to a locale-specific
+               name. If the sheet name specified by this attribute is
+               empty, the specified sheet is omitted in the report. The
+               sheet is also omitted if no performance measure is
+               selected using
+               <tt>printedObs</tt>
+               elements.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="defaultDetailed" type="xsd:boolean" default="true">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the default value of the
+               <tt>detailed</tt>
+               attribute inherited by
+               <tt>printedStat</tt>
+               elements not specifying the
+               <tt>detailed</tt>
+               attribute.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="defaultPeriods" type="xsd:boolean" default="true">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the default value of the
+               <tt>periods</tt>
+               attribute inherited by
+               <tt>printedStat</tt>
+               elements not specifying the
+               <tt>periods</tt>
+               attribute.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="defaultOnlyAverages" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the default value of the
+               <tt>onlyAverages</tt>
+               attribute inherited by
+               <tt>printedStat</tt>
+               elements not specifying the
+               <tt>onlyAverages</tt>
+               attribute.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="PropertyNameParam">
+      <xsd:annotation>
+         <xsd:documentation>
+            This element is used to refer to a property by name, using
+            the
+            <tt>name</tt>
+            attribute.
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:attribute name="name" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the property.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="PrintedStatParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents the parameters for a group of printed statistics
+            when a statistical report is queried. Each group refers to a
+            type of performance measure, given by the
+            <tt>measure</tt>
+            attribute. The other attributes can be used to determine
+            which statistics concerning the selected type of performance
+            measure are to be included in the report.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents the parameters for a group printed
+                  statistics when a statistical report is queried
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:attribute name="measure" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the type of performance measure being included
+               into the statistical report. This attribute refers to the
+               name of any enum constant in the Java class
+               <tt>PerformanceMeasureType</tt>
+               in package
+               <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+               For example,
+               <tt>SERVICELEVEL</tt>
+               is a valid name for a type of performance measure.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="detailed" type="xsd:boolean" default="true">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if a detailed statistical report is required
+               for the selected type of performance measure. If this is
+               set to
+               <tt>true,</tt>
+               a statistical report will contain the result for all
+               time-aggregate performance measures of this type. In
+               addition, if the
+               <tt>periods</tt>
+               attribute is set to
+               <tt>true,</tt>
+               the report will also include performance measures of the
+               selected type specific to each time period in the model.
+               However, setting the
+               <tt>detailed</tt>
+               attribute to
+               <tt>false</tt>
+               instructs the reporting system to include only the
+               aggregate performance measure of the selected type.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="periods" type="xsd:boolean" default="true">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if the statistical report for the selected
+               type of performance measure contains results for
+               individual periods. This attribute has no effect if no
+               period-specific data is available for the given type of
+               performance measure, or if no detailed report is
+               requested, i.e., the
+               <tt>detailed</tt>
+               attribute is
+               <tt>false.</tt>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="onlyAverages" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if the report for the referred type of
+               performance measure should contain only averages. If this
+               attribute is
+               <tt>true,</tt>
+               any report for this type of performance measure excludes
+               the minimum, maximum, standard deviation, and confidence
+               interval. If this option is
+               <tt>false,</tt>
+               the report includes all the information. Note that this
+               attribute has no effect if the evaluation system only
+               computes or estimates means.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="HistogramParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Determine the parameters of a histogram. The bins all have equal width.
+            If the parameters are not given, they will be chosen automatically.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+               Determine the parameters for a histogram.
+              </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:attribute name="syncTicks" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+             Synchronizes the x-axis ticks with some of the histogram bins.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="numBins" type="ssj:positiveInt">
+         <xsd:annotation>
+            <xsd:documentation>
+                  Determines the number of bins of the histogram. They all
+                  have equal width. If not present, it will be chosen automatically.
+               </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="leftBoundary" type="xsd:double">
+         <xsd:annotation>
+            <xsd:documentation>
+                 Determines the left boundary of the histogram: it is also
+                 the left boundary of the leftmost bin. If not present,
+                 it will be chosen as the smallest value of the observations.
+                    </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="rightBoundary" type="xsd:double">
+         <xsd:annotation>
+            <xsd:documentation>
+                       Determines the right boundary of the histogram: it is also
+                       the right boundary of the rightmost bin. If not present,
+                       it will be chosen as the largest value of the observations.
+                    </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="PerformanceMeasureParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Selects a specific performance measure identified by a type
+            name, a row, and a column. The name of the measure, e.g.,
+            <tt>SERVICELEVEL,</tt>
+            is given by the mandatory
+            <tt>measure</tt>
+            attribute, and refers to a matrix of performance measures.
+            This can be any enum constant defined in the Java class
+            <tt>PerformanceMeasureType</tt>
+            from package
+            <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+            The optional attributes
+            <tt>row</tt>
+            and
+            <tt>column</tt>
+            give the row and column indices of the performance measure
+            in the matrix selected by the
+            <tt>measure</tt>
+            attribute. Let
+            <i>RxC</i>
+            be the dimensions of the selected matrix. The default value
+            of the
+            <tt>row</tt>
+            attribute is
+            <tt>R-1,</tt>
+            i.e., the last row of the matrix. If
+            <tt>row</tt>
+            is set to a negative value
+            <i>r,</i>
+            this refers to row
+            <tt>R-r</tt>
+            in the matrix. The same logic is used for the column index.
+            Note that when both attributes are omitted, the bottom-right
+            element of the matrix is selected, which usually corresponds
+            to a global performance measure over the whole simulated
+            horizon.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Selects a specific performance measure identified by a
+                  type name, a row, and a column.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+   <xsd:sequence>
+   <xsd:element name="histogram" type="ccapp:HistogramParams" minOccurs="0" maxOccurs="1">
+         <xsd:annotation>
+            <xsd:documentation>
+               If present, a histogram of the observations results will be
+               shown for this performance measure.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:element>
+   </xsd:sequence>
+      <xsd:attribute name="measure" type="xsd:string" use="required"/>
+      <xsd:attribute name="row" type="xsd:int" default="-1"/>
+      <xsd:attribute name="column" type="xsd:int" default="-1"/>
+   </xsd:complexType>
+   <xsd:complexType name="CallTraceParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Determines the parameters for the call-by-call trace. The
+            simulator provides an option for tracing each simulated call
+            to a text file, an Excel spreadsheet, or to a table in a
+            database. For each call, the following information is
+            logged:
+            <ul><li>
+                  the index of the real batch or replication the call
+                  arrived in (for calls arrived during the warmup, -1 is
+                  output),
+               </li><li>the call type identifier,</li><li>the index of the period of its arrival,</li><li>the arrival time of the call,</li><li>
+                  its time spent in queue, or NaN for blocked or failed
+                  calls,
+               </li><li>
+                  the outcome of the call (blocked, abandoned, served,
+                  or failed),
+               </li><li>
+                  the group index of the agent having served the call,
+                  or -1 for blocked, abandoned, and failed calls,
+               </li><li>
+                  its service time, or NaN if the call could not be
+                  served.
+               </li></ul>
+            <p>
+               The output file name for the trace is given using the
+               attribute
+               <tt>outputFileName</tt>
+               which defaults to
+               <tt>callTrace.log.</tt>
+               The format of the trace is determine by the file's
+               extension. Note that trace files can be huge, and take
+               time to read with most text editor, including Microsoft
+               Excel.
+            </p>
+            <p>
+               By default, when sending the trace to Excel spreadsheet,
+               a sheet named
+               <tt>callTrace</tt>
+               is created, and filled with the data. If more than 65535
+               calls are processed, a second sheet named
+               <tt>callTrace1</tt>
+               is created, because Microsoft Excel limits the number of
+               rows in a sheet. The base name of the sheet might be
+               changed using the
+               <tt>sheetName</tt>
+               attribute.
+            </p>
+            <p>
+               Element
+               <tt>database</tt>
+               is used to send the trace data to a database. This
+               requires information about the connection to the
+               database, established using JDBC. The trace is sent to
+               the table with name given by the
+               <tt>tableName</tt>
+               attribute, which defaults to
+               <tt>callTrace.</tt>
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Determines the parameters for the call-by-call trace.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="database" type="ssj:DBConnectionParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Determines the parameters of the database for the
+                  call-by-call trace. When this element is present, it
+                  has precedence over the
+                  <tt>outputFileName</tt>
+                  attribute, and the trace is stored into a table of a
+                  database with name given by the
+                  <tt>tableName</tt>
+                  attribute.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="numDigits" type="ssj:positiveInt" default="3">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the number of decimal digits of precision for
+               arrival times, waiting times, and service times, in
+               call-by-call trace files. This attribute is ignored if
+               call-by-call trace is not directed to a plain text file.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="outputFileName" type="xsd:string" default="callTrace.log">
+         <xsd:annotation>
+            <xsd:documentation>
+               Specifies the name of the file that will contain the
+               call-by-call trace. If the given file name ends with
+               <tt>.xls,</tt>
+               the trace file is output into an Excel spreadsheet.
+               Otherwise, it is stored into a text file. The trace is
+               output in a file named
+               <tt>callTrace.log</tt>
+               in the current directory, if this option is not
+               specified.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="sheetName" type="xsd:string" default="callTrace">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the default base name of the sheet containing
+               the trace, when the call trace is sent to an Excel
+               workbook. If the trace is not sent to Excel, this
+               attribute is ignored.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="tableName" type="xsd:string" default="callTrace">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name of the table, in the database, that
+               will receive the trace of all simulated calls if call
+               tracing is directed to a database.
+               <p>
+                  Note that every record in the given table is deleted
+                  at the beginning of a simulation. The trace facility
+                  assumes that the table was created using a SQL query
+                  similar to
+                  <tt>
+                     CREATE TABLE callTrace (step INTEGER, type INTEGER,
+                     period INTEGER, arvTime DOUBLE primary key,
+                     queueTime DOUBLE, outcome VARCHAR(10), agentGroup
+                     INTEGER, srvTime DOUBLE).
+                  </tt>
+                  Note that one may need to adapt this query to its
+                  specific database management system.
+               </p>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="SequentialSamplingParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Determines parameters for sequential sampling based on some
+            type of performance measure. When using sequential sampling,
+            the number of replications or batches is increased until the
+            relative error on some performance measures falls below a
+            given threshold. An element of this type is used to set this
+            threshold for a specific type of performance measure.
+            <p>
+               By default, a constant number of observations, specified
+               in the parameter file of the experiment, is obtained by
+               simulation. Depending on the type of experiment,
+               observations correspond to replications, or batches. The
+               minimal number of observations is given by the
+               <tt>minReplications</tt>
+               or
+               <tt>minBatches</tt>
+               attributes, in experiment parameters.
+            </p>
+            <p>
+               However, if a target relative error is given for a set of
+               performance measures selected using
+               <tt>sequentialSampling</tt>
+               elements in experiment parameters, the number of
+               observations becomes random: after a minimum of
+               <i>
+                  n
+                  <sub>0</sub>
+               </i>
+               observations are obtained, the simulator computes the
+               estimates for the selected measures and their associated
+               confidence intervals. Let
+               <i>X</i>
+               be an estimator for one of the selected performance
+               measures, and let the confidence interval on the true
+               performance measure be [
+               <i>[X - D, X + D]</i>
+               with confidence level set by the attribute
+               <tt>confidenceLevel.</tt>
+               For each checked performance measure, the relative error
+               <i>D / X</i>
+               must be smaller than or equal to the threshold
+               <i>E</i>
+               selected by the
+               <tt>targetError</tt>
+               attribute. If this condition is violated for at least one
+               checked performance measure, a new target number of
+               observations is determined by rounding
+               <i>
+                  n
+                  <sub>0</sub>
+                  * (D / (E * |X|))^2
+               </i>
+               to the nearest integer, and additional observations are
+               collected. In other words, the sample size increases
+               until the required precision is attained. The process is
+               repeated until the target relative error is reached, or a
+               maximal number of observations given in experiment
+               parameters is reached.
+            </p>
+            <p>
+               The
+               <tt>measure</tt>
+               attribute is used to determine the type of performance
+               measures on which sequential sampling is performed. By
+               default, the procedure is applied on each performance
+               measure of the selected type, and the number of
+               additional observations is the maximum of the numbers
+               obtained for each measure. However, if the
+               <tt>globalOnly</tt>
+               attribute is set to
+               <tt>true,</tt>
+               only the performance measure for all contact types, agent
+               groups, and periods, is checked.
+            </p>
+            <p>
+               If
+               <i>d</i>
+               performance measures are considered by the sequential
+               sampling, with individual confidence levels
+               <i>
+                  1-a
+                  <sub>1</sub>
+               </i>
+               , ...,
+               <i>
+                  1-a
+                  <sub>d</sub>
+               </i>
+               , the overall confidence level for all the estimates to
+               have a relative error smaller than the targets is
+               <i>
+                  1-a
+                  <sub>1</sub>
+                  *...*a
+                  <sub>d</sub>
+               </i>
+               .
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Defines parameters for sequential sampling based on
+                  some type of performance measure.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:attribute name="measure" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the name of the type of performance measure
+               affected by this set of parameters. This can correspond
+               to any enum constant in Java class
+               <tt>PerformanceMeasureType</tt>
+               from package
+               <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="targetError" type="ssj:nonNegativeDouble" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the target relative error for sequential
+               sampling. The relative error is estimated by dividing the
+               half-width of the confidence interval by the average. By
+               default, the relative error of all the performance
+               measures of type referred by the
+               <tt>measure</tt>
+               attribute needs to be less than or equal to the target
+               error for the simulation to stop.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="confidenceLevel" type="ssj:double01" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the desired level of confidence used to
+               compute relative errors.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="globalOnly" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if the error check is performed on the global
+               measure only. If this attribute is set to
+               <tt>true,</tt>
+               the check is made on the global performance measure of
+               the type specified by the
+               <tt>measure</tt>
+               attribute. Otherwise, the check is made over all
+               performance measures of that type.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="RandomStreamsParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters of the random streams used during an
+            experiment based on simulation. The simulator uses several
+            streams of uniform random numbers to generate any needed
+            non-uniform random variate. By default, the MRG32k3a
+            generator is used to produce random numbers, but this can be
+            customized by using this element in experiment parameters.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Defines parameters of the random streams used during
+                  an experiment based on simulation.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="streamSeed" type="ssj:doubleList" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property collectionType="indexed"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Determines the initial seed to use with the selected
+                  class of random streams. This is the seed used by the
+                  first random stream constructed by the simulator. This
+                  list of numbers should represent the array passed to
+                  the
+                  <tt>setPackageSeed</tt>
+                  static method of the selected class of random stream.
+                  The length of the given array, and the accepted values
+                  thus depend on the type of random stream used.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="streamClass" type="xsd:string" default="MRG32k3a">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the class of the random streams being used to
+               generate random numbers during the simulation. The given
+               class must be an implementation of SSJ's
+               <tt>umontreal.iro.lecuyer.rng.RandomStream</tt>
+               interface, and have a no-argument constructor. One can
+               give a fully-qualified class name, or a class name
+               relative to package
+               <tt>umontreal.iro.lecuyer.rng.</tt>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="caching" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if random values such as inter-arrival times
+               are cached from simulations to simulations, for better
+               performance when using common random numbers. Caching can
+               improve performance, but it requires more memory.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="ControlVariableParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters for a specific control variable applied
+            to some estimators after simulation.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Defines parameters for a specific control variable
+                  applied to some estimators after simulation.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:attribute name="name" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the name of the control variable being used.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="SimParams" abstract="true">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents generic parameters for experiments using
+            simulation. These include the parameters for the
+            call-by-call trace, the reporting and sequential sampling
+            parameters, and the settings for the random streams. Other
+            complex types in this schema extends this type with
+            additional attributes. In particular,
+            <tt>RepSimParams</tt>
+            defines parameters for simulations with independent
+            replications while
+            <tt>BatchSimParams</tt>
+            specifies parameters for simulations with batch means.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents generic parameters for experiments using
+                  simulation.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="callTrace" type="ccapp:CallTraceParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Gives the parameters for the call-by-call trace. If
+                  this element is omitted, call-by-call trace is
+                  disabled. Note that using a call trace produces huge
+                  output files, and slows down the simulator.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="report" type="ccapp:ReportParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines reporting parameters. If this element is
+                  omitted, a detailed report on all performance
+                  measures, with confidence intervals with level 0.95,
+                  is produced.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="simPrintedStatUniqueMeasure">
+               <xsd:selector xpath="printedStat"/>
+               <xsd:field xpath="@measure"/>
+            </xsd:key>
+         </xsd:element>
+         <xsd:element name="randomStreams" type="ccapp:RandomStreamsParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Defines parameters for the random streams used by the
+                  simulator. If this element is omitted, MRG32k3a
+                  streams are used, with the default initial seed.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="sequentialSampling" type="ccapp:SequentialSamplingParams" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Determines parameters for sequential sampling. Each
+                  occurrence of this element refers to a specific type
+                  of performance measure. If no element with this name
+                  is present in the parameters, sequential sampling is
+                  disabled. Otherwise, each occurrence of this element
+                  gives a set of performance measures for which
+                  sequential sampling is used. When performing
+                  sequential sampling, the program obtains a target
+                  number of observations for each selected performance
+                  measure, and sets the overall target number of
+                  observations to the maximum over all selected
+                  performance measures. See the description of the
+                  <tt>SequentialSamplingParams</tt>
+                  complex type for more information about this.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="controlVariable" type="ccapp:ControlVariableParams" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="controlVariables"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Defines parameters for control variables used after
+                  simulation to reduce variance on the estimates. If no
+                  element with this name is present, control variables
+                  are not used.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="keepObs" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Indicates that when using simulation to estimate
+               performance measures, all collected observations have to
+               be kept in the statistical collectors. This only applies
+               to averages and averages of ratios performance measures.
+               For ratios of averages, only one copy of the estimator is
+               obtained at the end of the simulation.
+               <p>
+                  Keeping all the observations is memory-intensive for
+                  complex contact centers with many contact types, agent
+                  groups, and periods, but it can be useful to compute
+                  custom statistics on the values such as quantiles, and
+                  for plotting histograms.
+               </p>
+               <p>
+                  This option is useful mostly when interacting with the
+                  simulator from Java code since the observations are
+                  not printed on the standard output by default when
+                  running the simulator from the command-line. However,
+                  <tt>printedObs</tt>
+                  elements can be embedded in the
+                  <tt>report</tt>
+                  element to indicate that observations for selected
+                  performance measures must be printed.
+               </p>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="normalizeToDefaultUnit" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines whether the estimated rates are normalized to
+               the default time unit. If this boolean parameter is set
+               to
+               <tt>true,</tt>
+               any estimated rate is divided by the period duration,
+               providing the rate per simulation time unit. Otherwise,
+               the rates are relative to the periods of the simulation.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="cpuTimeLimit" type="ssj:nonNegativeDuration">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the limit for CPU time spent by an experiment
+               using sequential sampling. When the stopping condition
+               for the simulation is checked, if the CPU time elapsed
+               since the beginning of the simulation is higher than this
+               limit, the simulation stops even if the other stopping
+               conditions are not satisfied. If this attribute is
+               omitted, no time limit is enforced.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="enableChrono" type="xsd:boolean" default="true">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if a chrono is used, during simulation, to
+               evaluate required CPU time. It is necessary to enable the
+               chrono for imposing a CPU time limit, or for displaying
+               the CPU time in the results. Disabling the chrono can be
+               useful if it causes compatibility problems.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="restrictToPrintedStat" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if the estimated performance measures are
+               restricted to the list specified by the
+               <tt>printedStat</tt>
+               children of the
+               <tt>report</tt>
+               element. If this attribute is set to
+               <tt>false,</tt>
+               or omitted, the simulator estimates all supported
+               performance measures, and
+               <tt>printedStat</tt>
+               elements only affect the content of reports.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="estimateContactTypeAgentGroup" type="xsd:boolean" default="false">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines if the simulator estimates performance
+               measures concerning (contact type, agent group) pairs. If
+               this option is used, measures such as service level are
+               estimated for every contact type and agent group, but
+               this increases memory usage and decreases performance if
+               the number of contact types or agent groups is large. If
+               this option is disabled (the default), contact-related
+               statistics are computed only for all agent groups.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="RepSimParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents parameters for a contact center simulation using
+            independent replications to evaluate performance measures
+            for a finite horizon and possibly non-stationary system.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents parameters for a contact center simulation
+                  using independent replications to evaluate performance
+                  measures for a finite horizon and possibly
+                  non-stationary system.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ccapp:SimParams">
+            <xsd:sequence>
+               <xsd:element name="outReplications" minOccurs="0" maxOccurs="1" type="ssj:nonNegativeIntList">
+                  <xsd:annotation>
+                     <xsd:documentation>
+                        Determines the out-of-sample number of replications. After
+                           having determined the optimal staffing with <tt>minReplications</tt>,
+                           do the simulation again with larger samples to check that the
+                           previous values were acceptable.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                           <jxb:property collectionType="indexed"/>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            <xsd:attribute name="minReplications" type="ssj:positiveInt" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the minimal number of replications. When
+                     sequential sampling is not used, this corresponds
+                     to the number of simulated replications. Otherwise,
+                     this gives the minimal number of replications to be
+                     performed before the first error check.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="maxReplications" type="ssj:positiveInt">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the maximal number of replications to
+                     avoid excessive simulation length when using
+                     sequential sampling. This is also used to limit
+                     memory usage if observations are stored.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="perPeriodCollectingMode" type="ccapp:PerPeriodCollectingMode" default="PERIODOFENTRY">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines in which period a contact is counted
+                     during statistical collecting. The statistical
+                     period can be the arrival period, the period at
+                     which the service begins, or the period at which
+                     the contact exits the system. This only affects
+                     per-period statistics, not statistics over all
+                     time. For example, if contacts are counted in the
+                     periods they exit, one can influence the service
+                     level by serving a contact in the next period if
+                     its waiting time already exceeds the threshold.
+                     However, the service level cannot be influenced
+                     this way if the contacts are counted in the period
+                     they arrive. If the statistical period of a contact
+                     corresponds to the wrap-up period, it is counted in
+                     the first main period. Similarly, a contact whose
+                     statistical period is the wrap-up period is counted
+                     in the last main period.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:simpleType name="PerPeriodCollectingMode">
+      <xsd:annotation>
+         <xsd:documentation>
+            Determines how per-period statistics are computed during
+            simulation. At the time a contact leaves the system, the
+            statistical collector must choose a period, and count every
+            statistic concerning the contact in that period. If the
+            period is selected differently depending on the event,
+            ratios such as service levels have less sense. In
+            particular, it is not sensible to count the arrival of a
+            contact in a period, and its service termination in the next
+            period. The way the counting period is chosen can affect the
+            per-period results, and can be adjusted by the user.
+            However, this does not affect the global, time-aggregate,
+            results. This parameter concerns experiments using
+            independent replications, and is determined by the
+            <tt>perPeriodCollectingMode</tt>
+            attribute of element
+            <tt>repSimParams.</tt>
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:string">
+         <xsd:enumeration value="PERIODOFENTRY">
+            <xsd:annotation>
+               <xsd:documentation>
+                  All events concerning a contact are counted in the
+                  period of its arrival in the system.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:enumeration>
+         <xsd:enumeration value="PERIODOFEXIT">
+            <xsd:annotation>
+               <xsd:documentation>
+                  All events concerning a contact are counted in the
+                  period of its exit (end of service, abandonment, or
+                  blocking).
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:enumeration>
+         <xsd:enumeration value="PERIODOFBEGINSERVICEORENTRY">
+            <xsd:annotation>
+               <xsd:documentation>
+                  All events concerning a contact are counted in the
+                  period at which the service begins. Events concerning
+                  unserved contacts are counted in the period of
+                  arrival.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:enumeration>
+         <xsd:enumeration value="PERIODOFBEGINSERVICEOREXIT">
+            <xsd:annotation>
+               <xsd:documentation>
+                  All events concerning a contact are counted in the
+                  period at which the service begins. Events concerning
+                  unserved contacts are counted in the period of exit
+                  (abandonment or blocking).
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:enumeration>
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:complexType name="StratSimParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents parameters specific to an experiment using
+            independent replications and stratification.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents parameters specific to an experiment using
+                  independent replications and stratification.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ccapp:RepSimParams">
+            <xsd:attribute name="numStrata" type="ssj:positiveInt" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the number of strata used for the
+                     simulation.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="numPilotRunsPerStratum" type="ssj:positiveInt" default="200">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the number of pilot runs simulated for
+                     each stratum for estimating the control variable
+                     constants and the standard deviations within
+                     strata. This (arbitrarily) defaults to 200 if
+                     unspecified.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="selectedPerformanceMeasure" type="xsd:string">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the type of performance measure
+                     stratification minimizes the variance for. The
+                     attributes
+                     <tt>selectedRow</tt>
+                     and
+                     <tt>selectedColumn</tt>
+                     specify the exact row and column giving the
+                     performance measure. If no type of performance
+                     measure is specified, the simulator ignores the
+                     given row and column, and selects the measure that
+                     minimizes the highest variance among all
+                     performance measures.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="selectedRow" type="ssj:nonNegativeInt"/>
+            <xsd:attribute name="selectedColumn" type="ssj:nonNegativeInt"/>
+            <xsd:attribute name="stratificationVariable" type="xsd:string"/>
+            <xsd:attribute name="optimalAllocation" type="xsd:boolean" default="false">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines if optimal allocation is used for
+                     stratification. Proportional allocation is used if
+                     this attribute is set to
+                     <tt>false.</tt>
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="CTMCRepSimParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents parameters specific to an experiment simulating a
+            CTMC with independent replications.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents parameters specific to an experiment
+                  simulating a CTMC with independent replications.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ccapp:RepSimParams">
+            <xsd:sequence>
+               <xsd:element name="minNumAgents" type="ssj:nonNegativeIntList" minOccurs="0" maxOccurs="1">
+                  <xsd:annotation>
+                     <xsd:documentation>
+                        Determines, for each agent group, the minimal
+                        number of agents used when comparing different
+                        staffing vectors using simulation. If this
+                        element is omitted, the minimal number of agents
+                        is 0. If this element contains a single value,
+                        the given minimal number of agents is used for
+                        each group. Otherwise, the list must contain
+                        <tt>I</tt>
+                        element, where
+                        <tt>I</tt>
+                        is the number of agent groups in the model.
+                     </xsd:documentation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed"/>
+                     </xsd:appinfo>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="maxNumAgents" type="ssj:nonNegativeIntList" minOccurs="0" maxOccurs="1">
+                  <xsd:annotation>
+                     <xsd:documentation>
+                        Determines, for each agent group, the maximal
+                        number of agents used when comparing different
+                        staffing vectors using simulation. If this
+                        element is omitted, the maximal number of agents
+                        is obtained from the model's staffing vector. As
+                        with
+                        <tt>minNumAgents,</tt>
+                        the size of the given array must be 1 or
+                        <tt>I.</tt>
+                     </xsd:documentation>
+                     <xsd:appinfo>
+                        <jxb:property collectionType="indexed"/>
+                     </xsd:appinfo>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="thresholds" type="ssj:IntArray" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:documentation>
+                        Determines a matrix of thresholds on the number
+                        of agents, and queue size, which is used to
+                        speed up simulation. When the number of busy
+                        agents and queue size is below such a vector of
+                        thresholds, a lower transition rate can be used
+                        instead of the regular rate, and several
+                        successive self jumps can often be generated
+                        from a single random number. Each row of the
+                        given matrix must correspond to a vector giving
+                        the threshold on the number of agents in each
+                        group, and on the queue size, for state space
+                        partitioning in order to use adaptive transition
+                        rate. The first
+                        <i>I</i>
+                        columns of the matrix concern agent groups,
+                        while the last column concerns the waiting
+                        queue.
+                        <p>
+                           If element
+                           <i>i=0,...,I-1</i>
+                           for a given vector of thresholds is greater
+                           than the maximal number of agents in group
+                           <i>i</i>
+                           given by the
+                           <tt>maxNumAgents</tt>
+                           element, or if element
+                           <i>I</i>
+                           is greater than the queue capacity set in the
+                           model, the vector is ignored. Moreover, a
+                           vector with thresholds corresponding to the
+                           maximal number of agents and queue capacity
+                           is added if not given by the user.
+                        </p>
+                        <p>
+                           If this element is omitted, no state space
+                           partitioning is used. If a single occurrence
+                           of this element is present, the given matrix
+                           of thresholds is used for all main periods of
+                           the model. Otherwise, there must be
+                           <i>P</i>
+                           occurrences of this element, one for each
+                           main period. Occurrence
+                           <i>p</i>
+                           for
+                           <i>p=0,...,P-1</i>
+                           is then used for main period
+                           <i>p.</i>
+                        </p>
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="timeHorizon" type="ssj:positiveDuration">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the time horizon of the simulation, if a
+                     single period is simulated. If this attribute is
+                     omitted, the period duration set in the model is
+                     used as the time horizon. This attribute is ignored
+                     for multi-periods simulations.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="keepQueues" type="xsd:boolean" default="true">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines if the transition numbers of queued
+                     contacts are kept in memory during the simulation.
+                     This ie necessary to estimate some performance
+                     measures such as the service level.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="alwaysUseIndexedSearch" type="xsd:boolean" default="false">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     When this flag is set to
+                     <tt>true,</tt>
+                     the simulator always uses indexed search for
+                     selecting events, which permits a better
+                     performance when the state space is partitioned
+                     based on the number of agents and queue size.
+                     However, if the state space is not partitioned, the
+                     simulator specialized for a single call type and
+                     agent group, not using indexed search, is usually
+                     more efficient.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:simpleType name="intgt1">
+      <xsd:restriction base="xsd:int">
+         <xsd:minInclusive value="1"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:element name="simParams" type="ccapp:SimParams" abstract="true">
+      <xsd:key name="seqSampUniqueMeasure">
+         <xsd:selector xpath=".//sequentialSampling"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+      <xsd:key name="cvNameUnique">
+         <xsd:selector xpath=".//controlVariable"/>
+         <xsd:field xpath="@name"/>
+      </xsd:key>
+   </xsd:element>
+   <xsd:element name="repSimParams" type="ccapp:RepSimParams" substitutionGroup="ccapp:simParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters concerning an experiment using
+            independent replications.
+         </xsd:documentation>
+      </xsd:annotation>
+   </xsd:element>
+   <xsd:element name="stratSimParams" type="ccapp:StratSimParams" substitutionGroup="ccapp:simParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters concerning an experiment using
+            independent replications and stratification.
+         </xsd:documentation>
+      </xsd:annotation>
+   </xsd:element>
+   <xsd:element name="ctmcrepSimParams" type="ccapp:CTMCRepSimParams" substitutionGroup="ccapp:simParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters concerning an experiment using
+            independent replications on a CTMC call center model.
+         </xsd:documentation>
+      </xsd:annotation>
+   </xsd:element>
+   <xsd:complexType name="BatchSimParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Gives the parameters for a call center simulation using
+            batch means to evaluate steady-state performance measures.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Gives the parameters for a call center simulation
+                  using batch means to evaluate steady-state performance
+                  measures.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ccapp:SimParams">
+            <xsd:attribute name="minBatches" type="ssj:positiveInt" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the minimal number of batches used to
+                     collect statistical observations. When sequential
+                     sampling is not used, this corresponds to the
+                     number of simulated batches (excluding the warmup).
+                     Otherwise, this corresponds to the minimal number
+                     of simulated batches (excluding warmup) before the
+                     first error check is performed. If batch
+                     aggregation is turned on by setting the
+                     <tt>aggregation</tt>
+                     attribute to
+                     <tt>true,</tt>
+                     this also corresponds to the target number of
+                     effective batches and observations in statistical
+                     collectors. With batch aggregation, the number of
+                     collected observations will be less than this
+                     minimum only when the system appears to be unstable
+                     during the first batches.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="maxBatches" type="ssj:positiveInt">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the maximal number of batches to avoid
+                     excessive simulation length and memory usage when
+                     using sequential sampling or keeping observations.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="warmupBatches" type="ssj:nonNegativeInt" default="0">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the number of warmup batches to simulate
+                     before collecting statistical observations. These
+                     batches are performed in addition to the minimal
+                     number of batches.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="aggregation" type="xsd:boolean" default="true">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Indicates that the system will use batch
+                     aggregation for statistical collecting. When using
+                     this feature, the total number of real batches will
+                     always be a multiple of the minimal number of
+                     batches. At the end of the simulation or when an
+                     error check is performed, the real batches are
+                     regrouped to form exactly
+                     <tt>minBatches</tt>
+                     effective batches. This allows to dynamically
+                     increase the batch size without changing the number
+                     of effective batches. When this is set to
+                     <tt>false,</tt>
+                     each collected observation corresponds to one
+                     batch, and the number of batches is random. This
+                     parameter has no impact if sequential sampling is
+                     disabled (the default).
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="batchSize" type="ssj:nonNegativeDuration" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the duration of a batch.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="currentPeriod" type="ssj:nonNegativeInt" default="0">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the index of the main period that will
+                     be simulated in stationary way. This integer
+                     parameter ranging from 0 to the number of main
+                     periods minus one defaults to 0, representing the
+                     first main period.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="initNonEmpty" type="xsd:boolean" default="true">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Indicates that the system will be initialized with
+                     <i>N</i>
+                     *
+                     <tt>targetInitOccupancy</tt>
+                     busy agents, and all waiting queues empty, where
+                     <i>N</i>
+                     is the total number of agents. This heuristic is
+                     used in addition to the warmup period in order to
+                     reduce the bias induced by the transient initial
+                     state of the system on steady-state estimators.
+                     <p>
+                        The warmup period will fill the waiting queues
+                        and hopefully allow the system to leave the
+                        transient state faster. The value of this
+                        parameter does not affect the length of the
+                        warmup period. If this parameter is
+                        <tt>false,</tt>
+                        the system will be empty at the beginning of the
+                        warmup period.
+                     </p>
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="targetInitOccupancy" type="ssj:double01i" default="0.9">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the target initial occupancy ratio of
+                     the agents. This represents the fraction of the
+                     agents that should be busy at the beginning of the
+                     warmup if the system is initialized non-empty. If
+                     the attribute
+                     <tt>initNonEmpty</tt>
+                     is set to
+                     <tt>false,</tt>
+                     the system starts empty, and this parameter has no
+                     effect.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="maxInitBlocked" type="ssj:nonNegativeInt" default="1000">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Determines the maximum number of successive
+                     contacts that can be blocked when performing the
+                     system initialization. Depending on the routing
+                     policy, some contacts might be blocked if no agent
+                     with the appropriate skill is available. A badly
+                     designed policy might even never send contacts to
+                     some agents, which could prevent the heuristic to
+                     reach the target initial occupancy. This threshold
+                     is therefore used to avoid an infinite loop in the
+                     system initialization, when an insufficient number
+                     of agents can become busy. This integer parameter
+                     arbitrarily defaults to 1000 and has no effect if
+                     the system is initialized empty, i.e., if
+                     <tt>initNonEmpty</tt>
+                     is
+                     <tt>false.</tt>
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:element name="batchSimParams" type="ccapp:BatchSimParams" substitutionGroup="ccapp:simParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters for a simulation using batch means.
+         </xsd:documentation>
+      </xsd:annotation>
+   </xsd:element>
+   <xsd:complexType name="PMMatrix">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a matrix of statistics concerning a specific type
+            of performance measure, obtained by some evaluation.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a matrix of statistics concerning a
+                  specific type of performance measure, obtained by some
+                  evaluation.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:DoubleArray">
+            <xsd:attribute name="measure" type="xsd:string" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the type of measures contained into this
+                     matrix. The given string can be the name of any
+                     enum constant in the class
+                     <tt>PerformanceMeasureType</tt>
+                     from package
+                     <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="PMMatrixInt">
+      <xsd:annotation>
+         <xsd:documentation>
+            This is similar to
+            <tt>PMMatrix</tt>
+            with a matrix of integers rather than a matrix of
+            double-precision values.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  This is similar to PMMatrix with a matrix of integers
+                  rather than a matrix of double-precision values.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ssj:IntArray">
+            <xsd:attribute name="measure" type="xsd:string" use="required">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the type of measures contained into this
+                     matrix. The given string can be the name of any
+                     enum constant in the class
+                     <tt>PerformanceMeasureType</tt>
+                     from package
+                     <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="ObsMatrix">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents a matrix of observations concerning a specific
+            type of performance measure.
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents a matrix of observations concerning a
+                  specific type of performance measure.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="obs" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Gives a list of observations for a specific
+                  performance measure, identified by a row and a column.
+                  This element contains the list of observations while
+                  the row and columns are set up using attributes
+                  <tt>row</tt>
+                  and
+                  <tt>column.</tt>
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:complexType>
+               <xsd:simpleContent>
+                  <xsd:extension base="ssj:doubleList">
+                     <xsd:attribute name="row" type="ssj:nonNegativeInt" use="required">
+                        <xsd:annotation>
+                           <xsd:documentation>
+                              Gives the index of the row for this list
+                              of observations.
+                           </xsd:documentation>
+                        </xsd:annotation>
+                     </xsd:attribute>
+                     <xsd:attribute name="column" type="ssj:nonNegativeInt" use="required">
+                        <xsd:annotation>
+                           <xsd:documentation>
+                              Gives the index of the column for this
+                              list of observations.
+                           </xsd:documentation>
+                        </xsd:annotation>
+                     </xsd:attribute>
+                  </xsd:extension>
+               </xsd:simpleContent>
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="measure" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the type of the measure concerned by this matrix of
+               observations. The given string can be the name of any
+               enum constant in the class
+               <tt>PerformanceMeasureType</tt>
+               from package
+               <tt>umontreal.iro.lecuyer.contactcenters.app.</tt>
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="ContactCenterEvalResultsParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents results obtained by performing some type of
+            evaluation on a contact center. Results can be obtained,
+            e.g., using simulation or approximations. This complex type
+            is used to encapsulate results and store them in a XML
+            format reusable by a program. One can use this format, e.g.,
+            to store the results of several simulations, and construct a
+            summary table of results by recovering these results.
+            <p>
+               The complex type
+               <tt>ContactCenterSimResultsParams</tt>
+               which extends this type defines additional elements and
+               attributes for storing simulation results such as
+               variances, minima, maxima, etc.
+            </p>
+            <p>
+               The Java class
+               <tt>ContactCenterEvalResults</tt>
+               can be used to access results more conveniently from Java
+               programs. Instances of this class can be constructed from
+               instances of the class derived by JAXB from this complex
+               type. The Java class
+               <tt>ContactCenterEvalResultsConverter</tt>
+               can also be used to read XML file storing results, and
+               convert them to instances of
+               <tt>ContactCenterEvalResults</tt>
+               and
+               <tt>ContactCenterSimResults.</tt>
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents results obtained by performing some type of
+                  evaluation on a contact center.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="evalInfo" type="ssj:PropertiesParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Represents evaluation information associated with the
+                  results. This can include, e.g., the date and time of
+                  experiment, the number of simulated steps, parameters
+                  specific to the evaluation method used, relevant
+                  factors for a specific experiment, etc. The string
+                  representation of the values of these properties is
+                  included at the beginning of the any report produced
+                  from the simulation results.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="EvalInfoUniquePropertyName">
+               <xsd:selector xpath="*"/>
+               <xsd:field xpath="@name"/>
+            </xsd:key>
+         </xsd:element>
+         <xsd:element name="report" type="ccapp:ReportParams" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Determines the reporting parameters used when these
+                  results are sent to output.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:key name="CCPrintedStatUniqueMeasure">
+               <xsd:selector xpath="printedStat"/>
+               <xsd:field xpath="@measure"/>
+            </xsd:key>
+         </xsd:element>
+         <xsd:element name="inboundType" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="inboundTypes"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the inbound contact
+                  types originally defined by the evaluation system
+                  which produced these results.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="outboundType" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="outboundTypes"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the outbound contact
+                  types originally defined by the evaluation system
+                  which produced these results.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="agentGroup" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="agentGroups"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the agent groups
+                  originally defined by the evaluation system which
+                  produced these results.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="waitingQueue" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="waitingQueues"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the waiting queues
+                  originally defined by the evaluation system which
+                  produced these results.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="period" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="periods"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the main periods
+                  originally defined by the evaluation system which
+                  produced these results.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="inboundTypeSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="inboundTypeSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of inbound contact types originally defined
+                  by the evaluation system which produced these results.
+                  This excludes all implicit segments containing a
+                  single or all inbound contact types.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="outboundTypeSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="outboundTypeSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of outbound contact types originally defined
+                  by the evaluation system which produced these results.
+                  This excludes all implicit segments containing a
+                  single or all outbound contact types.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="contactTypeSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="contactTypeSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of contact types originally defined by the
+                  evaluation system which produced these results. This
+                  excludes all implicit segments containing a single or
+                  all contact types.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="waitingQueueSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="waitingQueueSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of waiting queues originally defined by the
+                  evaluation system which produced these results. This
+                  excludes all implicit segments containing a single or
+                  all waiting queues.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="agentGroupSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="agentGroupSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of agent groups originally defined by the
+                  evaluation system which produced these results. This
+                  excludes all implicit segments containing a single or
+                  all agent groups.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="periodSegment" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="periodSegments"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the name and properties for the explicit
+                  segments of main periods originally defined by the
+                  evaluation system which produced these results. This
+                  excludes all implicit segments containing a single or
+                  all main periods.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="matrixOfAWT" type="ssj:Named" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="matricesOfAWT"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Determines the name of a matrix of acceptable waiting
+                  times. Any property defined by a child
+                  <tt>properties</tt>
+                  is ignored.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="performanceMeasure" type="ccapp:PMMatrix" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+               <xsd:appinfo>
+                  <jxb:property name="performanceMeasureMatrices"/>
+               </xsd:appinfo>
+               <xsd:documentation>
+                  Gives the results of the evaluation. Each occurrence
+                  of this element provides a matrix of results for a
+                  specific type of performance measure.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="defaultUnit" type="ssj:TimeUnitParam" default="HOUR">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the default time unit of performance measures
+               expressing time, e.g., average speed of answer.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="numMatricesOfAWT" type="ssj:nonNegativeInt" default="1">
+         <xsd:annotation>
+            <xsd:documentation>
+               Gives the number of matrices of thresholds for the
+               acceptable waiting times defined in the model of the
+               contact center. The value of this attribute is used only
+               if no
+               <tt>matrixOfAWT</tt>
+               element is present. Otherwise, the number of matrices of
+               AWT is assumed to be the number of occurrences of
+               <tt>matrixOfAWT</tt>
+               element.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+   <xsd:complexType name="ContactCenterSimResultsParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents results obtained by performing simulation of a
+            contact center model. This extends the parameters of
+            evaluation with matrices of variances, minimas, and
+            observations.
+            <p>
+               The Java class
+               <tt>ContactCenterSimResults</tt>
+               can be used to access results more conveniently from Java
+               programs. Instances of this class can be constructed from
+               instances of the class derived by JAXB from this complex
+               type. The Java class
+               <tt>ContactCenterEvalResultsConverter</tt>
+               can also be used to read XML file storing results, and
+               convert them to instances of
+               <tt>ContactCenterEvalResults</tt>
+               or
+               <tt>ContactCenterSimResults.</tt>
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents results obtained by performing simulation
+                  on a contact center.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:complexContent>
+         <xsd:extension base="ccapp:ContactCenterEvalResultsParams">
+            <xsd:sequence>
+               <xsd:element name="variance" type="ccapp:PMMatrix" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property name="varianceMatrices"/>
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Gives the sample variance of the observations
+                        for each performance measure. Each occurrence of
+                        this element provides a matrix of variances for
+                        a specific type of performance measure.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="min" type="ccapp:PMMatrix" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property name="minMatrices"/>
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Gives the minimum of the observations for each
+                        performance measure corresponding to
+                        expectations. Each occurrence of this element
+                        provides a matrix of minima for a specific type
+                        of performance measure.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="max" type="ccapp:PMMatrix" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property name="maxMatrices"/>
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Gives the maximum of the observations for each
+                        performance measure corresponding to
+                        expectations. Each occurrence of this element
+                        provides a matrix of maxima for a specific type
+                        of performance measure.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="numObs" type="ccapp:PMMatrixInt" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property name="numObsMatrices"/>
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Gives the number of observations for each
+                        performance measure corresponding to an
+                        expectation. Each occurrence of this element
+                        provides a matrix of integers for a specific
+                        type of performance measure.
+                     </xsd:documentation>
+                  </xsd:annotation>
+               </xsd:element>
+               <xsd:element name="observations" type="ccapp:ObsMatrix" minOccurs="0" maxOccurs="unbounded">
+                  <xsd:annotation>
+                     <xsd:appinfo>
+                        <jxb:property name="observationMatrices"/>
+                     </xsd:appinfo>
+                     <xsd:documentation>
+                        Gives the individual observations for each
+                        performance measure corresponding to an
+                        expectation. Each occurrence of this element
+                        concerns a specific type of performance measure.
+                        No occurrence of this element is present if the
+                        observations are not stored.
+                     </xsd:documentation>
+                  </xsd:annotation>
+                  <xsd:key name="ObsUnique">
+                     <xsd:selector xpath=".//obs"/>
+                     <xsd:field xpath="@row"/>
+                     <xsd:field xpath="@column"/>
+                  </xsd:key>
+               </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="numSteps" type="ssj:nonNegativeInt" default="0">
+               <xsd:annotation>
+                  <xsd:documentation>
+                     Gives the number of steps (batches ore
+                     replications) performed by the simulator to obtain
+                     the results represented by an element of this type.
+                  </xsd:documentation>
+               </xsd:annotation>
+            </xsd:attribute>
+         </xsd:extension>
+      </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:element name="contactCenterEvalResults" type="ccapp:ContactCenterEvalResultsParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters concerning the results of an evaluation
+            performed on a contact center.
+         </xsd:documentation>
+      </xsd:annotation>
+      <!--      <xsd:unique name="uniqueTypeNames">
+         <xsd:selector
+         xpath="./inboundType | ./outboundType | ./inboundTypeSegment | ./outboundTypeSegment | ./contactTypeSegment" />
+         <xsd:field xpath="@name" />
+         </xsd:unique>
+         <xsd:unique name="uniqueWaitingQueueNames">
+         <xsd:selector xpath="./waitingQueue | ./waitingQueueSegment" />
+         <xsd:field xpath="@name" />
+         </xsd:unique>
+         <xsd:unique name="uniqueAgentGroupNames">
+         <xsd:selector xpath="./agentGroup | ./agentGroupSegment" />
+         <xsd:field xpath="@name" />
+         </xsd:unique>
+         <xsd:unique name="uniqueMainPeriodNames">
+         <xsd:selector xpath="./period | ./periodSegment" />
+         <xsd:field xpath="@name" />
+         </xsd:unique> -->
+      <xsd:key name="CCEPMUnique">
+         <xsd:selector xpath="./performanceMeasure"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+   </xsd:element>
+   <xsd:element name="contactCenterSimResults" type="ccapp:ContactCenterSimResultsParams" substitutionGroup="ccapp:contactCenterEvalResults">
+      <xsd:annotation>
+         <xsd:documentation>
+            Defines parameters concerning the results of a simulation of
+            a contact center.
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:key name="CCSVarUnique">
+         <xsd:selector xpath="./variance"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+      <xsd:key name="CCSMinUnique">
+         <xsd:selector xpath="./min"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+      <xsd:key name="CCSMaxUnique">
+         <xsd:selector xpath="./max"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+      <xsd:key name="CCSnumObsUnique">
+         <xsd:selector xpath="./numObs"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+      <xsd:key name="CCSObservationsUnique">
+         <xsd:selector xpath="./observations"/>
+         <xsd:field xpath="@measure"/>
+      </xsd:key>
+   </xsd:element>
+   <xsd:complexType name="ServiceLevelParams">
+      <xsd:annotation>
+         <xsd:documentation>
+            Represents the parameters used for estimating the service
+            level. This comprises acceptable waiting times and service
+            levels for segments regrouping contact types and main
+            periods. This element requires one
+            <i>Ki'</i>
+            x
+            <i>P'</i>
+            matrix of acceptable waiting times, and can accept an
+            optional matrix of target service levels with the same
+            dimensions. Here,
+            <i>Ki'</i>
+            corresponds to the number of segments regrouping inbound
+            contact types, and
+            <i>P'</i>
+            represents the number of segments regrouping main periods.
+            <p>
+               If no segment of inbound contact type is specified
+               explicitly in the model parameters,
+               <i>Ki'=Ki+1</i>
+               if
+               <i>Ki&gt;1</i>
+               and
+               <i>Ki</i>
+               otherwise. Here,
+               <tt>Ki</tt>
+               is the number of inbound contact types in the model. In a
+               similar way, if
+               <tt>P&gt;1</tt>
+               and no segment regrouping main periods is given
+               explicitly in model parameters,
+               <tt>P'=P+1</tt>
+               where
+               <tt>P</tt>
+               is the number of main periods.
+            </p>
+            <p>
+               Element
+               <i>(k, p)</i>
+               where
+               <i>k=0, ..., Ki-1</i>
+               and
+               <i>p=0, ..., P-1</i>
+               indicates the acceptable waiting time or target service
+               level for contact type
+               <i>k</i>
+               during main period
+               <i>p.</i>
+               When
+               <i>k=Ki, ..., Ki'-1,</i>
+               one gets values for user-defined contact type segments,
+               whereas when
+               <i>p=P, ..., P'-1,</i>
+               one gets values for user-defined period segments. The
+               values
+               <i>k=Ki'-1</i>
+               and
+               <i>p=P'-1</i>
+               refer to the segment regrouping all inbound contact types
+               and main periods, respectively.
+            </p>
+            <p>
+               Each matrix must provide a value for each segment of
+               contact types, and main periods, but the following
+               shortcuts are supported for convenience. If a matrix
+               contains a single row and
+               <i>P'&gt;1</i>
+               columns, the row is duplicated
+               <i>Ki'</i>
+               times; the same quantity is used for every contact type.
+               If the matrix contains a single column (and
+               <i>Ki'&gt;1</i>
+               rows), the column is duplicated
+               <i>P'</i>
+               times; the same quantities are used for every period. If
+               it contains a single element, the value is used for all
+               contact types and periods.
+            </p>
+         </xsd:documentation>
+         <xsd:appinfo>
+            <jxb:class>
+               <jxb:javadoc>
+                  Represents the parameters used for estimating the
+                  service level.
+               </jxb:javadoc>
+            </jxb:class>
+         </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="awt" type="ssj:NonNegativeDurationArray" minOccurs="1" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Determines the
+                  <i>Ki'</i>
+                  x
+                  <i>P'</i>
+                  matrix of acceptable waiting times giving the AWT for
+                  each contact type and period.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="target" type="ssj:DoubleArray" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Gives the
+                  <i>Ki'</i>
+                  x
+                  <i>P'</i>
+                  matrix containing target service level for each
+                  contact type and period. This matrix is used for
+                  optimization only; it does not affect simulation.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="name" type="xsd:string">
+         <xsd:annotation>
+            <xsd:documentation>
+               Determines the name associated with this matrix of
+               service level parameters. For example, this name can be
+               used to denote the AWT if the same AWT is used for all
+               contact types and periods.
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+   </xsd:complexType>
+</xsd:schema>

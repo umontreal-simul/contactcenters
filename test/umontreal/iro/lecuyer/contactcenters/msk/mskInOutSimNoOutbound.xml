@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccmsk:MSKCCParams defaultUnit="HOUR" periodDuration="PT1H"
+                   numPeriods="5"     startingTime="PT9H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <inboundType name="First Inbound Type">
+      <probAbandon>0.08 0.01 0.1 0.09 0.07</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>12.0</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="0" unit="HOUR">
+         <defaultGen>60.0</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="2" unit="HOUR">
+         <defaultGen>35.0</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <sourceToggleTime startingTime="PT9H" endingTime="PT14H"/>
+         <arrivals>60.0 50.0 40.0 45.0 49.0</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Second Inbound Type">
+      <probAbandon>0.06 0.12 0.23 0.18 0.15</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="HOUR">
+         <defaultGen>6.0</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="0" unit="HOUR">
+         <defaultGen>50.0</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="3" unit="HOUR">
+         <defaultGen>29.0</defaultGen>
+      </serviceTime>
+      <arrivalProcess type="POISSONGAMMA" normalize="true">
+         <sourceToggleTime startingTime="PT9H" endingTime="PT10H12M"/>
+         <sourceToggleTime startingTime="PT10H48M" endingTime="PT14H"/>
+         <poissonGammaShape>25.2 25.2 25.2 25.2 25.2</poissonGammaShape>
+         <poissonGammaScale>0.975 0.975 0.975 0.975 0.975</poissonGammaScale>
+      </arrivalProcess>
+   </inboundType>
+   <outboundType name="First Outbound Type">
+      <probAbandon>0.95 0.95 0.95 0.95 0.95</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="SECOND">
+         <defaultGen>0.33333</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="1" unit="HOUR">
+         <defaultGen>8.178</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="2" unit="HOUR">
+         <defaultGen>4.5</defaultGen>
+      </serviceTime>
+      <probReach>0.27 0.27 0.28 0.29 0.29</probReach>
+      <dialer dialerPolicy="DIALXFREE" dropMismatches="false"
+              kappa="2.0" c="0" sourceEnabled="false">
+<!--         <sourceToggleTime startingTime="PT12H36S"
+         endingTime="PT14H"/> -->
+         <minFreeAgentsTest>4 4 4 4 4</minFreeAgentsTest>
+      </dialer>
+   </outboundType>
+   <outboundType name="Second Outbound Type">
+      <probAbandon>0.98 0.98 0.98 0.98 0.98</probAbandon>
+      <patienceTime distributionClass="ExponentialDist" unit="SECOND">
+         <defaultGen>0.2</defaultGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" group="1" unit="HOUR">
+         <defaultGen>9.2</defaultGen>
+      </serviceTime>
+      <serviceTime distributionClass="ExponentialDist" group="3" unit="HOUR">
+         <defaultGen>8.2</defaultGen>
+      </serviceTime>
+      <probReach>0.3 0.33 0.37 0.4 0.38</probReach>
+      <dialer dialerPolicy="DIALXFREE" dropMismatches="false"
+              kappa="2.5" c="1" sourceEnabled="false">
+<!--         <sourceToggleTime startingTime="PT11H30M"
+         endingTime="PT13H30M"/> -->
+         <minFreeAgentsTest>3 3 3 3 3</minFreeAgentsTest>
+      </dialer>
+   </outboundType>
+
+   <agentGroup name="Inbound-only agents" detailed="true">
+      <staffing>1 5 6 9 3</staffing>
+   </agentGroup>
+   <agentGroup name="Outbound-only agents" detailed="true">
+      <staffing>2 7 6 3 9</staffing>
+   </agentGroup>
+   <agentGroup name="Blend agents 1" detailed="true">
+      <staffing>3 5 5 4 4</staffing>
+   </agentGroup>
+   <agentGroup name="Blend agents 2" detailed="true">
+      <staffing>2 4 6 4 5</staffing>
+   </agentGroup>
+
+   <router routerPolicy="AGENTSPREF">
+      <ranksGT>
+         <row>  1   1 INF INF</row>
+         <row>INF INF   1   1</row>
+         <row>  3 INF   2 INF</row>
+         <row>INF   3 INF   2</row>
+      </ranksGT>
+      <routingTableSources ranksTG="ranksGT"/>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT25S</row>
+         <row>PT30S</row>
+         <row>PT20S</row>
+<!--         <row>PT20S</row> -->
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+<!--   <inboundTypeSegment name="Inbound calls"><values>0
+         1</values></inboundTypeSegment> -->
+   <callTypeSegment name="Inbound calls"><values>0  1</values></callTypeSegment>
+   <callTypeSegment name="Outbound calls"><values>2  3</values></callTypeSegment>
+   <agentGroupSegment name="Blend agents"><values>2  3</values></agentGroupSegment>
+   <periodSegment name="Morning"><values>0  1
+         2</values></periodSegment>
+</ccmsk:MSKCCParams>

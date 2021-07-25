@@ -1,0 +1,85 @@
+\documentclass[twoside,12pt]{article}
+
+\usepackage{color}
+\usepackage{crayola}
+\usepackage[procnames]{listings}
+\IfFileExists{lstpatch.sty}{\usepackage{lstpatch}}{} % not always needed
+\usepackage{contactcenters}
+\pagestyle{apidocheadings}
+\usepackage{ifpdf}
+
+\hypersetup{
+  pdftitle={Examples of contact center simulators},
+  pdfauthor={Eric Buist},
+  pdfsubject={ContactCenters Library User's Guide},
+  pdfkeywords={Contact centers, Simulation, SSJ, examples, tutorial, introduction, Java},
+  pdfview=FitH,
+  pdfstartview=FitH,
+ pdfborder={0 0 0}
+}
+
+\hbadness 10000
+\lstloadlanguages{Java}
+\lstset{language=Java,
+float=tbhp,
+captionpos=t,
+frame=trbl,
+abovecaptionskip=1.5em,
+xleftmargin=-10mm,
+linewidth=17cm,
+belowskip=2em,
+basicstyle=\small\ttfamily,
+stringstyle=\color{OliveGreen},
+commentstyle=\color{red},
+identifierstyle=\color{Bittersweet},
+basewidth={0.5em},
+showstringspaces=false,
+framerule=0.8pt,
+procnamestyle=\bfseries\color{blue},
+emphstyle=\bfseries\color{Cerulean},
+procnamekeys={class,extends,interface,implements}
+}
+\setcounter{secnumdepth}{2}
+
+\begin{document}
+
+\begin{titlepage}
+
+\null\vfill
+\begin {center}
+{\Large\bf ContactCenters Simulation Library User's Guide } \\[20pt]
+{\Large Examples of simulation programs} \\[20pt]
+ Version: \today \\
+\vfill
+ {\sc Eric Buist}
+\vfill
+\end {center}
+
+\vfill
+We present examples of Java programs based on the ContactCenters library.
+The examples are commented and are an excellent starting point for
+learning how to construct new contact center simulators or extend existing ones.
+\end{titlepage}
+
+\pagenumbering{roman}
+\tableofcontents
+\pagenumbering{arabic}
+
+\include{overview}
+\include{mmc}
+\include{callcc}
+\include{simplemsk}
+\include{telethon}
+\include{bilingual}
+\include{bank}
+\include{teamwork}
+\include{blend}
+
+% Additional examples planned:
+% Example using contact and agent rerouting
+% Example using serialization and/or cloning for state save/restore
+
+\bibliography{callc,ift,prob,stat}
+\bibliographystyle{plain}
+
+\end{document}

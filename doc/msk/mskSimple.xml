@@ -1,0 +1,84 @@
+<ccmsk:MSKCCParams defaultUnit="MINUTE" periodDuration="PT2H"
+                   numPeriods="3"       startingTime="PT8H"
+     xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+   <busynessGen distributionClass="GammaDist">28.7 28.7</busynessGen>
+   <inboundType name="First Inbound Type">
+      <patienceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.3</periodGen>
+         <periodGen>0.4</periodGen>
+         <periodGen>0.2</periodGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.5</periodGen>
+         <periodGen>0.6</periodGen>
+         <periodGen>0.4</periodGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON">
+         <arrivals>4.2 5.3 3.2</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Second Inbound Type">
+      <patienceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.3</periodGen>
+         <periodGen>0.4</periodGen>
+         <periodGen>0.2</periodGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.5</periodGen>
+         <periodGen>0.6</periodGen>
+         <periodGen>0.4</periodGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON">
+         <arrivals>5.1 4.3 4.8</arrivals>
+      </arrivalProcess>
+   </inboundType>
+   <inboundType name="Third Inbound Type">
+      <patienceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.3</periodGen>
+         <periodGen>0.4</periodGen>
+         <periodGen>0.2</periodGen>
+      </patienceTime>
+      <serviceTime distributionClass="ExponentialDist" unit="MINUTE">
+         <periodGen>0.5</periodGen>
+         <periodGen>0.6</periodGen>
+         <periodGen>0.4</periodGen>
+      </serviceTime>
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON">
+         <arrivals>6.3 5.2 4.8</arrivals>
+      </arrivalProcess>
+   </inboundType>
+
+   <agentGroup name="First group">
+      <staffing>12 18 9</staffing>
+   </agentGroup>
+   <agentGroup name="Second group">
+      <staffing>15 20 11</staffing>
+   </agentGroup>
+
+   <router routerPolicy="SINGLEFIFOQUEUE">
+      <typeToGroupMap>
+         <row>0</row>
+         <row>0 1</row>
+         <row>1</row>
+      </typeToGroupMap>
+      <groupToTypeMap>
+         <row>1 0</row>
+         <row>2 1</row>
+      </groupToTypeMap>
+   </router>
+
+   <serviceLevel>
+      <awt>
+         <row>PT20S PT20S PT20S PT20S</row>
+         <row>PT20S PT20S PT20S PT20S</row>
+         <row>PT20S PT20S PT20S PT20S</row>
+         <row>PT20S PT20S PT20S PT20S</row>
+      </awt>
+      <target>
+         <row>0 0 0 0</row>
+         <row>0 0 0 0</row>
+         <row>0 0 0 0</row>
+         <row>0 0 0 0.8</row>
+      </target>
+   </serviceLevel>
+</ccmsk:MSKCCParams>

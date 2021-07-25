@@ -1,0 +1,513 @@
+\section{Troubleshooting}
+\label{sec:msktrouble}
+
+Many kinds of problems can occur while running the simulator.
+Some installation or configuration problems might prevent the
+execution of the program.
+Syntax or grammatical errors in the XML parameter files also abort the
+execution of the simulator.
+Even valid XML files may lead to execution errors.
+Moreover, errors can happen during simulation, prevents results from
+being displayed.
+In this section, we examine all these types of errors, and propose
+some solutions.
+However, this does not cover all the possible errors that can occur.
+
+\subsection{Commands not found or
+  \texttt{No\-Class\-Def\-Found\-Error} messages}
+
+An installation problem occurs if a command or class cannot be found.
+In the first case, the shell reports the name of the command that
+cannot be found.  This is often \texttt{java}, or
+\texttt{mskcallcentersim}.
+When a class cannot be found, the Java Virtual Machine throws a
+\texttt{No\-Class\-Def\-Found\-Error} with the name of the class.
+These errors are covered in the HTML pages giving installation
+instructions for ContactCenters, on
+\ccurl.
+
+\subsection{Unmarshalling errors}
+
+If a parameter file given by the user is not a well-formed or valid
+XML document, error messages are displayed, and usually the simulator
+aborts.
+One then needs to edit the parameter file in order to correct the
+errors before the simulator can be run again.
+In this subsection, we present some examples of such unmarshalling
+errors.
+
+Note that using an XML editor such as
+SyncRO Soft Ltd.'s \mbox{$<$oXygen/$>$} or
+Altova's XMLSpy may prevent most errors of this type by
+verifying the syntax, and validating the parameter files against the
+corresponding Schemas.  Opening a parameter file producing an error
+with the simulator in such an XML editor may also provide additional
+guidance to correct the error.
+
+\subsubsection{Missing ending tag}
+
+Suppose that the simulator is given the following XML file for
+experiment parameters.
+\begin{lstlisting}[language=XML]
+<ccapp:repSimParams minReplications="300"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="0.95">
+</ccapp:repSimParams>
+\end{lstlisting}
+Running the program with this gives the following error message.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] The element type "report" must be terminated by the matching end-tag "</report>". at file:contactcenters/doc/msk/repSimParams.xml, line 4, column 3
+\end{lstlisting}
+In the above and all
+following error messages, the $\backslash$ character indicates that a line
+is broken here while it is not in the message printed by the program.
+The error occurs, because at line 4, the current opened elements are
+\texttt{rep\-Sim\-Params}, and \texttt{report}.
+Trying to close \texttt{rep\-Sim\-Params} before closing
+\texttt{report} is of course an error.
+The error can be corrected by adding
+\lstinline[language=XML]{</report>}
+at the beginning of line 4 of the file, just before
+\lstinline[language=XML]{</ccapp:repSimParams>}.
+Another equivalent correction is to turn \texttt{report} into a
+self-closing element, by adding a \texttt{/} symbol before the \texttt{>}.
+This reverts back to the parameter file in
+Listing~\ref{par:repSimParams}.
+
+\subsubsection{Forgotten closing bracket}
+
+Suppose that we use the following as experiment parameters.
+\begin{lstlisting}[language=XML]
+<ccapp:repSimParams minReplications="300"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app"
+   <report confidenceLevel="0.95"/>
+</ccapp:repSimParams>
+\end{lstlisting}
+This leads to the following error message.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] Element type "ccapp:repSimParams" must be followed by either attribute specifications, ">" or "/>". at file:contactcenters/doc/msk/repSimParams.xml, line 3, column 4
+\end{lstlisting}
+This indicates that the parser is waiting for a closing bracket while
+the user gives a new XML element.
+Adding \texttt{>} at the beginning of line 3 solves the problem.
+Note that adding \texttt{/>} instead would turn
+\texttt{ccapp:repSimParams} into a self-closing element, and trigger
+the following error message while parsing the rest of the file.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] The markup in the document following the root element must be well-formed. at file:contactcenters/doc/msk/repSimParams.xml, line 3, column 5
+\end{lstlisting}
+The document is not well-formed anymore, because it contains two root
+elements: \texttt{ccapp:rep\-Sim\-Params}, and \texttt{report}.
+
+\subsubsection{Missing namespace URI}
+
+Now suppose we give the following parameter file to the simulator.
+\begin{lstlisting}[language=XML]
+<ccapp:repSimParams minReplications="300">
+   <report confidenceLevel="0.95"/>
+</ccapp:repSimParams>
+\end{lstlisting}
+This results in the following error message
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] The prefix "ccapp" for element "ccapp:repSimParams" is not bound. at file:contactcenters/doc/msk/repSimParams.xml, line 1, column 43
+\end{lstlisting}
+Here, we used a prefix, \texttt{ccapp}, with no associated namespace
+URI.
+If we remove \texttt{ccapp:} altogether in the opening and closing
+element of the parameter file, we obtain another error message:
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] cvc-elt.1: Cannot find the declaration of element repSimParams'. at file:contactcenters/doc/msk/repSimParams.xml, line 1, column 37
+\end{lstlisting}
+This occurs, because the XML Schema is expecting an element in a
+predefined
+namespace URI.
+Therefore, one must keep the \texttt{ccapp} prefix, and
+add the attribute
+\begin{lstlisting}[language=XML]
+xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app"
+\end{lstlisting}
+in order to bind the prefix to the correct namespace.
+
+\subsubsection{Invalid name of attribute}
+
+Let's take the example in Listing~\ref{par:singleQueue}, and
+suppose we change the \texttt{name} attribute of the first
+\texttt{service\-Level} element to \texttt{<20s} rather than the
+original \texttt{20s}. The service level element would look like
+\begin{lstlisting}[language=XML]
+   <serviceLevel name="<20s">
+      <awt>
+         <row>PT20S</row>
+      </awt>
+      <target>
+         <row>0.8</row>
+      </target>
+   </serviceLevel>
+\end{lstlisting}
+This gives the following error message.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] The value of attribute "name" associated with an element type "null" must not contain the '<' character. at file:contactcenters/doc/msk/singleQueue.xml, line 28, column 24
+\end{lstlisting}
+This error occurs, and confuses the XML parser as well, because the
+\texttt{<} character is forbidden in attribute names.
+Removing the offending character, or escaping it with
+\texttt{\&lt;}, will solve the problem.
+
+\subsubsection{Invalid format for a numeric parameter}
+
+Suppose that we need 95\% confidence intervals in the statistical
+report produced by the simulator.
+Intuitively, an XML file with the following contents will do the job:
+\begin{lstlisting}[language=XML]
+<ccapp:repSimParams minReplications="300"
+    xmlns:ccapp="http://www.iro.umontreal.ca/lecuyer/contactcenters/app">
+   <report confidenceLevel="95%"/>
+</ccapp:repSimParams>
+\end{lstlisting}
+However, this parameter file gives the following error.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] cvc-datatype-valid.1.2.1: '95%' is not a valid value for 'double'. at file:contactcenters/doc/msk/repSimParams.xml, line 3, column 35
+\end{lstlisting}
+The file is invalid, because 95\% is not a valid representation for
+the number 0.95; one must encode \texttt{0.95} directly in the
+parameter file.
+Note that other similar error messages will show up if a confidence
+level is outside $]0,1[$, if a negative number of replications is
+given using the \texttt{min\-Replications} attribute, etc.
+
+\subsubsection{Invalid name of element}
+
+We return to Listing~\ref{par:singleQueue}, and replace
+\texttt{inbound\-Type} with \texttt{call\-Type}.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+The following problem occurred during unmarshalling.
+[FATAL ERROR] cvc-complex-type.2.4.a: Invalid content was found starting with element 'callType'. One of '{properties, busynessGen, inboundType, arrivalProcess, outboundType, dialer, agentGroup}' is expected. at file:contactcenters/doc/msk/singleQueue.xml, line 4, column 34
+\end{lstlisting}
+This error happens, because \texttt{call\-Type} is not a valid child
+for \texttt{MSKCCParams}. Using one of the proposed element names can
+solve the problem.
+Here, we need to use \texttt{inbound\-Type} to represent our inbound
+call type.
+
+\subsection{\texttt{CallCenterCreationException}}
+
+Errors can still occur with well-formed and valid parameter files,
+because the XML Schema language does not cover all the constraints
+that are imposed on a XML document.
+When such an error occurs, several lines of text are displayed, giving
+more and more precision about the nature of the problem.
+Traversing this chain of error is the best way to diagnose the
+problem, and fix the parameter file.
+
+More specifically,
+when the model of the call center is constructed, a Java exception
+is thrown if some invalid parameter is found.
+The exception is caught by higher-level components of the model which
+wrap it up in order to add details which are necessary to circumvent
+the problem.
+The top-level exception for model construction problems is the
+\texttt{Call\-Center\-Creation\-Exception}, which is caught by the main
+program which displays the error message.
+Here, we give some examples of such error messages, with the fix to
+the parameter file for each problem.
+Note, however, that this is not an exhaustive list of problems.
+
+\subsubsection{Invalid name of probability distribution}
+
+Suppose that, in Listing~\ref{par:singleQueue}, we set the
+\texttt{distribution\-Class} attribute of element
+\texttt{patience\-Time} to \texttt{Exponential\-From\-Mean} rather
+than \texttt{Exponential\-Dist\-From\-Mean}.
+Running the simulator with the modified parameter file gives the
+following error message.
+%
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+umontreal.iro.lecuyer.contactcenters.msk.model.CallCenterCreationException: Cannot create call factory for call type 0 (Inbound Type)
+Caused by umontreal.iro.lecuyer.contactcenters.msk.model.CallFactoryCreationException: Cannot create patience time distribution
+Caused by umontreal.iro.lecuyer.xmlbind.DistributionCreationException: The string ExponentialFromMean does not correspond to a fully-qualified class name, or to a class in package umontral.iro.lecuyer.probdist, or it maps to a class not implementing umontreal.iro.lecuyer.probdist.Distribution
+Caused by java.lang.ClassNotFoundException: Cannot find the class with name ExponentialFromMean
+\end{lstlisting}
+%
+The first line indicates that the call factory generating calls of
+type~0, which correspond to the only call type in the parameter file,
+could not be created by the program.
+The second line gives clues on the cause of this error:
+the distribution of the patience time could not be created.
+The third line then gives a clue on the reason why the distribution could
+not be created: the distribution class
+\texttt{Exponential\-From\-Mean} could not be found
+in the \texttt{Probdist} package.
+The last line confirms that no class were found, the other possibility
+being that a class not implementing the \texttt{Distribution}
+interface were referred to by the user.
+Looking at the documentation of SSJ, one can see that no class with
+that name exists. However, a class with similar name
+\texttt{Exponential\-Dist\-From\-Mean} exists.  Using that class name
+fixes the parameter file.
+
+\subsubsection{Incorrect number of parameters for a probability distribution}
+
+Suppose now that in the example of Listing~\ref{par:singleQueue},
+we put \texttt{100 2} in the \texttt{default\-Gen} child of
+\texttt{service\-Time}.
+This leads to the following error message.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+umontreal.iro.lecuyer.contactcenters.msk.model.CallCenterCreationException: Cannot create call factory for call type 0 (Inbound Type)
+Caused by umontreal.iro.lecuyer.contactcenters.msk.model.CallFactoryCreationException: Cannot create service time distribution
+Caused by umontreal.iro.lecuyer.xmlbind.DistributionCreationException: Cannot find a suitable constructor; check the number of specified parameters, for distribution class umontreal.iro.lecuyer.probdist.ExponentialDistFromMean with parameters (100.0, 2.0)
+\end{lstlisting}
+The first two lines of the error message are very similar to the
+beginning of the error message in the preceding paragraph.
+Here, the error indicates that the service time distribution for the
+first (and sole) call type of the model could not be created.
+The last line indicates, as an explanation of the error, that no
+suitable constructor could be found.
+Looking at the documentation of the
+\texttt{Exponential\-Dist\-From\-Mean}, we notice that no constructor
+taking two arguments are defined.
+The problem is thus related to the number of arguments given in
+\texttt{default\-Dist}.  Giving two arguments here is of course
+incorrect, because the constructor only accepts one, the mean of the
+distribution.
+
+\subsubsection{Invalid parameters for a probability distribution}
+
+If the \texttt{default\-Gen} child element contains a negative value
+for an exponential distribution, the following error message shows up.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+umontreal.iro.lecuyer.contactcenters.msk.model.CallCenterCreationException: Cannot create call factory for call type 0 (Inbound Type)
+Caused by umontreal.iro.lecuyer.contactcenters.msk.model.CallFactoryCreationException: Cannot create service time distribution
+Caused by umontreal.iro.lecuyer.xmlbind.DistributionCreationException: An error occurred during call to constructor, for distribution class umontreal.iro.lecuyer.probdist.ExponentialDistFromMean with parameters (-100.0)
+Caused by java.lang.IllegalArgumentException: lambda <= 0
+\end{lstlisting}
+The first two lines are the same as the previous error message, but
+now, a constructor could be found.
+However, according to the third line, an error occurred while it was
+called.
+The nature of the error is given by the last line: an illegal-argument
+exception caused by a negative value.
+
+This kind of error is not caught up at the time of the validation,
+because the range of the parameters depends on the specific class of
+distribution being used.
+
+\subsubsection{Not enough arrival rates}
+
+Suppose now that the description of the arrival process in
+Listing~\ref{par:singleQueue} becomes
+\begin{lstlisting}[language=XML]
+      <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true">
+         <arrivals>100 150 150 180 200 150 150 150 120 100 80 70</arrivals>
+      </arrivalProcess>
+\end{lstlisting}
+The simulator then displays the following error message.
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+umontreal.iro.lecuyer.contactcenters.msk.model.CallCenterCreationException: Cannot create arrival process for inbound call type 0 (Inbound Type)
+Caused by umontreal.iro.lecuyer.contactcenters.msk.model.ArrivalProcessCreationException: An arrival rate is required for each main period
+\end{lstlisting}
+The first line indicates that the arrival process for the first (and
+sole) inbound type of the model could not be created.
+This circumvents the problem to the \texttt{arrival\-Process}
+element.
+The second line specifies that there must be one arrival rate for each
+main period in the model.
+The attribute \texttt{period\-Duration} indicates 13, while the
+\texttt{arrivals} element contains only 12 values, so we need to add
+the missing arrival rate in the last main period to fix the parameter file.
+
+\subsubsection{Invalid dimensions of matrix of ranks}
+
+Suppose that we change the \texttt{router} element in
+Listing~\ref{par:singleQueue}
+to
+\begin{lstlisting}[language=XML]
+   <router routerPolicy="AGENTSPREF">
+     <ranksTG>
+       <row>1  1</row>
+     </ranksTG>
+     <routingTableSources ranksGT="ranksTG"/>
+   </router>
+\end{lstlisting}
+This gives the following error message:
+\begin{lstlisting}[language={},breaklines,prebreak={\char92}]
+umontreal.iro.lecuyer.contactcenters.msk.model.CallCenterCreationException: Cannot create router
+Caused by umontreal.iro.lecuyer.contactcenters.msk.model.RouterCreationException: Error initializing data structures
+Caused by java.lang.IllegalArgumentException: Invalid type-to-group matrix of ranks
+Caused by java.lang.IllegalArgumentException: The given matrix has 2 columns but it needs 1 columns
+\end{lstlisting}
+The first line indicates that the router could not be created.
+Then, a second line tells that some data structures could not be
+initialized properly.
+The third line indicates which data structure is invalid, namely the
+type-to-group matrix of ranks.
+Note that this matrix of priorities is different from the
+type-to-group map, which is an array of overflow lists.
+The last line of the error message indicates the exact nature of the
+problem: wrong number of columns in the given matrix.
+
+\subsection{Execution errors}
+\label{sec:exerr}
+
+The Java Virtual Machine may also exit with an error message if
+something wrong happens during the simulation.
+This can be caused by many factors, ranging from insufficient memory
+to bugs in the simulator.
+Here, we list the most common execution errors.
+
+\subsubsection{\texttt{OutOfMemoryError}}
+
+This happens if the simulator runs out of memory because of a large
+simulated model.
+If the simulator or any Java program using the simulator
+exit with an \texttt{Out\-Of\-Memory\-Error}, the
+maximal size of the Java heap can often be increased by using a JVM
+option on the command-line used to start the program.  For Sun's JRE,
+the option is \texttt{-Xmx}.  One must use the \texttt{CCJVMOPT}
+environment variable to increase the heap size for the ContactCenters'
+scripts.
+For example, the following line sets the heap size to 800 megabytes
+for any subsequent call to \texttt{mskcallcentersim}, when
+using Bourne shell under UNIX/Linux:
+
+\noindent\texttt{export CCJVMOPT=-Xmx800m}
+
+This can also be tried if the simulator
+seems to be excessively slow, because increasing the maximal heap size
+will reduce the use of the garbage collector.
+However, the maximal heap size should not be near or larger than
+the total amount
+of system memory.  Otherwise, the operating system would use hard disk
+as virtual memory, which would slow down the simulator as well as any
+other running applications significantly.
+
+It often happens that increasing the heap size does not remove
+the error, because
+memory problems can also arise if the model suffers from some defects
+such as no agent in any groups, too long patience times,
+or an ill-designed routing policy.
+
+A bad interpretation of the arrival rates may cause the program to run
+out of memory.
+By default, the arrival rates are interpreted relative to one
+simulation time unit.
+For example, in Listing~\ref{par:singleQueue},
+if we omit the \texttt{normalize} attribute of the
+\texttt{arrival\-Process} element,
+the arrival rates will give the expected number of arrivals during one
+second.
+An average of 100 arrivals per second result in 360,000 arrivals per
+time period, which is excessively high.
+Setting \texttt{normalize} to \texttt{true} instructs the simulator to
+interpret the arrival rates relative to one hour, so 100 now means
+average 100
+arrivals per hour.
+
+\subsubsection{\texttt{IOException}}
+
+This error may occur at the end of the simulation, when results are
+written to disk.
+The most common causes of this error are lack of disk space or no
+permission on the file system to write the results.
+Trying to save results at a different place on the file system, or on
+another drive, may solve the problem.
+
+\subsubsection{Warnings about detailed agent groups followed by an
+  \texttt{Illegal\-State\-Exception}}
+
+Some routing policies, e.g., \texttt{AGENTSPREF}
+(see Section
+\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.RouterPolicyType}),
+require that the
+agent groups be in detailed mode, i.e., that they consider each agent
+as a separate object rather than simply updating counters for the
+number of busy and idle agents in the group.
+If the agent groups are not in detailed mode, a warning is printed
+before the simulation starts.
+Sometimes, the router does not need the information about detailed
+agent groups, so the simulation succeeds even if the user gets a
+warning.
+However, if a routing decision requires information about the agents
+in a group, e.g., for computing the longest idle time, an
+\texttt{Illegal\-State\-Exception} is thrown and the simulation
+aborts.
+
+The simplest solution to this problem is to switch agent groups to
+detailed mode, by setting the \texttt{detailed} attribute to
+\texttt{true} in all \texttt{agent\-Group} elements of the
+XML parameter file for the model.
+Alternatively, one may use a different routing policy not needing
+detailed agent groups.
+For some routing policies, it may also be possible to change
+parameters in such a way that longest idle times are not needed.
+See the end of Section~\ref{sec:addAgentGroup} for an example of this.
+
+\subsubsection{Infinite loops}
+
+Some model parameters have caused infinite loops
+during simulation.
+Although these problems have been fixed, this could occur again with
+other model parameters.
+If  such a bug occurs, one should send the parameter file causing the
+error to the author of ContactCenters.
+
+When simulation is done with batch means, infinite loops are often
+caused by the heuristic which initializes the system to a non-empty
+state.
+Turning the \texttt{init\-Non\-Empty} attribute to \texttt{false} in
+experiment parameters might work around the problem.
+
+\subsubsection{\texttt{Null\-Pointer\-Exception} and other exceptions}
+
+This error is often caused by a bug in the simulator.
+If this happens, contact the author with the complete stack trace
+which is displayed, and the circumstances of the error.
+A sample parameter file as small as possible
+but causing the error
+on a regular basis might be very helpful for
+the author to diagnose such problems.
+
+\subsubsection{Slow simulation}
+
+The main factors affecting the performance of the simulator are
+the size of the simulated model, and the computed statistics.
+Moreover, if the simulator uses too much memory, the garbage collector
+of Java is triggered more often, which slows down the simulation.
+Increasing the maximal heap size using the \texttt{-Xmx} JVM option
+(see preceding section) can sometimes help.
+
+% A common cause of slow simulation is an excessive arrival rate for one
+% or more call types.
+% For example, by default, the simulator interprets arrival rates given
+% in the
+% \texttt{arrivals} element of \texttt{arrival\-Process} as
+% the expected number of arrivals per time unit.
+% Giving an expected number of arrivals during a full time period of
+% course results in very high arrival rates.
+% In that common case, one should normalize the entered arrival rates or
+% use the \texttt{normalize} attribute of \texttt{arrival\-Process}.
+
+The routing policy can also affect performance.
+Using complex policies taking priorities and delays into account
+requires more computation than a simple policy based on a fixed list
+of call types and agent groups.
+Enabling advanced model aspects such as call transfers and virtual
+queueing can also decrease performance, since these aspects require
+calls to be processed more than once by the system.
+
+Performance can often be increased by restricting the set of computed
+statistics.
+By default, the simulator estimates a large quantity of performance
+measures, but one often does not need all these estimates.
+One can restrict to a fixed set of performance measures by setting
+the \texttt{restrict\-To\-Printed\-Stat} attribute
+to \texttt{true}
+in experiment parameters.
+For example, this attribute may be used in a parameter file such as
+the one shown on Listing~\ref{par:repSimParamsStat}.

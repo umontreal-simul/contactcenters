@@ -1,0 +1,44 @@
+\begin{tikzpicture}[shape=rectangle,>=stealth]
+\node (ap) [draw,line width=2pt] {Enter system};
+\node (ifq) [draw,shape=diamond, node distance=5cm, below of=ap] {Queue full?};
+\node (ifa) [draw,shape=diamond, node distance=5cm, right of=ap, text width=3cm] {At
+  least one free agent?};
+\node (balk) [draw,shape=diamond, node distance=5cm, right of=ifq]
+{Balking?};
+\node (q) [draw, right of=balk, node distance=3cm] {Queue};
+\node (ifp) [draw,shape=diamond, node distance=4cm, right of=q, text width=2.5cm]
+{Patience time exceeded?};
+
+\node (bl) [draw, shape=ellipse, below of=ap] {Blocking};
+\node (sr) [draw, right of=ifa, node distance=6cm, shape=ellipse] {Service};
+\node (ab) [draw, below of=sr, shape=ellipse] {Abandonment};
+
+\draw[->] (ap) -- (ifa);
+\draw[->] (ifq) edge 
+node [left] {Yes}
+(bl)
+edge 
+node [above] {No}
+(balk);
+\draw[->] (ifa) edge
+node [above] {Yes}
+(sr)
+edge
+node [above] {No}
+(ifq);
+\draw[->] (balk)
+edge [bend left]
+node [above] {Yes}
+(ab)
+edge
+node [above] {No}
+(q);
+\draw[->] (q) -- (ifp);
+\draw[->,bend angle=85] (ifp)
+edge
+node [right] {Yes}
+(ab)
+edge [bend right]
+node [right] {No}
+(sr);
+\end{tikzpicture}

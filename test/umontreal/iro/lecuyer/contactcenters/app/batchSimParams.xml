@@ -1,0 +1,8 @@
+<batchsimparams targetError="-1"        level="0.95"
+                initNonEmpty="true"     targetInitOccupancy="0.9"
+                batchSize="10h"         minBatches="15"
+                warmupBatches="5"
+                randomStreamSeed="{122, 445, 32, 56, 43, 57}">
+   <printedStat measure="SERVICELEVEL"/>
+   <printedStat measure="OCCUPANCY" detailed="false"/>
+</batchsimparams>

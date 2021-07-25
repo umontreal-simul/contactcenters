@@ -1,0 +1,37 @@
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}\hline
+Example&Arena&JRE1.4&JRE1.5\\\hline\hline
+Telethon&4:23&9.62&9.8\\\hline
+Bilingual&23:39&47.68&44.26\\\hline
+Bank&23:57&47.51&45.60\\\hline
+Teamwork&22:56&1:23.41&1:22.75\\\hline
+\end{tabular}
+
+These times are computed on an AMD Athlon ThunderBird 1000MHz.
+Arena times are system times computed under Microsoft Windows XP.
+Java times are CPU times computed under Linux.
+
+\caption{Required time to perform 1000 replications}
+\end{table}
+
+\begin{table}[htb]
+  \centering
+  \begin{tabular}{}
+    Fichier&MRG32k3a&LFSR113\\\hline\hline
+    \texttt{mskccParamsThreeTypes.xml}&4.17s&4.16s\\\hline
+    \texttt{mskccParamsThreeTypesReg.xml}&8.22s&7.99s\\\hline
+    \texttt{mskBlendSim.xml}&12.45s&11.71s\\\hline
+    \texttt{mskInOutSim.xml}&7.05&6.89\\\hline
+  \end{tabular}
+
+  Les deux premiers fichiers ont été simulés à l'état stationnaire
+  avec 30 lots de 20 unités de temps chacun. Le système a été
+  initialisé avec 90\% des agents occupés et 5 lots de 20 unités de
+  temps ont servi pour le réchauffement, ce qui fait un total de 35
+  lots.
+  Dans le cas des deux derniers fichiers, la simulation a été faite
+  avec 300 réplications indépendantes.
+
+  \caption{Temps d'exécution avec différents RNG}
+\end{table}

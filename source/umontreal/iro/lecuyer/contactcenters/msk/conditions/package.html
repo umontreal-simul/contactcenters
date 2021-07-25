@@ -1,0 +1,26 @@
+<body>
+Defines an interface for representing a condition on calls, and
+provides some implementations of the interface.
+A condition is an object that can be checked against any call of
+the model.  When the condition is verified for a given call, we say
+that it applies for this call.
+Alternatively, some conditions may not depend on a call and rather
+checks the global state of the system.
+Conditions can be used to affect the behavior of routing or dialing
+policies.
+
+The package provides the {@link
+umontreal.iro.lecuyer.contactcenters.msk.conditions.Condition}
+interface to represent a condition.
+The other classes provide implementations of this interface for, e.g.,
+conditions on the queue sizes, the number of free agents in group,
+etc.
+The class
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.conditions.ConditionUtil}
+is also provided to help with the
+creation of condition objects from
+{@link
+umontreal.iro.lecuyer.contactcenters.msk.params.ConditionParams}
+instances created by parsing XML configuration files.
+</body>

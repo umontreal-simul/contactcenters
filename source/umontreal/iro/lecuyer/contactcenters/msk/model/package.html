@@ -1,0 +1,47 @@
+<body>
+Provides the classes that implement the model of a call center with multiple
+call types and agent groups used by the blend and multi-skill simulator.
+The implemented model contains several elements:
+random streams for each type of random variate,
+factories for creating objects representing calls,
+arrival processes for generating the arrival times of inbound calls,
+dialers for producing outbound calls,
+agent groups, waiting queues, and a router.
+The parameters of the model are obtained using XML
+files transformed by JAXB into intermediate objects
+regrouped in an instance of the
+{@link umontreal.iro.lecuyer.contactcenters.msk.params.CallCenterParams} class.
+The class
+{@link umontreal.iro.lecuyer.contactcenters.msk.CallCenterParamsConverter}
+can be used to help in the conversion of XML data to an instance of
+{@link umontreal.iro.lecuyer.contactcenters.msk.params.CallCenterParams}.
+The parameter objects are used to create the model, which
+provides methods to access parameters
+in a convenient way.
+
+Arrival processes, dialers, agent groups, and
+the router are encapsulated in manager
+objects playing several roles:
+provide convenience methods for accessing
+parameters specific to the managed object,
+create the appropriate instance for
+the managed object,
+initialize it at the beginning
+of a simulation, and
+update its state throughout the simulation.
+All these manager objects can be accessed using
+methods in the
+{@link umontreal.iro.lecuyer.contactcenters.msk.model.CallCenter}
+class, which is the
+central point of the model.
+
+The model is usually created by the
+{@link umontreal.iro.lecuyer.contactcenters.msk.CallCenterSim}
+class, and can be retrieved by its
+\texttt{get\-Call\-Center} method.
+However, one may create a \texttt{CallCenter}
+object directly, and use it to get some information
+about the represented call center (e.g., mean service times),
+or perform custom
+simulations.
+</body>

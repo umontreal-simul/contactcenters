@@ -1,0 +1,271 @@
+\section{Types of experiments}
+\label{sec:mskexp}
+
+As we saw in section~\ref{sec:mskexpintro},
+the model can be simulated on a finite horizon, or
+a period can be selected to be simulated on an infinite horizon.
+This section describes these two types of experiments in more details.
+It also shows how sequential sampling can be applied in both cases as well
+as some possible problems that can arise during simulation.
+
+\subsection{Finite horizon}
+\label{sec:expfinite}
+
+A simulation on finite horizon is often used to estimate performance
+measures on a finite horizon, e.g., for a day, a week, etc.
+The simulator performs a determined
+number $n$ of independent \emph{replications}
+to estimate the variance and compute confidence intervals on
+performance measures.  For each replication,
+the simulator is
+initialized with all agents free and
+no call in the queues, and the whole horizon is simulated
+independently of other replications. At the end of the last main
+period,
+the simulation continues with the same number of agents as in the last
+main period, until no call can be removed from any queue by the
+available agents.
+After this wrap-up period,
+statistical
+observations are available for each estimated expectation.
+
+This gives a certain number of independent and identically distributed
+(i.i.d.) observations for each estimated
+expectation.  Averages, sample variances, and
+confidence intervals are then available at the end of the simulation.
+See \texttt{RepSimParams} in namespace
+\path{http://www.iro.umontreal.ca/lecuyer/contactcenters/app}
+for options specific to finite horizon.
+
+%In that setting, the value of $\pawt$ of a call corresponds to
+%$\pstat$ (see section~\ref{sec:callattr}).  Otherwise,
+%service level could potentially be
+%computed by averaging values with different thresholds, which would
+%not be sensible.
+With this type of experiment, performance measures can be estimated
+for multiple time intervals, each interval corresponding to a subset
+of the main periods.
+Any measure corresponding to a count, e.g., the number of served
+calls, requires a time interval to be associated with events.
+Choosing the right interval is important, and can affect the simulation
+results.
+For example,
+if a call arrives in a time interval and leaves in a
+subsequent one, the arrival and the service might be counted in
+different intervals, which may result in more served calls than the
+number of arrivals for some period.
+All events related to a call
+must be counted in the same time interval to avoid
+this problem.
+
+This is done by associating a \emph{statistical period} to each call.
+This corresponds to the arrival period by
+default, but this can be changed via the
+\texttt{per\-Period\-Collecting\-Mode} attribute of the
+experiment parameters. %(see
+%section~\ref{javadoc:umontreal.iro.lecuyer.contactcenters.app.PerPeriodCollectingMode}).
+
+Every call is counted for statistical reports.  If the statistical
+period of a call corresponds to the warmup period, the call is counted
+in the first main period.  Similarly, if the statistical period
+corresponds to the wrap-up period, the call is counted in the last
+main period.
+
+\paragraph{Sequential sampling.}
+By default, a constant number of replications, specified in the
+parameter file, is
+simulated.  However, if a target relative error is given for a
+set of performance measures selected using
+\texttt{sequential\-Sampling} elements in experiment parameters, the
+number of
+replications becomes random: after $n_0$ minimal replications are
+simulated, the simulator computes the estimates for the selected
+measures and their
+associated confidence
+intervals.  Let $\bar X_n$ be an estimator
+for one of the selected performance measures, and let the
+confidence interval on the true mean be $[\bar X_n - \delta_n, \bar X_n +
+\delta_n]$ with
+confidence level $1-\alpha$.  For each checked performance measure,
+the relative error $\delta_n/\bar X_n$ must be smaller than or equal to the
+selected threshold.  If this condition is violated for at least one
+checked performance measure,
+a new target number of
+replications is determined, and additional replications are simulated.
+In other words, the sample size increases until the required precision
+is attained.  This procedure is called \emph{sequential sampling} in
+the simulation literature \cite{sLAW00a}.
+
+In some cases, sequential sampling can continue for a very long time
+if the target
+relative error is hard to reach for some performance measures.
+Consequently,
+the user can specify a maximal number of replications to
+be simulated by using the
+\texttt{max\-Replications} attribute in the experiment parameters.
+
+\subsection{Steady-state}
+\label{sec:expsteadystate}
+
+Steady-state simulation is used to estimate performance measures on an
+infinite horizon.  This can be useful to compare simulation with
+analytical formulas, but this is incompatible with arrival processes
+using randomized arrival rates.  In this setting,
+all the parameters are fixed for a selected period at the
+beginning of the experiment.
+The infinite horizon has to be truncated
+to get results in a finite amount of
+time, which is a source of
+bias in the estimators.  To reduce the bias, it is better to use the
+simulation budget for a single, long replication, rather than multiple
+replications.
+
+However, with a single long replication, the variance
+cannot be estimated easily
+since the sample size is one.  To solve this
+problem, the total simulation time is divided into intervals called
+\emph{batches} used to regroup events in order to
+get (almost) independent observations.
+These differ from the time intervals associated with performance
+measures, which correspond to main periods in the model.
+For the results to be independent of the batch size, every count
+obtained during batches is divided by the batch size.
+Averages, sample variances, and confidence
+intervals are then computed across batches as if they were truly
+independent.  The point estimators are the
+same as if no batches were used, but the sample size becomes greater
+than one.
+In this model, all batches have
+a fixed duration $s$ in simulation time units.
+This permits the simulator to divide all estimated performance
+measures (except ratios) by $s$ to obtain rates relative to one
+simulation time unit instead of numbers of events per batch.
+
+It is necessary to get over the
+transient period of the simulation for the estimators to be
+independent from the initial conditions.  In practice, the moment at which
+the steady-state is attained cannot be determined.  To minimize the bias, a
+warmup period is simulated before statistical observations are
+collected.  If the warmup period has duration $\tau$, and
+statistical observations are collected for $m$ batches of duration
+$s$, the total simulation time is $\tau + ms$, and the sample size is $m$.
+
+To further reduce the bias, the system can be initialized non-empty:
+instead of starting the simulation with all agents free, which is a
+rare event in call center operation, a fraction of the agents is made
+busy.  To perform this initialization, queueing is disabled, and
+arrivals are simulated until the required number of agents becomes
+busy, or the state of the system does not change anymore.
+After the initialization is over, queueing is enabled back and
+services are allowed to end.
+
+%Here, the value of $\pawt$ of any call corresponds to the
+%selected period for fixing the parameters.
+The statistical period of every call is 0, since the results
+concern a single period only.
+A call is counted in statistical reports if and only if its arrival
+time is greater than $\tau$, and if it exits before the simulation is
+terminated.
+
+\paragraph{Sequential sampling.}
+As with finite horizon simulation, sequential sampling can be used.
+Once a target error is given, the same
+algorithm as with finite horizon simulation is used for error
+checking, with replications replaced by batches.  However, it is
+possible to randomize the number of batches $m$ or the batch size
+$s$.  In the former case, the simulator does not need to keep
+information about batches.  Only the number of batches and sums of
+observations are necessary.  The event counts are added to statistical
+collectors and discarded for optimal memory usage, and the sample size
+$n=m$ is random.  To achieve that,
+it is necessary to count call-related events at the time calls leave
+instead of at the time they enter the system.  However, when the
+batches are
+large, this has no impact on the estimators since relatively few calls
+arrive in a batch and leave in another one.
+
+To randomize the batch size while keeping the number of batches constant,
+the simulator needs to use a mechanism called \emph{batch
+  aggregation}.  Each value computed across a batch is stored to
+be regrouped at the time $m$ batches are available.
+Observations are then computed from \emph{effective batches}
+by summing (or aggregating) the values of $h=m/n$ successive
+\emph{real batches}, assuming $m=hn$.  Each effective batch regroups
+$h=1,\ldots$ real batches, while $h$ increases with simulation length.
+Note that the normalization by the batch size is performed after
+values are regrouped.
+
+All effective batches must always contain the same
+number of real batches for the observations to be identically distributed.
+At the time of the first error check, $m=n$, i.e., each effective
+batch
+contains a single real batch.  As the effective batch size increases,
+when an
+error check is performed, $m$ is a multiple of $n$ for each effective
+batch to contain the same number of real batches.  As a result,
+the simulator always
+rounds the target number of batches $m$ to the smallest multiple of
+$n$ greater than or equal to $m$.
+
+As with independent replications, using sequential sampling with batch
+means can cause excessively long simulations.  It is therefore possible for
+the user to
+set an upper bound on the total number of real batches that can be
+simulated.  Setting a maximal number of batches can also help
+preventing the simulator from running out of memory.
+
+\paragraph{Stability.}
+Simulating with batch means can raise two additional major problems:
+stability and memory utilization.
+First, the
+system may be unstable, i.e., the size of one or more queues may grow
+with simulation time.  In this case, batches are strongly correlated,
+and the resulting estimators are biased because no steady state
+exists.  Unfortunately,
+this instability is hard to detect.  To avoid such situations, it is
+advisable to induce some abandonment by setting the probability of
+balking to a non-zero value or generating finite patience times.
+
+If patience times are infinite, the simulator tries to check for
+instability by monitoring the total
+number of customers in queues.  If the queue becomes larger than a
+certain threshold $Q$, the simulator considers the system as
+apparently unstable.  If, by the end of the simulation, the queue size
+happens to become smaller than $Q$, the system is considered stable
+again.  If the system is suspected to be unstable at the
+time the simulation ends, statistics are output as usual, but a warning
+indicates to the user that the system appears to be unstable.
+The value of $Q$ is set to $20000 + 1000\sqrt{N}$, where $N$ is the
+total number of agents in all groups.
+Note that this check is only a heuristic; it cannot accurately
+decide whether a system is stable or not.
+
+\paragraph{The simulator running out of memory.}
+Memory utilization is the second important problem with batch means:
+the queues can become too large due to the instability of the system.
+Some systems may even be stable while the steady-state
+size of queues may be large enough to exhaust the memory available to
+the Java virtual machine.  This
+results in an error crashing the simulator without providing any
+simulation result.
+The simulator tries to prevent this situation as follows.
+Let $v$ be the number of stored real batches at the time of an error
+check, and $T$ be the target number of real batches needed for attaining
+the required precision.
+If $v\le 100T$, which should not happen if the
+initial batch size is sufficiently large, the number of batches to
+simulate is much larger than
+the number of batches already simulated.
+We then drop the $v$ simulated batches to save memory, and multiply the
+batch size by $20m$.  We also divide the number of required
+additionnal real batches by $20m$.
+This is equivalent to increasing the duration of the warmup period,
+and has little impact on results since the number of discarded batches
+is relatively small.
+If that heuristic fails to avoid the out-of-memory condition, one
+should decrease the average patience time (see
+element \texttt{patience\-Time}),
+%p.~\pageref{javadoc:umontreal.iro.lecuyer.contactcenters.msk.CallTypeParams:getPatienceTime()}),
+e.g.,
+by increasing exponential patience rate, or increase Java heap size
+(see section~\ref{sec:cmdline}).

@@ -1,0 +1,16 @@
+  Step    Type  Period     ArvTime   QueueTime    Outcome   Group     SrvTime
+     0       1       1       0.365       0.000     Served       0       0.012
+     0       0       1       0.277       0.000     Served       0       0.212
+     0       0       1       0.162       0.000     Served       0       0.790
+     0       2       1       0.969       0.000     Served       1       0.567
+     0       0       1       1.135       0.000     Served       0       1.053
+     0       0       1       1.339       0.000     Served       0       1.078
+     0       0       1       1.521       0.000     Served       0       0.941
+     1       2       1      24.243       0.965     Served       1       0.633
+     1       1       1      22.958       1.065     Served       0       1.954
+     1       0       1      24.668       1.104     Served       0       0.215
+     1       2       1      21.892       0.887     Served       1       3.259
+     1       1       1      25.111       0.951  Abandoned      -1         NaN
+     1       0       1      23.158       0.942     Served       0       2.015
+     1       0       1      21.637       0.802     Served       0       3.714
+     1       1       1      25.874       0.422  Abandoned      -1         NaN

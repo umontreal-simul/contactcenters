@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ccmsk:MSKCCParams startingTime="PT8H" periodDuration="PT30M"
+ numPeriods="22" defaultUnit="SECOND"
+  xmlns:ccmsk="http://www.iro.umontreal.ca/lecuyer/contactcenters/msk">
+  <inboundType name="Regulated">
+    <patienceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+      <defaultGen>515.625</defaultGen>
+    </patienceTime>
+    <serviceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+      <defaultGen>588</defaultGen>
+    </serviceTime>
+    <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true"
+                    arrivalsMult="0.25">
+      <arrivals>48 76 108 128 141 139 133 124 112 114 123 126 129 127
+                121 124 131 120 81 61 50 42</arrivals>
+    </arrivalProcess>
+  </inboundType>
+  <inboundType name="Non-regulated">
+    <patienceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+      <defaultGen>515.625</defaultGen>
+    </patienceTime>
+    <serviceTime unit="SECOND" distributionClass="ExponentialDistFromMean">
+      <defaultGen>588</defaultGen>
+    </serviceTime>
+    <arrivalProcess type="PIECEWISECONSTANTPOISSON" normalize="true"
+                    arrivalsMult="0.75">
+      <arrivals>48 76 108 128 141 139 133 124 112 114 123 126 129 127
+                121 124 131 120 81 61 50 42</arrivals>
+    </arrivalProcess>
+  </inboundType>
+  <agentGroup detailed="true">
+    <staffing>13 23 37 40 45 53 56 48 39 46
+              42 45 43 47 54 59 48 45 30 22 18 15</staffing>
+  </agentGroup>
+
+<!--  <router routerPolicy="AGENTSPREF">
+    <ranksGT>
+      <row>1  2</row>
+    </ranksGT>
+    <routingTableSources ranksTG="ranksGT" ranksGT="ranksTG"/>
+  </router> -->
+  <router routerPolicy="OVERFLOWANDPRIORITY">
+    <!-- Routing script for regulated calls -->
+    <callTypeRouting>
+      <stage waitingTime="PT0S">
+        <default>
+          <agentGroupRanks>1</agentGroupRanks>
+        </default>
+      </stage>
+    </callTypeRouting>
+    <!-- Routing script for non-regulated calls -->
+    <callTypeRouting>
+      <stage waitingTime="PT0S">
+        <default>
+          <agentGroupRanks>2</agentGroupRanks>
+        </default>
+      </stage>
+    </callTypeRouting>
+  </router>
+
+  <serviceLevel>
+    <awt>
+      <row>PT20S</row>
+    </awt>
+    <target>
+      <row>0.8</row>
+    </target>
+  </serviceLevel>
+</ccmsk:MSKCCParams>
